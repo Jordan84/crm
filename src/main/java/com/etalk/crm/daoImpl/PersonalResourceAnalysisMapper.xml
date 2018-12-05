@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.PersonalResourceAnalysisMapper" >
+    <!--cc leads  本月跟尽量-->
+    <select id="ccLeadsCounter" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+      SELECT ifnull(COUNT(1),0) from grab_order_logs gl
+      LEFT JOIN person p on gl.new_cc_ssc = p.user_id and p.id = gl.person_id
+      where new_cc_ssc = #{ccId} and  DATE_FORMAT( gl.add_time,'%Y-%m') = DATE_FORMAT(now(),'%Y-%m')
+      and p.state = 1 and p.testmark in (0,5) and p.role_id = 3
+    </select>
+    <!--leads  本月最强对手已做到-->
+    <select id="opponentMaxLeadsCounter" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        SELECT ifnull(MAX(t.counter),0) from  (
+            SELECT count(1) as counter from grab_order_logs gl
+            LEFT JOIN person p on gl.new_cc_ssc = p.user_id and p.id = gl.person_id
+            where  DATE_FORMAT(gl.add_time,'%Y-%m') = DATE_FORMAT(now(),'%Y-%m') and p.state = 1
+            and p.testmark in (0,5) and p.role_id = 3 GROUP BY gl.new_cc_ssc) t
+    </select>
+    <!--本月leads 跟进 超过 其他cc  人数-->
+    <select id="leadsCounterMoreThanThisCc" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+      SELECT ifnull(count(1),0) counter from (
+          SELECT COUNT(1) counter from grab_order_logs
+          where   DATE_FORMAT(add_time,'%Y-%m') = DATE_FORMAT(now(),'%Y-%m') GROUP BY new_cc_ssc HAVING counter > #{thisCcCounter}) t
+    </select>
+
+    <!--cc  本月所发动态统计-->
+    <select id="stuDynamicsCounter" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select ifnull(count(t.add_user_id),0) from (select sd.add_user_id from student_dynamics sd
+          LEFT JOIN users u on sd.add_user_id = u.id
+          LEFT JOIN person p on p.id = sd.person_id
+          where u.state = 1 and u.role_id in (2,12)
+                and p.state = 1 and p.role_id = 3
+                and p.testmark in (0,5) and
+                sd.add_user_id = #{ccId}
+            and DATE_FORMAT(sd.add_time,'%Y-%m') = DATE_FORMAT(now(),'%Y-%m') GROUP BY sd.person_id) t
+    </select>
+
+    <!--本月最多 学员动态数量-->
+    <select id="maxStuDynamicsCounter"  resultType="java.lang.Integer">
+        SELECT ifnull(max(t2.counter),0) from (
+                SELECT count(t.add_user_id) counter,t.add_user_id from (
+                select sd.add_user_id from student_dynamics sd LEFT JOIN users u on sd.add_user_id = u.id LEFT JOIN person p on p.id = sd.person_id
+                where u.state = 1 and u.role_id in (2,12)
+                and p.state = 1 and p.role_id = 3
+                and p.testmark in (0,5)
+                and DATE_FORMAT(sd.add_time,'%Y-%m') = DATE_FORMAT(now(),'%Y-%m')
+                and sd.add_user_id is NOT NULL
+                and sd.add_user_id != 0
+                GROUP BY sd.person_id,u.id) t GROUP BY t.add_user_id) t2
+    </select>
+    <!--本月学员动态数量超过 其他cc  人数-->
+    <select id="stuDynamicsMoreThanThisCc" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        SELECT ifnull(count(1),0) from (
+              SELECT count(t.add_user_id) counter,t.add_user_id from (
+                    select sd.add_user_id from student_dynamics sd
+                    LEFT JOIN users u on sd.add_user_id = u.id
+                    where u.state = 1 and u.role_id in (2,12)
+                        and DATE_FORMAT(sd.add_time,'%Y-%m') = DATE_FORMAT(now(),'%Y-%m') and sd.add_user_id is NOT NULL
+                        and sd.add_user_id != 0  GROUP BY sd.person_id,u.id) t GROUP BY t.add_user_id
+                        HAVING counter > #{thisCcCounter})t2
+    </select>
+    <!-- cc  本月MKT渠道  demo 数量-->
+    <select id="selectmktDemoCounter" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        SELECT
+              IFNULL(sum(kc.testCount),0) as demoCounter
+            FROM
+                 (
+                SELECT
+                    count(1) AS testCount,kc.person_id
+                FROM
+                    kc_orders kc LEFT JOIN lessons le ON le.order_id = kc.id
+                WHERE
+                    kc.state = 1 and le.state = 2  AND kc.package_type_flag = 1
+                    GROUP BY kc.person_id,kc.id
+                ) kc
+                LEFT JOIN person p on p.id = kc.person_id
+                LEFT JOIN grab_order_logs gl on gl.person_id = p.id and p.user_id = gl.new_cc_ssc
+                LEFT JOIN channel_info ci ON ci.id = p.source
+                LEFT JOIN channel_type ct ON ci.type = ct.id
+                WHERE  p.state = 1
+                    AND p.role_id = 3 and testmark in (0,5) AND DATE_FORMAT(gl.add_time, '%Y-%m' ) = DATE_FORMAT(now(),'%Y-%m')
+                    AND p.source != 0  and ct.id != 2
+                    AND ci.state = 1 and gl.new_cc_ssc = #{ccId}
+    </select>
+    <!--本月MKT渠道demo 最大数量-->
+    <select id="maxMktDemoCounter" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        SELECT  ifnull(max(t.demoCounter),0) from (
+        SELECT
+            IFNULL(sum(kc.testCount),0) as demoCounter
+        FROM (
+            SELECT
+                count(1) AS testCount,kc.person_id
+            FROM
+                kc_orders kc LEFT JOIN lessons le ON le.order_id = kc.id
+            WHERE
+                kc.state = 1 and le.state = 2  AND kc.package_type_flag = 1
+                GROUP BY kc.person_id,kc.id
+            ) kc
+            LEFT JOIN person p on p.id = kc.person_id
+            LEFT JOIN grab_order_logs gl on gl.person_id = p.id and p.user_id = gl.new_cc_ssc
+            LEFT JOIN channel_info ci ON ci.id = p.source
+          LEFT JOIN channel_type ct ON ci.type = ct.id
+            WHERE
+            p.state = 1
+            AND p.role_id = 3 and testmark in (0,5) AND DATE_FORMAT(gl.add_time, '%Y-%m' ) = DATE_FORMAT(now(),'%Y-%m')
+            AND p.source != 0  and ct.id != 2 and gl.type_id in (1,2,3,5,7)
+            AND ci.state = 1  GROUP BY gl.new_cc_ssc) t
+    </select>
+    <!--"MKTDemo 数量超过 其他cc  人数-->
+    <select id="mktDemoMoreThanThisCc" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        SELECT ifnull(count(1),0) demoCounter from (SELECT
+            IFNULL(sum(kc.testCount),0) as demoCounter
+        FROM
+             (
+            SELECT
+                count(1) AS testCount,kc.person_id
+            FROM
+                kc_orders kc LEFT JOIN lessons le ON le.order_id = kc.id
+            WHERE
+                kc.state = 1 and le.state = 2  AND kc.package_type_flag = 1
+                GROUP BY kc.person_id,kc.id
+            ) kc
+            LEFT JOIN person p on p.id = kc.person_id
+            LEFT JOIN grab_order_logs gl on gl.person_id = p.id and p.user_id = gl.new_cc_ssc
+            LEFT JOIN channel_info ci ON ci.id = p.source
+          LEFT JOIN channel_type ct ON ci.type = ct.id
+            WHERE
+            p.state = 1
+            AND p.role_id = 3 and testmark in (0,5) AND DATE_FORMAT(gl.add_time, '%Y-%m' ) = DATE_FORMAT(now(),'%Y-%m')
+            AND p.source != 0  and ct.id != 2 and gl.type_id in (1,2,3,5,7) and gl.new_cc_ssc != 0
+            AND ci.state = 1  GROUP BY gl.new_cc_ssc HAVING demoCounter > #{thisCcCounter} ) as t
+    </select>
+    <!--cc  本月 ref pwic pwio 三个渠道demo 数量-->
+    <select id="rePwicPwioDemoList" parameterType="java.lang.Integer" resultType="com.etalk.crm.pojo.CcStatistics">
+      SELECT
+            IFNULL(SUM(kc.testCount),0) demoCounter,ct.id,ct.name
+        FROM
+             (
+            SELECT
+                count(1) AS testCount,kc.person_id
+            FROM
+                kc_orders kc LEFT JOIN lessons le ON le.order_id = kc.id
+            WHERE
+                kc.state = 1 and le.state = 2  AND kc.package_type_flag = 1 and   DATE_FORMAT(le.release_time, '%Y-%m' ) = '2018-11'
+                GROUP BY kc.person_id,kc.id
+            ) kc
+            LEFT JOIN person p on p.id = kc.person_id
+            LEFT JOIN grab_order_logs gl on gl.person_id = p.id and p.user_id = gl.new_cc_ssc
+            LEFT JOIN channel_info ci ON ci.id = p.source
+          LEFT JOIN channel_type ct ON ci.type = ct.id
+            WHERE
+            p.state = 1
+            AND p.role_id = 3 and testmark in (0,5) AND DATE_FORMAT(gl.add_time, '%Y-%m' ) = DATE_FORMAT(now(),'%Y-%m')
+            AND p.source != 0  and ct.id  in (2,4,5)
+            AND ci.state = 1 and gl.new_cc_ssc = #{ccId}  GROUP BY ct.id
+    </select>
+
+    <!--cc 本月(type) rf pwic pwio渠道  demo 最多  数量(分类型查)-->
+    <select id="maxRefPwicPwioDemoCounter" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+      SELECT ifnull(max(t.demoCounter),0) from (SELECT
+            IFNULL(SUM(kc.testCount),0) demoCounter
+        FROM
+             (
+            SELECT
+                count(1) AS testCount,kc.person_id
+            FROM
+                kc_orders kc LEFT JOIN lessons le ON le.order_id = kc.id
+            WHERE
+                kc.state = 1 and le.state = 2  AND kc.package_type_flag = 1 and   DATE_FORMAT(le.release_time, '%Y-%m' ) = DATE_FORMAT(now(),'%Y-%m')
+                GROUP BY kc.person_id,kc.id
+            ) kc
+            LEFT JOIN person p on p.id = kc.person_id
+            LEFT JOIN grab_order_logs gl on gl.person_id = p.id and gl.new_cc_ssc = p.user_id
+            LEFT JOIN channel_info ci ON ci.id = p.source
+          LEFT JOIN channel_type ct ON ci.type = ct.id
+            WHERE
+            p.state = 1
+            AND p.role_id = 3 and testmark in (0,5) AND DATE_FORMAT(gl.add_time, '%Y-%m' ) = DATE_FORMAT(now(),'%Y-%m')
+            AND p.source != 0  and ct.id   = #{type}  and gl.new_cc_ssc != 0
+            AND ci.state = 1  GROUP BY gl.new_cc_ssc) t
+    </select>
+    <!--本月(type) rf pwic pwio渠道demo  超过 其他cc  人数-->
+    <select id="refPwicPwioMorethanThisCc" parameterType="java.util.Map" resultType="java.lang.Integer">
+        SELECT ifnull(count(1),0) FROM(SELECT
+            IFNULL(SUM(kc.testCount),0) demoCounter
+        FROM
+             (
+            SELECT
+                count(1) AS testCount,kc.person_id
+            FROM
+                kc_orders kc LEFT JOIN lessons le ON le.order_id = kc.id
+            WHERE
+                kc.state = 1 and le.state = 2  AND kc.package_type_flag = 1 and   DATE_FORMAT(le.release_time, '%Y-%m' ) = '2018-11'
+                GROUP BY kc.person_id,kc.id
+            ) kc
+            LEFT JOIN person p on p.id = kc.person_id
+            LEFT JOIN grab_order_logs gl on gl.person_id = p.id and gl.new_cc_ssc = p.user_id
+            LEFT JOIN channel_info ci ON ci.id = p.source
+          LEFT JOIN channel_type ct ON ci.type = ct.id
+            WHERE
+            p.state = 1
+            AND p.role_id = 3 and testmark in (0,5) AND DATE_FORMAT(gl.add_time, '%Y-%m' ) = '2018-11'
+            AND p.source != 0  and ct.id   = #{type}  and gl.new_cc_ssc != 0
+            AND ci.state = 1  GROUP BY gl.new_cc_ssc HAVING demoCounter >#{thisCcCounter}) t;
+    </select>
+    <!-- cc 关单  周期统计 平均天数  注：step（三个时间段） 该月不同时段  1-10号   11-20号  21-月末最后一天-->
+    <select id="ccCloseLeadsCycle" parameterType="java.lang.Integer" resultType="java.math.BigDecimal">
+        select  ifnull(ROUND((sum(t.days)/t.counter),2),0) from (select gl.add_time,datediff(gl.add_time, kc.buy_time)days,count(1) counter from grab_order_logs gl
+            left join person p on p.id = gl.person_id and p.user_id = gl.new_cc_ssc
+            left join kc_orders kc on kc.person_id = p.id
+            where p.state = 1 and p.testmark in (0,5) and gl.new_cc_ssc !=0 and kc.state = 1 and kc.package_type_flag = 0
+	          AND DATE_FORMAT(gl.add_time, '%Y-%m' ) = DATE_FORMAT(now(),'%Y-%m')
+              and gl.new_cc_ssc = #{ccId}
+              <if test="step == 1">
+                  AND DATE_FORMAT(gl.add_time, '%d' ) BETWEEN 1 and 10
+                </if>
+                <if test="step == 2">
+                  AND DATE_FORMAT(gl.add_time, '%d' ) BETWEEN 11 and 20
+                </if>
+                <if test="step == 3">
+                   AND DATE_FORMAT(gl.add_time, '%d' ) BETWEEN 21 and day(last_day(curdate()))
+              </if>
+          ) t
+
+    </select>
+    <!--cc 关单周期统计 平均天数（最大）1-10   11-20 21-30  -->
+    <select id="maxCcCloseLeadsCycle" parameterType="java.lang.Integer" resultType="java.math.BigDecimal">
+		 SELECT ifnull(min(t.avgCounter),0) from (SELECT ROUND((sum(t.days)/t.counter),2) avgCounter,t.new_cc_ssc from (select datediff(gl.add_time, kc.buy_time) days,count(1) counter,gl.new_cc_ssc from grab_order_logs gl
+            left join person p on p.id = gl.person_id and p.user_id = gl.new_cc_ssc
+            left join kc_orders kc on kc.person_id = p.id
+            where p.state = 1 and p.testmark in (0,5) and gl.new_cc_ssc !=0 and kc.state = 1 and kc.package_type_flag = 0
+	          AND DATE_FORMAT(gl.add_time, '%Y-%m' ) = DATE_FORMAT(now(),'%Y-%m')
+	          <if test="step == 1">
+                 AND DATE_FORMAT(gl.add_time, '%d' ) BETWEEN 1 and 10
+              </if>
+            <if test="step == 2">
+              AND DATE_FORMAT(gl.add_time, '%d' ) BETWEEN 11 and 20
+            </if>
+            <if test="step == 3">
+               AND DATE_FORMAT(gl.add_time, '%d' ) BETWEEN 21 and day(last_day(curdate()))
+            </if>
+          GROUP BY gl.new_cc_ssc ) as t	GROUP BY t.new_cc_ssc) t
+    </select>
+    <!--当前cc 关单超过 其他cc  人数-->
+    <select id="moreThanThisCcCloseLeadsCycle" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+          SELECT  ifnull(COUNT(1),0) FROM (SELECT ROUND((sum(t.days)/t.counter),2) avgCounter,t.new_cc_ssc from (select datediff(gl.add_time, kc.buy_time) days,count(1) counter,gl.new_cc_ssc from grab_order_logs gl
+            left join person p on p.id = gl.person_id and p.user_id = gl.new_cc_ssc
+            left join kc_orders kc on kc.person_id = p.id
+            where p.state = 1 and p.testmark in (0,5) and gl.new_cc_ssc !=0 and kc.state = 1 and kc.package_type_flag = 0
+	          AND DATE_FORMAT(gl.add_time, '%Y-%m' ) = DATE_FORMAT(now(),'%Y-%m')
+	          <if test="step == 1">
+                 AND DATE_FORMAT(gl.add_time, '%d' ) BETWEEN 1 and 10
+              </if>
+            <if test="step == 2">
+              AND DATE_FORMAT(gl.add_time, '%d' ) BETWEEN 11 and 20
+            </if>
+            <if test="step == 3">
+               AND DATE_FORMAT(gl.add_time, '%d' ) BETWEEN 21 and day(last_day(curdate()))
+            </if>
+          GROUP BY gl.new_cc_ssc ) as t	GROUP BY t.new_cc_ssc having  avgCounter > #{thisCcCounter}) t
+    </select>
+    <!--查询cc  总人数  计算打败了多少cc -->
+    <select id="selectCcCounter" resultType="java.lang.Integer">
+        select  count(1) from users where state = 1 and role_id in (2,12)
+    </select>
+</mapper>

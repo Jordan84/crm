@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderCustomEdit('发布活动赠送',~{::style})">
+    <style type="text/css">
+        .error {
+            color: red;
+            border-color: red;
+        }
+
+        .error:focus {
+            color: red;
+            border-color: red;
+        }
+
+        .red {
+            color: red;
+        }
+
+        .green {
+            color: green;
+        }
+
+        .dataArea .title {
+            padding: 5px 10px 0 0;
+        }
+
+        .dataArea .item {
+            padding: 0 20px 10px 0;
+        }
+
+        .action {
+            text-align: center;
+        }
+
+        .action button {
+            width: 52%;
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        .import-tips {
+            margin-top: 10px;
+        }
+
+        .clear {
+            clear: both;
+        }
+
+        /*关键设置 tbody出现滚动条*/
+        table {
+            text-align: center;
+        }
+
+        /*关键设置 tbody出现滚动条*/
+        table tbody {
+            display: block;
+            max-height: 300px;
+            overflow-y: scroll;
+        }
+
+        table thead,
+        tbody tr {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        table thead tr th{
+            border-bottom: solid 1px rgb(221, 221, 221) !important;
+            border-bottom-width: 2px;
+        }
+
+        table tbody tr td{
+            border-bottom: none !important;;
+        }
+
+        /*关键设置：滚动条默认宽度是16px 将thead的宽度减16px*/
+        table thead {
+            width: calc(100% - 1em)
+        }
+    </style>
+</head>
+<body>
+<div class="ch-container">
+    <div class="row">
+        <form class="form-horizontal" enctype="multipart/form-data" method="post">
+            <div class="box">
+                <legend class="text-center" style="padding-bottom:15px;font-weight: bold;" contenteditable="false">导入赠送名单</legend>
+                <div class="dataArea">
+                    <ul>
+                        <li>
+                            <div class="form-group">
+                                <div class="col-xs-1 title"></div>
+                                <div class="col-xs-6 item">
+                                    <input class="form-control" type="file" name="filename"/>
+                                </div>
+                                <div class="col-xs-4 item text-right">
+                                    <button class="btn btn-primary" style="width: 100%;" onclick="checkFile();">检测</button>
+                                </div>
+                                <div class="clear"></div>
+                                <div class="col-xs-1 title"></div>
+                                <div class="col-xs-10 item">
+                                    <p th:class="${count>0?'message import-tips':'message import-tips hide'}">导入总量<span style="font-weight: bold;" th:text="${count}"></span>个，错误<span class="red" th:text="${errorCount}"></span>个</p>
+                                    <p th:class="${(msg==null||msg=='')?'hide':'red'}" th:text="${msg}"></p>
+                                    <p th:class="${(tips==null||tips=='')?'hide':(errorCount>0)?'red':'green'}" th:text="${tips}"></p>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-group">
+                                <div class="col-xs-1 title"></div>
+                                <div class="col-xs-10 item">
+                                    <table class="table table-striped table-bordered table-hover" data-show-toggle="false">
+                                        <thead>
+                                        <tr>
+                                            <th style="text-align: center;">导入的学员</th>
+                                            <th style="text-align: center;">系统是否存在</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr th:each="stu,iterStat : ${notExistPersons}">
+                                            <td style="text-align: center;" th:text="${stu}">name</td>
+                                            <td style="text-align: center;" class="red">否</td>
+                                        </tr>
+                                        <tr th:each="stu2,iterStat : ${existPersons}">
+                                            <td style="text-align: center;" th:text="${stu2}">name</td>
+                                            <td style="text-align: center;" class="green">是</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-group action">
+                                <span class="col-xs-6 text-right">
+                                    <button class="btn btn-default" onclick="cancel();"><span>取消</span></button>
+                                </span>
+                                <span class="col-xs-6 text-left">
+                                    <span th:with="canNext=${null!=session.existPersons and session.existPersons.size()>0}" th:remove="tag">
+                                        <span th:if="${canNext}" th:remove="tag">
+                                            <button class="btn btn-primary" onclick="chooseGiftStep();"><span>下一步</span></button>
+                                        </span>
+                                        <span th:unless="${canNext}" th:remove="tag">
+                                            <button class="btn btn-primary" onclick="chooseGiftStep();" disabled><span>下一步</span></button>
+                                        </span>
+                                    </span>
+                                </span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div th:include="/include/onload_js::onloadJSCustomEdit(~{::script})">
+    <script type="text/javascript">
+        function cancel() {
+            window.event.preventDefault();
+            var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+            parent.layer.close(index); //再执行关闭
+
+            parent.window.location.reload();
+            return false;
+        }
+
+        function chooseGiftStep() {
+            $("form").attr("action", "/activity/give/importStudent");
+            // alert($("form").attr("action"));
+            $("form").submit();
+        }
+
+        function checkFile() {
+            $("form").attr("action", "/activity/give/checkFile");
+            // alert($("form").attr("action"));
+            $("form").submit();
+        }
+    </script>
+</div>
+</body>
+</html>

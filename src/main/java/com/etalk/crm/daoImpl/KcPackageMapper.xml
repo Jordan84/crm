@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.KcPackageMapper">
+    <!-- 获取促销套餐列表 -->
+    <select id="getPromationKcPackageList" resultType="java.util.Map">
+        SELECT kp.id,kp.name FROM kc_package kp WHERE kp.type_flag = 3
+        <if test="search!=null and search!=''">
+            WHERE kp.name LIKE concat('%',#{search},'%')
+        </if>
+    </select>
+    <!-- 根据套餐id查询套餐信息 -->
+    <select id="getPackegeInfoById" parameterType="int" resultType="com.etalk.crm.pojo.KcPackage">
+  	    SELECT id,price,class_count AS classCount,valid,lesson_count AS lessonCount,gift,type_flag AS typeFlag,classify_level AS classifyLevel,classify_id AS classifyId,`name`,textbooks_type AS textbooksType
+  	    FROM kc_package WHERE id = #{id}
+    </select>
+</mapper>

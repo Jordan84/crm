@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:include="/include/head::commonHeaderCustomEdit((${questionId}?'修改题目':'添加题目'),~{::style})">
+    <style type="text/css">
+        .error {
+            color: red !important;
+            border-color: red !important;
+        }
+
+        .error:focus {
+            color: red !important;
+            border-color: red !important;
+        }
+
+        .red {
+            color: red !important;
+        }
+
+        .sp_input {
+            padding-left: 8px !important;
+        }
+    </style>
+</head>
+<body>
+<!--<link rel="stylesheet" type="text/css" th:href="@{/static/lib/jQuery-Tags-Input/jquery.tagsinput.css}"/>-->
+<link rel="stylesheet" type="text/css" th:href="@{/static/lib/selectpage/selectpage.css}"/>
+<link rel="stylesheet" type="text/css" th:href="@{/static/lib/jQuery-Tag-This/tagthis.css?v=201810290002}"/>
+<div class="ch-container">
+    <div class="row">
+        <div class="col-lg-11 col-sm-11" style="width:93%;margin:0 2%;">
+            <div class="row">
+                <form class="form-horizontal" method="post" onsubmit="return false;">
+                    <div class="box col-md-12">
+                        <legend style="padding-bottom:15px;" contenteditable="false">题目信息</legend>
+                        <div id="dataArea">
+                            <ul class="quesbank">
+                                <li>
+                                    <div class="form-group">
+                                        <input type="hidden" id="qid" name="id" th:value="${questionBanks.id}">
+                                        <input type="hidden" id="knowledgeIds" name="relatedKnowledge" th:value="${questionBanks.relatedKnowledgeString}">
+                                        <label class="control-label col-sm-2">
+                                            <i class="red">*</i>选择录入类型:</label>
+                                        <div class="col-sm-2">
+                                            <select th:disabled="${questionId gt 0}" class="form-control" id="inputType" name="inputType" th:field="*{questionBanks.inputType}"
+                                                    onchange="inputTypeChooseSelect();" required>
+                                                <option value="1" selected>默认类型</option>
+                                                <option value="2">附带小题</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-8">
+                                            <label class="control-label">
+                                                <span class="red">*备注：默认类型录入完就是一个完整的题目，附带小题的类型需要在录入题干之后添加完所有小题才可完成录入</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <!--<div class="form-group">-->
+                                    <!--<label class="control-label col-sm-2">-->
+                                    <!--<i class="red">*</i>选择年级:</label>-->
+                                    <!--<div class="col-sm-2">-->
+                                    <!--<select class="form-control" id="qgradeId" name="qgradeId" th:field="${questionBanks.qgradeId}" onclick="getTerm($(this).val())" required>-->
+                                    <!--<option value="" selected>-年级-</option>-->
+                                    <!--<option th:each="list:${listQGrade}" th:value="${list.id}" th:text="${list.cnName}"></option>-->
+                                    <!--</select>-->
+                                    <!--</div>-->
+                                    <!--<label class="control-label col-sm-2">-->
+                                    <!--<i class="red">*</i>学期:</label>-->
+                                    <!--<div class="col-sm-2">-->
+                                    <!--<select id="qtermId" name="qtermId" th:field="*{questionBanks.qtermId}" class="form-control" required>-->
+                                    <!--<option value="" selected>-学期-</option>-->
+                                    <!--<option th:each="list:${listQuestionTerm}" th:value="${list.id}" th:text="${list.cnName}"></option>-->
+                                    <!--</select>-->
+                                    <!--</div>-->
+                                    <!--</div>-->
+                                    <!--<div class="form-group">-->
+                                    <!--<label class="control-label col-sm-2">-->
+                                    <!--<i class="red">*</i>单元:</label>-->
+                                    <!--<div class="col-sm-2">-->
+                                    <!--<select id="qunitId" name="qunitId" th:field="*{questionBanks.qunitId}" class="form-control" required>-->
+                                    <!--<option value="" selected>-单元-</option>-->
+                                    <!--<option th:each="list:${listQuestionUnit}" th:value="${list.id}" th:text="${list.cnName}"></option>-->
+                                    <!--</select>-->
+                                    <!--</div>-->
+                                    <!--<label class="control-label col-sm-2">-->
+                                    <!--<i class="red">*</i>课时:</label>-->
+                                    <!--<div class="col-sm-2">-->
+                                    <!--<select id="qlessonTimeId" name="qlessonTimeId" th:field="*{questionBanks.qlessonTimeId}" class="form-control" required>-->
+                                    <!--<option value="" selected>-课时-</option>-->
+                                    <!--<option th:each="list:${listQuestionLessonTime}" th:value="${list.id}" th:text="${list.cnName}"></option>-->
+                                    <!--</select>-->
+                                    <!--</div>-->
+                                    <!--</div>-->
+                                    <!-- 删除年级、学期单元课时 -->
+                                    <input type="hidden" name="qgradeId" value="0">
+                                    <input type="hidden" name="qtermId" value="0">
+                                    <input type="hidden" name="qunitId" value="0">
+                                    <input type="hidden" name="qlessonTimeId" value="0">
+                                    <!-- 标签暂时不显示 -->
+                                    <!--<div class="form-group">-->
+                                    <!--<label class="control-label col-sm-2"><i class="red">*</i>关键字:</label>-->
+                                    <!--<div class="col-sm-10">-->
+                                    <input type="hidden" name="questionTags" id="questionTags" th:value="${questionBanks.questionTags}" required/>
+                                    <!--</div>-->
+                                    <!--</div>-->
+                                    <div class="form-group" id="mistakes">
+                                        <div class="item">
+                                            <label class="control-label col-sm-2">
+                                                <i class="red">*</i>选择错词本分类:</label>
+                                            <div class="col-sm-2">
+                                                <select class="form-control" id="mistakeId" name="mistakeId" v-model="mistakeId" onchange="getChild(this)" required>
+                                                    <option v-for="option in listKnowledgePointMistakes" v-bind:value="option.id">{{option.cnName}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <li>
+                                    <div class="form-group">
+                                        <label class="control-label col-sm-2">选择知识点:</label>
+                                        <div class="col-sm-4">
+                                            <input class="form-control" type="text" placeholder="请选择关联知识点，可多选，最多选5个" id="relatedKnowledge">
+                                        </div>
+                                        <button id="btnAddKnowledge" class="btn btn-info">添加知识点</button>
+                                    </div>
+                                <li>
+                                    <div class="form-group">
+                                        <label class="control-label col-sm-2">
+                                            <i class="red">*</i>已选知识点:</label>
+                                        <div class="col-xs-9 item">
+                                            <div class="tag-this" id="noKnowledge">
+                                                <span class="tag" style="color: red;background: none;">尚未选择</span>
+                                            </div>
+                                            <input id="knowledge-tags"/>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-group">
+                                        <label class="control-label col-sm-2">
+                                            <i class="red">*</i>选择题类:</label>
+                                        <div class="col-sm-2">
+                                            <select id="qtypeId" name="qtypeId" th:field="*{questionBanks.qtypeId}" class="form-control" onchange="qtypeChooseSelect(this);"
+                                                    required>
+                                                <option value="" selected>-题类-</option>
+                                                <option th:each="list:${listQTypes}" th:value="${list.id}" th:text="${list.cnName}"></option>
+                                            </select>
+                                        </div>
+                                        <label class="control-label col-sm-2"><i class="red">*</i>选择题型:</label>
+                                        <div class="col-sm-2">
+                                            <select id="qmodeId" name="qmodeId" th:field="*{questionBanks.qmodeId}" class="form-control" required>
+                                                <option value="" selected>-题型-</option>
+                                                <option th:each="list:${listQMode}" th:value="${list.id}" th:text="${list.cnName}"></option>
+                                            </select>
+                                        </div>
+                                        <label class="control-label col-sm-2"><i class="red">*</i>选择难度系数:</label>
+                                        <div class="col-sm-2">
+                                            <select id="qddegreeId" name="qddegreeId" th:field="*{questionBanks.qddegreeId}" class="form-control" required>
+                                                <option value="" selected>-难度系数-</option>
+                                                <option th:each="list:${listQDifficultyDegree}" th:value="${list.id}" th:text="${list.cnName}"></option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-group">
+                                        <label class="control-label col-sm-2">标题:</label>
+                                        <div class="col-sm-10">
+                                            <input class="form-control" id="title" name="title" type="text" th:value="${questionBanks?.title}" data-toggle="tooltip"
+                                                   data-placement="top" title="请输入标题" placeholder="请输入题目标题（此标题仅仅用于题目描述，不在试卷上展示）" required/>
+                                            <p class="message error hide">错误信息</p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-group">
+                                        <label class="control-label col-sm-2">展示标题:</label>
+                                        <div class="col-sm-10">
+                                            <input class="form-control" id="qtitle" name="qtitle" type="text" th:value="${questionBanks?.qtitle}" data-toggle="tooltip"
+                                                   data-placement="top" title="请输入展示标题" placeholder="请输入展示标题（此标题会在试卷题干上显示）"/>
+                                            <p class="message error hide">错误信息</p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-group">
+                                        <label class="control-label col-sm-2">音频标题:</label>
+                                        <div class="col-sm-10">
+                                            <input class="form-control" id="audioTitle" name="audioTitle" type="text" th:value="${questionBanks?.audioTitle}" data-toggle="tooltip"
+                                                   data-placement="top" title="请输入音频标题" placeholder="请输入音频标题"/>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="control-label col-sm-2">音频链接:</label>
+                                        <div class="col-sm-10">
+                                            <input class="form-control" id="audioUrl" name="audioUrl" type="text" th:value="${questionBanks?.audioUrl}" data-toggle="tooltip"
+                                                   data-placement="top" title="请输入音频链接" placeholder="请输入音频链接">
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-group">
+                                        <label class="control-label col-sm-2">阅读题标题:</label>
+                                        <div class="col-sm-10">
+                                            <input class="form-control" id="contentTitle" name="contentTitle" type="text" th:value="${questionBanks?.contentTitle}" data-toggle="tooltip"
+                                                   data-placement="top" title="请输入阅读题标题" placeholder="请输入阅读题标题">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="control-label col-sm-2">阅读题内容:</label>
+                                        <div class="col-sm-10">
+                                                    <textarea class="form-control" id="content" name="content" th:text="${questionBanks?.content}" data-toggle="tooltip" data-placement="top"
+                                                              title="请输入阅读题内容" placeholder="请输入阅读题内容"></textarea>
+                                            <p class="message error hide">错误信息</p>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                            <ul class="titleImgList">
+                                <div th:each="img:${questionBanks.listQuestionBanksImg}" th:remove="tag">
+                                    <li>
+                                        <div class="form-group imgItem">
+                                            <label class="control-label col-sm-2">图片链接:</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" class="form-control" name="imgUrl" data-toggle="tooltip" data-placement="top" title="请输入图片链接" th:title="${img.imgTitle}"
+                                                       th:value="${img.imgUrl}" placeholder="请输入图片链接"/>
+                                            </div>
+                                            <div class="col-sm-2">
+                                                <i onclick="deletetitleImgList($(this))" style="padding:9px;cursor:pointer;margin-right:10px;" class="glyphicon glyphicon-minus imgItemsub"></i>
+                                                <i onclick="addtitleImgList($(this))" style="padding:9px;cursor:pointer;" class="glyphicon glyphicon-plus imgItemadd"></i>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </div>
+                            </ul>
+                            <ul id="quesItemInput" th:class="${questionBanks.inputType==1}?'quesItemInput':'quesItemInput hide'">
+                                <div th:each="op:${questionBanks.listOptionAnswer}" th:remove="tag">
+                                    <li>
+                                        <div class="form-group">
+                                            <label class="control-label col-sm-2">待选答案:</label>
+                                            <div class="col-sm-2">
+                                                <input type="text" class="form-control" id="optionTextAnswer" name="optionTextAnswer" th:value="${op.answer}" data-toggle="tooltip"
+                                                       data-placement="top" title="请输入待选答案" placeholder="请输入待选答案" onblur="checkOptionAnswer(this);"/>
+                                            </div>
+                                            <label style="padding:0px;padding-top: 9px;" class="control-label col-sm-1">图片链接：</label>
+                                            <div class="col-sm-3">
+                                                <input type="text" class="form-control" id="optionImgAnswer" name="optionImgAnswer" th:value="${op.imgUrl}" data-toggle="tooltip"
+                                                       data-placement="top" title="请输入图片链接" placeholder="请输入图片链接"/>
+                                            </div>
+                                            <label style="padding:0px;padding-top: 9px;" class="control-label col-sm-1">是否正确：</label>
+                                            <div style="padding-top: 9px;" class="col-sm-1">
+                                                <input type="hidden" id="isRight" name="isRight" value="false" th:value="${op.right==true}?'true':'false'"/>
+                                                <input type="checkbox" name="checkbox" checked="" th:checked="${op.right==true}?'checked':''"/>
+                                            </div>
+                                            <div class="col-sm-2">
+                                                <i onclick="deleteitemQues($(this))" style="padding:9px;cursor:pointer;margin-right:10px;" class="glyphicon glyphicon-minus imgItemsub"></i>
+                                                <i onclick="additemQues($(this))" style="padding:9px;cursor:pointer;" class="glyphicon glyphicon-plus imgItemadd"></i>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </div>
+                            </ul>
+                            <ul>
+                                <li>
+                                    <div class="form-group">
+                                        <label class="control-label col-sm-2"><i class="red">*</i>解析类型:</label>
+                                        <div class="col-sm-10">
+                                            <select id="expType" name="questionExplain.expType" th:field="*{questionBanks.questionExplain.expType}" class="form-control" onchange="expTypeChooseSelect(this);" required>
+                                                <option value="" selected>-解析类型-</option>
+                                                <option value="1">文本</option>
+                                                <option value="2">音频</option>
+                                                <option value="3">图片</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="control-label col-sm-2"><i class="red">*</i>解析内容:</label>
+                                        <div class="col-sm-10">
+                                            <textarea class="form-control" id="expContent" name="questionExplain.expContent" data-toggle="tooltip" data-placement="top" title="请输入解析内容" placeholder="请输入解析内容（类型为文本时请输入文字，类型为音频时请输入音频链接，类型为图片时请输入图片链接）"
+                                                      th:text="${questionBanks.questionExplain.expContent}" required></textarea>
+                                            <p class="message error hide">错误信息</p>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                            <ul id="scoreInput" th:class="${questionBanks.inputType==1}?'scoreInput':'scoreInput hide'">
+                                <li>
+                                    <div class="form-group">
+                                        <label class="control-label col-sm-2">
+                                            <i class="red">*</i>本题得分:</label>
+                                        <div class="col-sm-10">
+                                            <input class="form-control" id="fraction" name="fraction" th:value="${questionBanks.fraction}" type="text" data-toggle="tooltip"
+                                                   data-placement="top" title="请填写本题得分" placeholder="请填写本题得分" data-rule-required="true"
+                                                   data-msg-required="请填写本题得分" data-rule-number="true" data-msg-number="得分只能为数字"
+                                            />
+                                            <p class="message error hide">错误信息</p>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="box col-md-12">
+                        <fieldset>
+                            <div class="quesList">
+                                <div th:each="ques,quesStat:${questionBanks.listQuestionBanks}" th:remove="tag">
+                                    <div th:class="${questionBanks.inputType==1}?'quesitem hide':'quesitem'" style="padding:20px;background:#f3f4f5;margin-bottom: 10px;">
+                                        <i onclick="deletequesitem($(this))" style="cursor:pointer;padding: 10px 0;" class="deletequesitem glyphicon glyphicon-remove"></i>
+                                        <a onclick="hidestate($(this))" class="itemhide" hidestate="0" style="float:right;cursor:pointer;">收缩</a>
+                                        <div>
+                                            <ul class="quesbank">
+                                                <input type="hidden" name="id" th:value="${ques.id}">
+                                                <input type="hidden" name="inputType" value="1">
+                                                <input type="hidden" name="qgradeId" value="0">
+                                                <input type="hidden" name="qtermId" value="0">
+                                                <input type="hidden" name="qunitId" value="0">
+                                                <input type="hidden" name="qlessonTimeId" value="0">
+                                                <input type="hidden" name="mistakeId" value="1">
+                                                <input type="hidden" name="qtypeId" value="1">
+                                                <input type="hidden" name="qmodeId" value="1">
+                                                <input type="hidden" name="qddegreeId" value="1">
+                                                <input type="hidden" name="qtitle" value="">
+                                                <li>
+                                                    <div class="form-group">
+                                                        <label class="control-label col-sm-2">标题:</label>
+                                                        <div class="col-sm-10">
+                                                            <input class="form-control" name="title" type="text" th:value="${ques.title}" data-toggle="tooltip" data-placement="top"
+                                                                   title="请输入音频链接" placeholder="请输入标题"/>
+                                                            <p class="message error hide">错误信息</p>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="form-group">
+                                                        <label class="control-label col-sm-2">音频标题:</label>
+                                                        <div class="col-sm-10">
+                                                            <input class="form-control" name="audioTitle" type="text" th:value="${ques.audioTitle}" data-toggle="tooltip" data-placement="top"
+                                                                   title="请输入音频标题" placeholder="请输入音频标题"/>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="control-label col-sm-2">音频链接:</label>
+                                                        <div class="col-sm-10">
+                                                            <input class="form-control" name="audioUrl" type="text" th:value="${ques.audioUrl}" data-toggle="tooltip" data-placement="top"
+                                                                   title="请输入音频链接" placeholder="请输入音频链接"/>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="form-group">
+                                                        <label class="control-label col-sm-2">阅读题标题:</label>
+                                                        <div class="col-sm-10">
+                                                            <input class="form-control" name="contentTitle" type="text" th:value="${ques.contentTitle}" data-toggle="tooltip" data-placement="top"
+                                                                   title="请输入阅读题标题" placeholder="请输入阅读题标题">
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="control-label col-sm-2">阅读题内容:</label>
+                                                        <div class="col-sm-10">
+                                                                    <textarea class="form-control" name="content" data-toggle="tooltip" data-placement="top" title="请输入阅读题内容" placeholder="请输入阅读题内容"
+                                                                              th:text="${ques.content}"></textarea>
+                                                            <p class="message error hide">错误信息</p>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            </ul>
+
+                                            <ul class="titleImgList">
+                                                <div th:each="subItemImgs:${ques.listQuestionBanksImg}" th:remove="tag">
+                                                    <li>
+                                                        <div class="form-group imgItem">
+                                                            <label class="control-label col-sm-2">图片链接:</label>
+                                                            <div class="col-sm-8">
+                                                                <input type="text" class="form-control" name="imgUrl" th:value="${subItemImgs.imgUrl}" data-toggle="tooltip" data-placement="top"
+                                                                       th:title="${subItemImgs.imgTitle}" placeholder="请输入图片链接"
+                                                                />
+                                                            </div>
+                                                            <div class="col-sm-2">
+                                                                <i onclick="deletetitleImgList($(this))" style="padding:9px;cursor:pointer;margin-right:10px;" class="glyphicon glyphicon-minus imgItemsub"></i>
+                                                                <i onclick="addtitleImgList($(this))" style="padding:9px;cursor:pointer;" class="glyphicon glyphicon-plus imgItemadd"></i>
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                </div>
+                                            </ul>
+
+                                            <ul class="quesItemInput">
+                                                <div th:each="subItemOptions:${ques.listOptionAnswer}" th:remove="tag">
+                                                    <li>
+                                                        <div class="form-group">
+                                                            <label class="control-label col-sm-2">待选答案:</label>
+                                                            <div class="col-sm-2">
+                                                                <input type="text" class="form-control" name="optionTextAnswer" th:value="${subItemOptions.answer}" data-toggle="tooltip"
+                                                                       data-placement="top" title="请输入待选答案" placeholder="请输入待选答案" onblur="checkOptionAnswer(this);"
+                                                                />
+                                                            </div>
+                                                            <label style="padding:0px;padding-top: 9px;" class="control-label col-sm-1">图片链接：</label>
+                                                            <div class="col-sm-3">
+                                                                <input type="text" class="form-control" name="optionImgAnswer" th:value="${subItemOptions.imgUrl}" data-toggle="tooltip"
+                                                                       data-placement="top" title="请输入图片链接" placeholder="请输入图片链接"
+                                                                />
+                                                            </div>
+                                                            <label style="padding:0px;padding-top: 9px;" class="control-label col-sm-1">是否正确：</label>
+                                                            <div style="padding-top: 9px;" class="col-sm-1">
+                                                                <input type="hidden" name="isRight" value="false" th:value="${subItemOptions.right==true}?'true':'false'"/>
+                                                                <input type="checkbox" name="checkbox" checked="" th:checked="${subItemOptions.right==true}?'checked':''"/>
+                                                            </div>
+                                                            <div class="col-sm-2">
+                                                                <i onclick="deleteitemQues($(this))" style="padding:9px;cursor:pointer;margin-right:10px;" class="glyphicon glyphicon-minus imgItemsub"></i>
+                                                                <i onclick="additemQues($(this))" style="padding:9px;cursor:pointer;" class="glyphicon glyphicon-plus imgItemadd"></i>
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                </div>
+                                            </ul>
+                                            <ul>
+                                                <li>
+                                                    <div class="form-group">
+                                                        <label class="control-label col-sm-2"><i class="red">*</i>解析类型:</label>
+                                                        <div class="col-sm-10">
+                                                            <select name="questionExplain.expType" class="form-control" onchange="expTypeChooseSelect(this);" required>
+                                                                <option value="" selected>-解析类型-</option>
+                                                                <option value="1" th:selected="${ques.questionExplain?.expType==1}">文本</option>
+                                                                <option value="2" th:selected="${ques.questionExplain?.expType==2}">音频</option>
+                                                                <option value="3" th:selected="${ques.questionExplain?.expType==3}">图片</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="control-label col-sm-2"><i class="red">*</i>解析内容:</label>
+                                                        <div class="col-sm-10">
+                                                            <textarea class="form-control" name="questionExplain.expContent" data-toggle="tooltip" data-placement="top" title="请输入解析内容" placeholder="请输入解析内容（类型为文本时请输入文字，类型为音频时请输入音频链接，类型为图片时请输入图片链接）"
+                                                                      th:text="${ques.questionExplain?.expContent}" required></textarea>
+                                                            <p class="message error hide">错误信息</p>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                            <ul>
+                                                <li>
+                                                    <div class="form-group">
+                                                        <label class="control-label col-sm-2">
+                                                            <i class="red">*</i>本题得分:</label>
+                                                        <div class="col-sm-10">
+                                                            <input class="form-control" name="fraction" type="text" th:value="${ques.fraction}" data-toggle="tooltip" data-placement="top"
+                                                                   title="请填写本题得分" placeholder="请填写本题得分" data-rule-required="true"
+                                                                   data-msg-required="请填写本题得分" data-rule-number="true" data-msg-number="得分只能为数字">
+                                                            <p class="message error hide">错误信息</p>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <fieldset style="text-align: center;">
+                            <legend contenteditable="false"></legend>
+                            <button class="btn btn-success" type="submit" th:onclick="'submitForm('+${questionBanks.id}+',this)'" id="btnSubmit" data-loading-text="保存中..." style="margin:0 20px;">提交</button>
+                            <button th:class="${questionBanks.inputType==1}?'btn btn-primary addQuesItem hide':'btn btn-primary addQuesItem'" type="button" id="addQuesItemBtn" onclick="addQuesItem();">添加小题</button>
+                            <button th:class="${questionBanks.inputType==2}?'btn btn-primary addQuesItem hide':'btn btn-primary addQuesItem'" type="button" id="continueAddBtn" data-loading-text="处理中..."
+                                    th:onclick="'continueAdd('+${questionBanks.id}+',this)'">继续录入
+                            </button>
+                        </fieldset>
+                    </div>
+                </form>
+                <!--/form-->
+            </div>
+            <!--/row-->
+        </div>
+        <!--/#content.col-->
+    </div>
+    <!--/fluid-row-->
+</div>
+<!-- content ends -->
+<div th:include="/include/onload_js::onloadJSCustomEdit(~{::script})">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.16/vue.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-resource/1.5.0/vue-resource.min.js"></script>
+    <script th:src="@{/static/js/base64.js}"></script>
+    <!--<script th:src="@{/static/lib/jQuery-Tags-Input/jquery.tagsinput.js}"></script>-->
+    <script type="text/javascript" th:src="@{/static/lib/selectpage/selectpage.js?v=201810240003}"></script>
+    <script type="text/javascript" th:src="@{/static/lib/jQuery-Tag-This/jquery.tagthis.js?v=201810240001}"></script>
+    <script th:inline="javascript">
+
+        //layer loading
+        var loading = null;
+
+        /*<![CDATA[*/
+        var questionId = /*[[${questionId}]]*/0;
+        var lastMistakeId = /*[[${questionBanks.mistakeId}]]*/0;//取最后一级的ID值
+        var isContinue = /*[[${isContinue}]]*/0;//是否是继续录入
+
+        // var currentGradeId = /*[[${questionBanks.qgradeId}]]*/0;
+        // var currentTermId = /*[[${questionBanks.qtermId}]]*/0;
+        // var currentUnitId = /*[[${questionBanks.qunitId}]]*/0;
+        // var currentLessonTimeId = /*[[${questionBanks.qlessonTimeId}]]*/0;
+
+        // 当前已关联的知识点
+        var relatedKnowledgeIds = /*[[${questionBanks.relatedKnowledgeString}]]*/0;
+        var relatedKnowledgeNames = /*[[${questionBanks.relatedKnowledgeName}]]*/0;
+        /*]]>*/
+        var ADD = "add";
+        var EDIT = "edit";
+        var actionType = questionId > 0 ? EDIT : ADD;
+
+        //选中的id集合
+        var selectedIds = null;
+
+        var template = null;
+        var templateHeader = '<div class="item">' +
+            '<label class="control-label col-sm-2">\n' +
+            '    <i class="red">*</i></label>\n' +
+            '<div class="col-sm-2">\n' +
+            '    <select class="form-control" name="childMistakeId" onchange="getChild(this)" required>\n';
+        var templateOptions = null;
+        var templateFooter =
+            '    </select>\n' +
+            '</div>' +
+            '</div>';
+
+        var app = new Vue({
+            el: "#mistakes",
+            data: {
+                mistakeId: "",
+                listKnowledgePointMistakes: [{id: "", cnName: "-错词本分类-"}]
+            },
+            created: function () {
+            },
+            methods: {}
+        });
+
+        /*多级联动*/
+        var getChild = function (obj) {
+            //console.log("第一级分类当前选中ID：" + $(obj).val());
+            $.post("/question/mistakes/" + $(obj).val(), {}, function (res) {
+                //console.log("url:" + "/question/mistakes/" + $(obj).val());
+                //console.log(JSON.stringify(res));
+                if (res != null && res.status == 1) {
+                    //生成之前先清空
+                    // var items = $("#mistakes .item");
+                    //console.log(items.length)
+
+                    var currentItem = $(obj).parents(".item").get(0);
+                    //console.log("currentItem:\n" + $(currentItem));
+                    //console.log("currentItemHtml:\n" + $(currentItem).html());
+                    var next = $(currentItem).next();
+                    //console.log("nextItem:" + $(next));
+                    //console.log("nextItemHtml:" + $(next).html());
+
+                    if (res.data.length > 0) {
+                        if (typeof next.get(0) == "undefined") {
+                            //console.log("初始化新的select");
+                            initOption(res);
+                            template = templateHeader + templateOptions + templateFooter;
+                            //console.log($(template).html());
+                            $("#mistakes").append(template);
+
+                            //console.log("重新生成template,此时需要更新next，因为生成之前还不存在")
+                            //更新next
+                            next = $(currentItem).next();
+                            //console.log("更新后的nextItem:" + $(next));
+                            //console.log("更新后的nextItemHtml:" + $(next).html());
+                        } else {
+                            //console.log("无需初始化");//需要更新
+                            initOption(res);
+                            //console.log("select:" + $(next).find("select"));
+                            //console.log("更新前：" + $(next).find("select").html());
+                            $(next).find("select").html(templateOptions);
+                            //console.log("更新后：" + $(next).find("select").html());
+                            //console.log("更新完整：" + $(next).html())
+                        }
+
+                        //选中
+                        if (actionType == EDIT) {
+                            //触发change方法
+                            var nextSelect = $(next).find("select").eq(0);
+                            //console.log("nextSelect:" + $(nextSelect));
+                            //console.log("nextSelect.html:" + $(nextSelect).html());
+                            //console.log("触发change方法");
+                            if (selectedIds.length > 0) {//已经选中的数组还有
+                                var nextVal = selectedIds.pop();
+                                //console.log("nextSelect.val=" + $(nextSelect).val());
+                                //console.log("selectedIds:" + JSON.stringify(selectedIds));
+                                $(nextSelect).val(nextVal);
+                                // $(nextSelect).change($(nextSelect));
+                                getChild($(nextSelect));
+                            }
+                        }
+
+                    } else {
+                        console.log("没有了：" + $(next).html());
+                        // 选中知识点
+                        // getKnowledge($(obj).val());
+
+                        if (typeof next.get(0) != "undefined") {
+                            $(next).remove();
+                            //console.log("移除");
+                        } else {
+                            //console.log("不用移除");
+                        }
+                        //全部加载完毕
+                        layer.close(loading);
+                    }
+                } else {
+                    layer.msg('操作失败', {icon: 2});
+                }
+            });
+        };
+
+        /**
+         *根据错词本获取知识点
+         */
+        // function getKnowledge(mistakeId) {
+        //     $.post("/questionKnowledge/allKnowledge/list", {mistakeId: mistakeId},
+        //         function (res) {
+        //             console.log("res:" + JSON.stringify(res));
+        //             $("#relatedKnowledge").selectPageData(res.list);
+        //
+        //             if (res.list.length > 0) {
+        //                 $("#btnAddKnowledge").hide();
+        //             } else {
+        //                 $("#btnAddKnowledge").removeClass("hide").show();
+        //                 console.log("没有知识点,显示添加按钮");
+        //             }
+        //
+        //             // 当前页码
+        //             // var current = $("#knowledgeIds").val();
+        //             // console.log("current relatedKnowledge:" + current);
+        //             // $('#relatedKnowledge').val(current);
+        //             // $('#relatedKnowledge').selectPageRefresh();
+        //         });
+        // }
+
+        function initOption(res) {
+            templateOptions = '<option value="">-错词本分类-</option>\n';
+
+            for (var cIdx in res.data) {
+                var cItem = res.data[cIdx];
+                option = '<option value="' + cItem.id + '">' + cItem.cnName + '</option>\n';
+                templateOptions = templateOptions + option;
+            }
+        }
+
+        /**
+         * 获取子学期下拉
+         */
+        // var getTerm = function (gradeId) {
+        //     // console.log(gradeId);
+        //     $("#qtermId").empty();
+        //     $("#qtermId").append('<option value="">-学期-</option>');
+        //     $.post("/question/terms", {gradeId: gradeId}, function (res) {
+        //         // console.log(JSON.stringify(res));
+        //         var terms = res.data.list;
+        //         // console.log(terms);
+        //         if (terms != null && terms.length > 0) {
+        //             for (var idx in terms) {
+        //                 var term = terms[idx];
+        //                 // console.log(term);
+        //                 var selected = '';
+        //                 if (currentTermId == term.id) {
+        //                     selected = 'selected';
+        //                 }
+        //                 $("#qtermId").append('<option value="' + term.id + '" ' + selected + '>' + term.cnName + '</option>');
+        //             }
+        //         }
+        //     });
+        // };
+
+        /**
+         *获取子学期下拉
+         */
+        // var getTermChild = function (parentTermId, obj, name, currentId) {
+        //     obj.empty();
+        //     obj.append('<option value="">-' + name + '-</option>');
+        //     $.post("/question/terms", {parentTermId: parentTermId}, function (res) {
+        //         var items = res.data.list;
+        //         // console.log(items);
+        //         if (items != null && items.length > 0) {
+        //             for (var idx in items) {
+        //                 var item = items[idx];
+        //                 // console.log(item);
+        //                 var selected = '';
+        //                 if (currentId == item.id) {
+        //                     selected = 'selected';
+        //                 }
+        //                 obj.append('<option value="' + item.id + '" ' + selected + '>' + item.cnName + '</option>');
+        //             }
+        //         }
+        //     });
+        // };
+
+        $(document).ready(function () {
+            // 初始化标签控件
+            // $("#questionTags").tagsInput({
+            //     'width': '100%',
+            //     'interactive': true,
+            //     'defaultText': '添加...',
+            //     'onAddTag': function () {
+            //         console.log("onAddTag");
+            //     },
+            //     'onRemoveTag': function () {
+            //         console.log("onRemoveTag");
+            //     },
+            //     'placeholderColor': '#666666'
+            // });
+
+            $("input[type='checkbox']").click(function () {
+                if ($(this).prop("checked") == true) {
+                    $(this).prev().val("true");
+
+                    //单选控制
+                    if ($("#qmodeId").val() == 1) {
+                        var sibs = $(this).parent().parent().parent().siblings();
+                        $(sibs).each(function (i, n) {
+                            //console.log($(n).find('input[name="checkbox"]'));
+                            $(n).find('input[name="checkbox"]').prev().val("false");
+                            $(n).find('input[name="checkbox"]').prop("checked", false); //设置当前选中的checkbox同级(兄弟级)其他checkbox状态为未选中
+                        });
+                    }
+
+                } else {
+                    $(this).prev().val("false");
+                }
+            });
+
+            var hidCheckFlags = $("input[name='isRight']");
+            $(hidCheckFlags).each(function (i, n) {
+                //console.log(i);
+                //console.log(n);
+                //console.log($(n).next().prop("checked"));
+                if ($(n).val() == 'true') {
+                    $(n).next().prop("checked", true);
+                } else {
+                    $(n).next().prop("checked", false);
+                }
+                //console.log($(n).next().prop("checked"));
+            });
+
+            //判断继续录入
+            if (questionId > 0 && isContinue == null) {
+                $("#continueAddBtn").addClass("hide");
+            } else {
+                //console.log("继续录入");
+                $("#continueAddBtn").removeClass("hide");
+                $("#qid").val(0);
+                $("input[name=optionTextAnswer]").val("");
+                $("input[name=optionImgAnswer]").val("");
+                var chk = $("#quesItemInput").find('input[name="checkbox"]');
+                //console.log(chk);
+                //alert(chk);
+                $(chk).each(function (i, n) {
+                    //console.log("checkbox:" + n);
+                    //console.log("checkbox.checked:" + $(n).prop("checked"));
+                    $(n).prop("checked", false);
+                    $(n).prev().val("false");
+                    //console.log("checkbox.checked:" + $(n).prop("checked"));
+                    //$(n).click();
+                })
+            }
+
+            $.post("/question/mistakes/0", {}, function (res) {
+                //console.log(JSON.stringify(res));
+                if (res != null && res.status == 1) {
+                    ////console.log(JSON.stringify(res.data));
+                    //layer.msg('操作成功', {icon: 1});
+                    app.listKnowledgePointMistakes = app.listKnowledgePointMistakes.concat(res.data);
+
+                    if (actionType == EDIT) {
+                        loading = layer.load();
+                        //初始化选中
+                        $.post("/question/mistakes/parent/" + lastMistakeId, {}, function (resp) {
+                            //console.log("question.mistakes.parent.result:" + JSON.stringify(resp));
+                            if (resp != null && resp.status == 1) {
+                                selectedIds = resp.data;
+                                var firstMistakeId = selectedIds.pop();
+                                //console.log("firstMistakeId:" + firstMistakeId);
+                                //console.log("selectedIds:" + JSON.stringify(selectedIds));
+                                $("#mistakeId").val(firstMistakeId);
+                                //console.log("$(\"#mistakeId\").val()：" + $("#mistakeId").val());
+                                getChild($("#mistakeId"));
+                            } else {
+                                layer.msg('错词本分类数据尚未初始化，请重新选择错词本分类之后提交', {icon: 2});
+                                //全部加载完毕
+                                layer.close(loading);
+                            }
+                        });
+                    }
+
+                } else {
+                    layer.msg('操作失败', {icon: 2});
+                }
+
+            });
+
+            //后台传来的初始值
+            // app.$http.post('/question/mistakes/0').then(function (response) {
+            //     var res = response.data;
+            //     //console.log("/question/mistakes/0.response：" + JSON.stringify(res));
+            //     if (res != null && res.status == 1) {
+            //         ////console.log(JSON.stringify(res.data));
+            //         layer.msg('操作成功', {icon: 1});
+            //         app.listKnowledgePointMistakes = app.listKnowledgePointMistakes.concat(res.data);
+            //     } else {
+            //         layer.msg('操作失败', {icon: 2});
+            //     }
+            // });
+
+            // getTerm(currentGradeId);
+
+            $("#btnAddKnowledge").on("click", function (e) {
+                e.preventDefault();
+
+                var url = "/questionKnowledge/page/edit?isFromQuestion=1";
+                layer.open({
+                    type: 2,
+                    title: false,
+                    closeBtn: 1, //显示关闭按钮
+                    // shade: [0],
+                    shade: 0.4,
+                    area: ['750px', '400px'],
+                    // offset: 'rb', //右下角弹出
+                    // time: 2000, //2秒后自动关闭
+                    // anim: 2,
+                    content: [url, 'no'], //iframe的url，no代表不显示滚动条
+                    end: function () { //此处用于演示
+                    },
+                    cancel: function (index, layero) {
+                    }
+                });
+            });
+
+            //关联知识点
+            $('#relatedKnowledge').selectPage({
+                showField: 'cnName',
+                keyField: 'id',
+                data: {},
+                multiple: false,//打开多选
+                maxSelectLimit: 0,//多选
+                pageSize: 5,
+                // eAjaxSuccess: function (data) {
+                //     return data;
+                // }
+                eSelect: function (data) {
+                    console.log("data:" + JSON.stringify(data));
+                    var tagData = {
+                        text: data.cnName,
+                        id: data.id
+                    }
+                    // addTag会出发change方法，change方法会赋值
+                    $('#knowledge-tags').addTag(tagData);
+
+                    console.log("current relatedKnowledge:" + $("#knowledgeIds").val());
+                    return data;
+                }
+            });
+
+            // 初始化已选中分类
+            $('#knowledge-tags').tagThis({
+                interactive: false,
+                noDuplicates: true,
+                callbacks: {
+                    // beforeAddTag : functionName,
+                    // function(context, tags, addedInput) {
+                    //     console.log(JSON.stringify("add:" + tags));
+                    // },
+                    // beforeRemoveTag : functionName,
+                    afterRemoveTag: function () {
+                        $('#relatedKnowledge').selectPageClear();
+                    },
+                    onChange: function (data) {
+                        console.log("onchange data:" + JSON.stringify(data));
+                        console.log("onchange:" + JSON.stringify(data.tags));
+                        var kids = "";
+                        if (data.tags.length > 0) {
+                            for (var idx in data.tags) {
+                                var item = data.tags[idx].id;
+                                if (idx == data.tags.length - 1) {
+                                    kids += item;
+                                } else {
+                                    kids += (item + ",");
+                                }
+                            }
+                            $("#noKnowledge").hide();
+                        } else {
+                            $("#noKnowledge").find(".tag").html('尚未选择');
+                            $("#noKnowledge").show();
+                        }
+                        console.log("kids:" + kids);
+                        $("#knowledgeIds").val(kids);
+                    }
+                    // errors : functionName
+                }
+            });
+
+            // 初始化标签
+            if (relatedKnowledgeIds != null && relatedKnowledgeIds != '') {
+                var knowledgeArray = relatedKnowledgeIds.split(",");
+                if (knowledgeArray.length > 0) {
+                    for (var idx in knowledgeArray) {
+                        var relatedKnowledgeNameArray = relatedKnowledgeNames.split(",");
+                        var tagData = {
+                            text: relatedKnowledgeNameArray[idx],
+                            id: knowledgeArray[idx]
+                        }
+                        $('#knowledge-tags').addTag(tagData);
+                    }
+                }
+            }
+        });
+
+        $(function () {
+            valiForm();
+
+            $("[data-toggle='tooltip']").tooltip();
+
+            // $("#qtermId").on("change", function () {
+            //     var termId = $(this).val();
+            //     getTermChild(termId, $("#qunitId"), '单元', currentUnitId);
+            // });
+            //
+            // $("#qunitId").on("change", function () {
+            //     var unitId = $(this).val();
+            //     getTermChild(unitId, $("#qlessonTimeId"), '课时', currentLessonTimeId);
+            // });
+        });
+
+        /*
+         * 表单校验
+         *
+         */
+        function checkForm(obj) {
+            var status = $(obj).valid();
+            if (!status) {
+                //没有通过验证
+                $("#btnSubmit").button('reset');
+                return false;
+            } else {
+                //单独校验关联知识点
+                if ($("#knowledgeIds").val() == '') {
+                    $("#noKnowledge").show();
+                    $("#relatedKnowledge").parent().addClass("error");
+                    $("#relatedKnowledge_text").focus();
+                    // alert("必须选择关联知识点");
+                    return false;
+                }
+
+
+                return true;
+            }
+        }
+
+        function checkOptionAnswer(obj) {
+            var values = new Array();
+            var ips = $(obj).parent().parent().parent().parent();
+            $(ips).find('input[name="optionTextAnswer"]').each(function (i, n) {
+                var value = $(n).val();
+                if (n != obj) {//保存当前之外的元素
+                    values.push(value); //获取所有的名称
+                }
+            });
+            //console.log("valuses:" + values);
+
+            var val = $(obj).val(); //获得当前输入框的值
+            if (val != '') {
+                var flag = $.inArray(val, values);
+                //console.log("flag:" + flag);
+                if (flag > -1) {
+                    $(obj).addClass("error");
+                    layer.msg('选项不能完全相同', {icon: 2});
+                    $(obj).focus();
+                } else {
+                    $(obj).removeClass("error");
+                }
+            }
+        }
+
+        function valiForm() {
+            //表单验证
+            $('form').validate({
+                rules: {
+                    //     // title: {
+                    //     //     required: true
+                    //     // },
+                    //     // content: {
+                    //     //     required: true
+                    //     // },
+                    //     qgradeId: {
+                    //         required: true
+                    //     },
+                    //     qknowledgeId: {
+                    //         required: true
+                    //     },
+                    //     qtypeId: {
+                    //         required: true
+                    //     },
+                    //     qmodeId: {
+                    //         required: true
+                    //     },
+                    //     questionTags: {
+                    //         required: true
+                    //     }
+                },
+                // messages: {
+                //     // title: {
+                //     //     required: "请输入题目标题"
+                //     // },
+                //     // content: {
+                //     //     required: "请输入题目内容"
+                //     // },
+                //     qgradeId: {
+                //         required: "请选择年级"
+                //     },
+                //     qknowledgeId: {
+                //         required: "请选择知识点"
+                //     },
+                //     qtypeId: {
+                //         required: "请选择题类"
+                //     },
+                //     qmodeId: {
+                //         required: "请选择题型"
+                //     },
+                //     fraction: {
+                //         required: "请填写本题得分",
+                //         number: "得分必须为数字"
+                //     }
+                // },
+                focusInvalid: true,
+                errorPlacement: function (error, element) {
+                    var errorMsg = error[0].innerHTML;
+                    var elem = element[0];
+                    $(elem).next('.message').removeClass("hide").addClass("error").html(errorMsg).show();
+                },
+                success: function (element) {
+                    var elem = $(element)[0].htmlFor;
+                    $(elem).next('.message').hide();
+                }
+            });
+        }
+
+        function resetDecode() {
+            $("input[name$='optionImgAnswer']").each(function (index, elem) {
+                //console.log($(elem).val());
+                $(elem).val(Base64.decode($(elem).val()));
+                //console.log($(elem).val());
+            });
+
+            $("input[name$='fraction']").each(function (index, elem) {
+                //console.log($(elem).val());
+                $(elem).val(Base64.decode($(elem).val()));
+                //console.log($(elem).val());
+            });
+        }
+
+        /**
+         * 初始化表单，用于后台接受数据
+         *
+         **/
+        function initForm(elems, index) {
+            // var elems = $(elemObj);
+            for (var i = 0; i < elems.length; i++) {
+                var name = $(elems[i]).attr("name");
+                ////console.log("elems[" + (i + 1) + "].name:" + name);
+                //修改name值用于后台接收
+                if (typeof name == "undefined" || name.indexOf("models[") > -1) {
+                    //console.log("name值已经修改过了，防止重复初始化");
+                    continue;
+                } else {
+                    var newName = "models[" + index + "]." + name;
+                    $(elems[i]).attr("name", newName);
+                }
+                //console.log("elems[" + (i + 1) + "].newName:" + newName);
+            }
+            //console.log("form init finished");
+        }
+
+        /*
+        * 提交表单
+        *
+        * isContinue 是否继续录入
+        */
+        function submitForm(id, obj, isContinue) {
+            $(obj).button('loading');
+
+            var form = $("form");
+
+            //表单校验
+            if (!checkForm($(form))) {
+                $(obj).button('reset');
+                return false;
+            }
+
+            // if($("#questionTags").val()==''){
+            //     parent.layer.msg('题目标签不能为空', {icon: 2});
+            //     $("#questionTags").focus();
+            //     $(obj).button('reset');
+            //     return false;
+            // }
+
+            //初始化主问题
+            initForm($("#dataArea :input[name!=checkbox]"), 0);
+
+            //初始化小题
+            //disable的select传值
+            $("select").removeAttr("disabled");
+            //如果没有小题，则需要把模板删除掉，否则会多提交(需要先校验通过)
+            var formNode = $("#addQuesItemBtn").parent().prev().find('.quesList');
+            var items = $(formNode).find('.quesitem');
+            //console.log("小题数目：" + items.length);
+            var template = items.last();
+            if (items.length == 1 && $(template).hasClass("hide")) {
+                $(formNode).remove();
+                //console.log("没有小题");
+            } else {
+                //console.log("开始初始化表单");
+                $(items).each(function (index, item) {
+                    var inputElems = $(item).find(":input[name!=checkbox]");
+                    initForm(inputElems, index + 1);
+                });
+                //console.log("表单初始化完成");
+            }
+
+            //对name值相同的传递需要加密处理
+            $("input[name$='optionTextAnswer']").each(function (index, elem) {
+                //console.log($(elem).val());
+                //https://blog.coding.net/blog/resolve-atob-decode-chinese-character-outputting-messy-code-problem-in-javascript
+                //$(elem).val(window.btoa($(elem).val()))
+                $(elem).val(Base64.encode($(elem).val()))
+                //console.log($(elem).val());
+            });
+
+            $("input[name$='optionImgAnswer']").each(function (index, elem) {
+                //console.log($(elem).val());
+                $(elem).val(Base64.encode($(elem).val()))
+                //console.log($(elem).val());
+            });
+
+            // $("input[name$='fraction']").each(function (index, elem) {
+            // //console.log($(elem).val());
+            // if (!validationNumber(elem, 2)) {
+            //     layer.msg('分数只能为两位小数以内的数字', {icon: 2});
+            //     $(elem).focus();
+            //     $(obj).button('reset');
+            //     return false;
+            // };
+            // $(elem).val(Base64.encode($(elem).val()));
+            // //console.log($(elem).val());
+            // });
+
+            //序列化表单
+            var formData = $(form).serialize();
+            var formDataArray = $(form).serializeArray();
+            //console.log("post formData:" + JSON.stringify(formData));
+            //console.log("post formDataArray:" + JSON.stringify(formDataArray));
+
+            //需要jquery-form.js
+            // $("form").ajaxSubmit(function (res) {
+            //     //console.log(res);
+            //     if (res != null && res.status == 1) {
+            //         alert('操作成功');
+            //         // window.location.reload();
+            //     } else {
+            //         alert('操作失败');
+            //     }
+            // });
+
+            $.post("/question/bank/submit", formData, function (res) {
+                $(obj).button('reset');
+                //console.log(JSON.stringify(res));
+                var fancyObj = parent.$.fancybox;
+                // if (!(typeof fancyObj == "undefined")) {//列表页打开的
+                if (isContinue == 1) {
+                    //console.log("继续录入提交中。。。,res.data=" + JSON.stringify(res.data));
+                    if (res != null && res.status == 1) {
+                        parent.layer.msg('操作成功', {icon: 1});
+                        window.location.href = "/question/bank/page/edit/" + res.data.lastQuestionId + "?isContinue=1";
+                    } else {
+                        parent.layer.msg('操作失败', {icon: 2});
+                    }
+                } else {
+                    parent.$.fancybox.close();
+                    if (res != null && res.status == 1) {
+                        parent.layer.msg('操作成功', {icon: 1});
+                    } else {
+                        parent.layer.msg('操作失败', {icon: 2});
+                    }
+                    parent.window.location.reload();
+                }
+                // } else {//单独页面打开新增
+                //     if (res != null && res.status == 1) {
+                //         layer.msg('操作成功', {icon: 1});
+                //         window.location.href = "/question/bank/page/edit";
+                //     } else {
+                //         layer.msg('操作失败', {icon: 2});
+                //         window.location.reload();
+                //     }
+                // }
+            });
+
+            // $.ajax({
+            //     type: "post",
+            //     contentType: "application/json",
+            //     url: "/question/bank/submit",
+            //     data: JSON.stringify(formArray),
+            //     success: function (res) {
+            //         if (res != null && res.status == 1) {
+            //             alert('操作成功');
+            //             // window.location.reload();
+            //         } else {
+            //             alert('操作失败');
+            //         }
+            //     }
+            // });
+        }
+
+        /**
+         * 录入类型校验 180508 by Terwer
+         *
+         */
+        function inputTypeChooseSelect() {
+            if ($("#inputType option:selected").val() == 1) {
+                //console.log("默认录入类型");
+                $("#addQuesItemBtn").addClass("hide");
+                $("#addQuesItemBtn").parent().prev().find('.quesList').find('.quesitem').addClass("hide");
+                $("#quesItemInput").removeClass("hide").show();
+                $("#scoreInput").removeClass("hide").show();
+                $("#continueAddBtn").removeClass("hide");
+            } else {
+                addQuesItem();
+                $("#addQuesItemBtn").removeClass("hide");
+                $(".sub").hide();
+                $("#quesItemInput").hide();
+                $("#scoreInput").hide();
+                $("#continueAddBtn").addClass("hide");
+                //console.log("有子题目的录入类型");
+            }
+        }
+
+        function expTypeChooseSelect() {
+        }
+
+        /**
+         * 题类校验 180510 by Terwer
+         *
+         */
+        function qtypeChooseSelect(obj) {
+            // alert($("#qtypeId option:selected").val());
+            // var quesBank = $(obj).parent(".quesbank");
+            // if ($("#qtypeId option:selected").val() == 1) {
+            //     $("#audiofile").removeClass("hide");
+            // } else {
+            //     $("#audiofile").addClass("hide");
+            //     var file = $("#file1");
+            //     file.after(file.clone().val(""));
+            //     file.remove();
+            //
+            //     file = $("#file2");
+            //     file.after(file.clone().val(""));
+            //     file.remove();
+            // }
+        }
+
+        /*
+         * 增加标题部分图片
+         *
+         */
+        function addtitleImgList(_this) {
+            _this.parents('.titleImgList').append(_this.parents('.titleImgList').find('li').eq(0).clone())
+            _this.parents('.titleImgList').find('li').last().find('input').val('');
+        }
+
+        /*
+         * 删除标题部分图片
+         *
+         */
+        function deletetitleImgList(_this) {
+            var imgNodes = _this.parents('.titleImgList').find('li');
+            //console.log(imgNodes.length);
+            if (imgNodes.length > 1) {
+                _this.parents('li').remove();
+            }
+        }
+
+        /*
+         * 增加备选答案
+         *
+         */
+        function additemQues(_this) {
+            // $('.quesItemInput').append(_this.parents('li').clone());
+            // $('.quesItemInput li').last().find('input').val('');
+            var newItemQues = _this.parents('li').clone();
+            //添加之前初始化
+            $(newItemQues).find('input').val('');
+            $(newItemQues).find("input[type='checkbox']").prop("checked", false).on("click", function () {
+                if (!($(this).is(':checked'))) {
+                    $(this).prev().val("false");
+                } else {
+                    $(this).prev().val("true");
+
+                    //单选控制
+                    if ($("#qmodeId").val() == 1) {
+                        var sibs = $(this).parent().parent().parent().siblings();
+                        $(sibs).each(function (i, n) {
+                            //console.log($(n).find('input[name="checkbox"]'));
+                            $(n).find('input[name="checkbox"]').prev().val("false");
+                            $(n).find('input[name="checkbox"]').prop("checked", false); //设置当前选中的checkbox同级(兄弟级)其他checkbox状态为未选中
+                        });
+                    }
+                }
+            });
+            _this.parents('.quesItemInput').append(newItemQues);
+        }
+
+        /*
+         * 删除备选答案
+         *
+         */
+        function deleteitemQues(_this) {
+            if (_this.parents('.quesItemInput').find('li').length > 1) {
+                _this.parents('li').remove();
+            }
+        }
+
+        /*
+         * 删除子题目
+         *
+         */
+        function deletequesitem(domthis) {
+            //alert(domthis.parents('.quesList').find('.quesitem').length);
+            if (domthis.parents('.quesList').find('.quesitem').length > 1) {
+                domthis.parent('.quesitem').eq(0).remove();
+            }
+        }
+
+        /*
+         * 添加子题目
+         * Author Terwer
+         */
+        function addQuesItem() {
+            var formNode = $("#addQuesItemBtn").parent().prev().find('.quesList');
+            var items = $(formNode).find('.quesitem');
+            var template = items.last();
+            if (items.length == 1 && $(template).hasClass("hide")) {
+                //console.log("显示默认模板");
+                $(template).removeClass("hide");
+            } else {
+                //console.log("添加多个小题");
+                var newElem = $(template).clone();
+                //新加的初始化
+                $(newElem).find('input').val('');
+                $(newElem).find('textarea').val('');
+                $(newElem).find('input[name="checkbox"]').prop("checked", false).on("click", function () {
+                    if (!($(this).is(':checked'))) {
+                        $(this).prev().val("false");
+                    } else {
+                        $(this).prev().val("true");
+                    }
+                });
+                //新增，这里必须为0或者null
+                $(newElem).find('input[name="id"]').val(0);
+                $(newElem).find('input[name="inputType"]').val(1);
+                $(newElem).find('input[name="qgradeId"]').val(1);
+                $(newElem).find('input[name="mistakeId"]').val(1);
+                $(newElem).find('input[name="qtypeId"]').val(1);
+                $(newElem).find('input[name="qmodeId"]').val(1);
+                $(newElem).find('input[name="qddegreeId"]').val(1);
+                $(formNode).append(newElem);
+            }
+        }
+
+        /**
+         * 默认小题类型批量录入继续录入
+         */
+        function continueAdd(id, obj) {
+            var qid = $("#qid").val();
+            //console.log("默认小题类型批量录入继续录入：原ID=" + qid);
+            //需要把ID重置为0，答案清空，处理继续录入
+            $("#qid").val(0);
+            //console.log("默认小题类型批量录入继续录入：处理后的ID=" + $("#qid").val());
+            submitForm(id, obj, 1);
+        }
+
+        /*
+         * 收缩展开子题目
+         *
+         */
+        function hidestate(domthis) {
+            if (domthis.attr('hidestate') === '0') {
+                domthis.attr('hidestate', '1');
+                domthis.text('展开');
+                domthis.parents('.quesitem').find('ul').hide('fast');
+            } else {
+                domthis.attr('hidestate', '0');
+                domthis.text('收缩');
+                domthis.parents('.quesitem').find('ul').show('fast');
+            }
+        }
+
+        // /**
+        //  * JS 获取URL参数
+        //  * @param name
+        //  * @param url
+        //  * @returns {*}
+        //  */
+        // function getParameterByName(name, url) {
+        //     if (!url) url = window.location.href;
+        //     name = name.replace(/[\[\]]/g, "\\$&");
+        //     var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        //         results = regex.exec(url);
+        //     if (!results) return null;
+        //     if (!results[2]) return '';
+        //     return decodeURIComponent(results[2].replace(/\+/g, " "));
+        // }
+
+        /**
+         * 验证输入是否是数字
+         * @param e
+         * @param num
+         */
+        function validationNumber(e, num) {
+            var regu = /^[0-9]+\.?[0-9]*$/;
+            if (e.value != "") {
+                if (!regu.test(e.value)) {
+                    alert("请输入正确的数字");
+                    e.value = e.value.substring(0, e.value.length - 1);
+                    e.focus();
+                } else {
+                    if (num == 0) {
+                        if (e.value.indexOf('.') > -1) {
+                            e.value = e.value.substring(0, e.value.length - 1);
+                            e.focus();
+                        }
+                    }
+                    if (e.value.indexOf('.') > -1) {
+                        if (e.value.split('.')[1].length > num) {
+                            e.value = e.value.substring(0, e.value.length - 1);
+                            e.focus();
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</div>
+</body>
+</html>

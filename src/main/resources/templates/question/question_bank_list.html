@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderList('题库管理')">
+</head>
+<body>
+<!--<body oncontextmenu="self.event.returnValue=false" onselectstart="return false">-->
+<div id="content" class="col-lg-12 col-sm-12" style="padding: 5px;">
+    <div class="row">
+        <div class="box col-md-12" style="margin-top: 5px;">
+            <div class="box-inner">
+                <div class="box-header well" data-original-title="">
+                    <h2>
+                        <i class="glyphicon glyphicon-pencil"></i> 题目列表
+                    </h2>
+                </div>
+                <div class="box-content">
+                    <form class="form-inline form-search" role="form" method="post" th:action="@{/question/bank/page/list}" onsubmit="return checkForm();">
+                        <div class="form-group" style="margin-bottom: 5px;">
+                            <select th:field="*{pageInfo.pageSize}" class="form-control input-sm" onchange="$('form').submit();" required>
+                                <option value="10">10条/页</option>
+                                <option value="25">25条/页</option>
+                                <option value="50">50条/页</option>
+                            </select>
+                            <div class="input-group input-group-sm">
+                                <input type="search" name="search" id="search" class="form-control input-sm" placeholder="查询关键字..." style="width:200px;"/>
+                                <span class="input-group-btn">
+                                    <button class="btn btn-default" type="submit"> 查 询 </button>
+                                </span>
+                            </div>
+                            <a id="add" role="button" class="btn btn-info" href="javascript:void(0);" onclick="add()"><span class="glyphicon glyphicon-plus-sign"></span>添加题目</a>
+                        </div>
+                    </form>
+                    <table class="table table-striped table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th style="text-align: center;">#</th>
+                            <th style="text-align: center;">题目</th>
+                            <!--<th style="text-align: center;">标签</th>-->
+                            <th style="text-align: center;">录入类型</th>
+                            <th style="text-align: center;">年级</th>
+                            <th style="text-align: center;">题类</th>
+                            <th style="text-align: center;">题型</th>
+                            <th style="text-align: center;">难度</th>
+                            <th style="text-align: center;">状态</th>
+                            <th style="width: 200px;text-align: center;">最后操作</th>
+                            <th style="width: 500px;text-align: center;">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="questionBanks,iterStat : ${pageInfo.list}">
+                            <td style="text-align: center;" th:text="${iterStat.index+1}">sort</td>
+                            <td th:text="${questionBanks.title}">title</td>
+                            <!--<td th:text="${questionBanks?.questionTags}">questionTag</td>-->
+                            <td style="text-align: center;" th:text="${questionBanks.inputType==1}?'默认类型':'附带小题'">inputType</td>
+                            <td style="text-align: center;" th:text="${questionBanks.qgradeName}">qgradeName</td>
+                            <td style="text-align: center;" th:text="${questionBanks.qtypeName}">qtypeName</td>
+                            <td style="text-align: center;" th:text="${questionBanks.qmodeName}">qmodeName</td>
+                            <td style="text-align: center;" th:text="${questionBanks.qddegreeName}">qddegreeName</td>
+                            <td style="text-align: center;" th:text="(${questionBanks.state} == 0) ?  '无效' : '有效'">state</td>
+                            <td style="text-align: center;" th:text="${#dates.format(questionBanks.recordTime, 'yyyy-MM-dd HH:mm:ss')}">最后操作</td>
+                            <td style="text-align: center;">
+                                <a href="javascript:void(0);" th:alt="|${testServerUrl}testPaper/#/?tpid=0&qid=${questionBanks.id}&pid=0&sid=0|" onclick="preview(this);" class="btn btn-info preview" role="button"><span
+                                        class="glyphicon glyphicon-eye-open"></span> 预览 </a>
+                                <a th:alt="${questionBanks.id}" href="javascript:void(0);" onclick="edit(this)" class="btn btn-info edit" role="button"><span class="glyphicon glyphicon-edit"></span> 修改 </a>
+                                <a th:onclick="'showRelateKnowledge('+${questionBanks.id}+',this)'" href="javascript:void(0);" class="btn btn-info" role="button"><span class="glyphicon glyphicon-eye-open"></span> 查看关联知识点 </a>
+                                <a th:onclick="'deleteQuestion('+${questionBanks.id}+',this)'" href="javascript:void(0);" class="btn btn-danger" role="button"><span class="glyphicon glyphicon-floppy-remove"></span> 删除 </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div th:include="include/pageinfo::pager"></div>
+                </div>
+            </div>
+        </div>
+        <!--/box-->
+    </div>
+    <!--/row-->
+</div>
+<!-- content ends -->
+<div th:include="/include/onload_js::onloadJSCustomList(~{::script})">
+    <script>
+        $(function () {
+        });
+
+        function add() {
+            var url = "/question/bank/page/edit";
+            layer.open({
+                type: 2,
+                title: false,
+                closeBtn: 1, //显示关闭按钮
+                // shade: [0],
+                shade: 0.4,
+                area: ['90%', '90%'],
+                // offset: 'rb', //右下角弹出
+                // time: 2000, //2秒后自动关闭
+                // anim: 2,
+                content: [url, 'yes'], //iframe的url，no代表不显示滚动条
+                end: function () { //此处用于演示
+                },
+                cancel: function (index, layero) {
+                }
+            });
+        }
+
+        function edit(obj) {
+            var url = "/question/bank/page/edit/" + $(obj).attr("alt");
+            layer.open({
+                type: 2,
+                title: false,
+                closeBtn: 1, //显示关闭按钮
+                // shade: [0],
+                shade: 0.4,
+                area: ['90%', '90%'],
+                // offset: 'rb', //右下角弹出
+                // time: 2000, //2秒后自动关闭
+                // anim: 2,
+                content: [url, 'yes'], //iframe的url，no代表不显示滚动条
+                end: function () { //此处用于演示
+                },
+                cancel: function (index, layero) {
+                }
+            });
+        }
+
+        function showRelateKnowledge(qbankId, obj) {
+            var url = "/questionKnowledge/page/relatedKnowledge/" + qbankId;
+            layer.open({
+                type: 2,
+                title: false,
+                closeBtn: 1, //显示关闭按钮
+                // shade: [0],
+                shade: 0.4,
+                area: ['520px', '450px'],
+                // offset: 'rb', //右下角弹出
+                // time: 2000, //2秒后自动关闭
+                // anim: 2,
+                content: [url, 'no'], //iframe的url，no代表不显示滚动条
+                end: function () { //此处用于演示
+                },
+                cancel: function (index, layero) {
+                }
+            });
+        }
+
+        function preview(obj) {
+            var url = $(obj).attr("alt");
+            console.log("url=" + url);
+            //iframe窗口
+            top.layer.open({
+                type: 2,
+                title: false,
+                closeBtn: 1, //显示关闭按钮
+                // shade: [0],
+                shade: 0.4,
+                area: ['880px', '88%'],
+                //offset: 'rb', //右下角弹出
+                // time: 2000, //2秒后自动关闭
+                // anim: 2,
+                content: [url, 'yes'], //iframe的url，no代表不显示滚动条
+                end: function () { //此处用于演示
+                }
+            });
+        }
+
+        function checkForm() {
+            var bl = true;
+            if ($("#search").val().trim() == "") {
+                //bl = false;
+                //layer.msg('搜索关键字不能为空', {icon: 2});
+            }
+            //$(":submit").attr("disabled", bl);
+            return bl;
+        }
+
+        /**
+         * 删除题目
+         * @param id 题目ID
+         * @param obj 点击的当前元素
+         */
+        function deleteQuestion(id, obj) {
+            //询问框
+            layer.confirm('您确认删除该题目么？', {
+                btn: ['确认', '取消'] //按钮
+            }, function () {
+
+                layer.closeAll('dialog');
+
+                $.get("/question/bank/delete/" + id, {}, function (res) {
+                    doDeleteResult(res);
+                }, 'json');
+
+                function doDeleteResult(res) {
+                    console.log(res);
+                    if (res != null && res.status == 1) {
+                        layer.msg('删除成功', {icon: 1});
+                        window.location.reload();
+                    } else {
+                        layer.msg('操作失败', {icon: 2});
+                    }
+                }
+            }, function () {
+                layer.msg('您放弃了操作', {
+                    time: 20000, //20s后自动关闭
+                    btn: ['明白了', '知道了']
+                });
+            });
+        }
+    </script>
+</div>
+</body>
+</html>

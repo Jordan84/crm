@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.BaseSalaryConfigureMapper" >
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.BaseSalaryConfigure">
+         <id column="id" property="id" jdbcType="INTEGER" />
+         <result column="sort" property="sort" jdbcType="INTEGER" />
+         <result column="interval_min_value" property="intervalMinValue" jdbcType="INTEGER" />
+         <result column="interval_max_value" property="intervalMaxValue" jdbcType="INTEGER" />
+         <result column="interval_min_sign" property="intervalMinSign" jdbcType="INTEGER" />
+         <result column="interval_max_sign" property="intervalMaxSign" jdbcType="INTEGER" />
+         <result column="base_salary" property="baseSalary" jdbcType="INTEGER" />
+         <result column="base_salary_id" property="baseSalaryId" jdbcType="INTEGER" />
+    </resultMap>
+
+    <resultMap id="InfoMap" type="com.etalk.crm.pojo.BaseSalaryInfo">
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="add_user_id" property="addUserId" jdbcType="INTEGER" />
+        <result column="add_time" property="addTime" jdbcType="TIMESTAMP" />
+        <result column="base_salary_name" property="baseSalaryName" jdbcType="VARCHAR" />
+         <result column="login_name" property="addUserName" jdbcType="VARCHAR" />
+        <result column="state" property="state" jdbcType="INTEGER" />
+    </resultMap>
+
+    <!--配置表信息-->
+   <select id="salaryInfoList" resultMap="InfoMap">
+       select bai.id,bai.add_user_id,bai.add_time,bai.base_salary_name,bai.state,u.login_name from base_salary_info bai
+          left  join  users u on u.id = bai.add_user_id
+       where  u.state = 1  order  by bai.add_time desc
+   </select>
+
+    <!--根据  id查询  底薪配置表-->
+    <select id="selectsalaryInfoById" resultMap="InfoMap" parameterType="java.lang.Integer">
+        select bai.id,bai.add_user_id,bai.add_time,bai.base_salary_name,bai.state from base_salary_info bai
+         where  id=#{baseSalaryId}
+    </select>
+
+    <select id="selectConfigureById" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select count(1) from  base_salary_configure where  base_salary_id = #{baseSalaryId}
+    </select>
+    <!--配置列表-->
+    <select id="confgiureList" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select id, sort, interval_min_value,interval_max_value,interval_min_sign, interval_max_sign,base_salary,base_salary_id
+        from base_salary_configure  where  base_salary_id = #{baseSalaryId}
+    </select>
+
+    <!--删除 配置列表-->
+    <delete id="delconfgiureList" parameterType="java.lang.Integer">
+        delete from base_salary_configure where base_salary_id = #{baseSalaryId}
+    </delete>
+
+    <!--批量插入  各个区间底薪配置-->
+    <insert id="addConfgiureList" parameterType="java.util.List">
+        insert into base_salary_configure (sort, interval_min_value,interval_max_value,interval_min_sign, interval_max_sign,base_salary,base_salary_id)
+        values
+        <foreach collection ="list" item="item" index= "index" separator =",">
+             (
+              #{item.sort,jdbcType=INTEGER},
+              #{item.intervalMinValue,jdbcType=INTEGER},
+              #{item.intervalMaxValue,jdbcType=INTEGER},
+              #{item.intervalMinSign,jdbcType=INTEGER},
+              #{item.intervalMaxSign,jdbcType=INTEGER},
+              #{item.baseSalary,jdbcType=INTEGER},
+              #{item.baseSalaryId,jdbcType=INTEGER}
+             )
+        </foreach >
+    </insert>
+
+     <!--添加底薪配置表相关信息-->
+    <insert id="addSalaryInfo" parameterType="com.etalk.crm.pojo.BaseSalaryInfo" useGeneratedKeys="true" keyProperty="id">
+        insert into base_salary_info(add_user_id,add_time,base_salary_name,state)
+        values (#{addUserId},now(),#{baseSalaryName},1)
+    </insert>
+
+     <!--修改底薪配置表相关信息-->
+    <update id="eidtSalaryInfo" parameterType="com.etalk.crm.pojo.BaseSalaryInfo">
+        update base_salary_info
+        <set>
+           <if test="baseSalaryName != null and baseSalaryName !='' ">
+               base_salary_name = #{baseSalaryName},
+           </if>
+            <if test="state != null ">
+               state = #{state},
+           </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--底薪配置信息表  表名是否重复-->
+    <select id="selectbaseSalaryInfoByName" parameterType="com.etalk.crm.pojo.BaseSalaryInfo" resultType="java.lang.Integer">
+        select  count(1) from  base_salary_info where base_salary_name = #{baseSalaryName}
+        <if test="id >0">
+            and id != #{id}
+        </if>
+    </select>
+</mapper>

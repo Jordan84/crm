@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.WeixinMessageMapper" >
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.WeixinMessage" >
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="messageName" property="messageName" jdbcType="VARCHAR" />
+        <result column="message_info" property="messageInfo" jdbcType="VARCHAR" />
+    </resultMap>
+    <!--查询微信模板信息-->
+    <select id="selectWeixinTemplateById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select id,message_name,message_info
+        from weixin_message
+        where id=#{id,jdbcType=VARCHAR}
+    </select>
+
+</mapper>

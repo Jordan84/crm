@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderList('公告通知发送')">
+<body >
+<div class="ch-container" style="padding-left:15px;">
+    <div class="row" >
+        <div id="content" class="col-md-12 col-sm-12" style="padding:0px;">
+            <div class="row">
+                <div class="box col-md-12" style="margin-top:3px;">
+                    <div class="box-inner">
+                        <div class="box-header well" data-original-title="">
+                            <h2>
+                                <i class="glyphicon glyphicon-th"></i> 公告记录列表
+                            </h2>
+                            <!--<div class="box-icon">
+                                <a href="#" class="btn btn-setting btn-round btn-default" ><i class="glyphicon glyphicon-cog"></i></a>
+                                <a href="#" class="btn btn-minimize btn-round btn-default"><i class="glyphicon glyphicon-chevron-up"></i></a>
+                                &lt;!&ndash; <a href="#"	class="btn btn-close btn-round btn-default"><i class="glyphicon glyphicon-remove"></i></a> &ndash;&gt;
+                            </div>-->
+                        </div>
+                        <div class="box-content" style="padding:5px 3px;">
+                            <form class="form-inline form-search " role="form" method="post" action="/notice/msg/list" >
+                                <div class="form-group" data-chosenWidth="true"  style="margin-bottom: 5px;">
+                                    <select name="pageBean.pageSize" class="form-control input-sm" id="pagesize">
+                                        <option value="10" >10条/页</option>
+                                        <option value="25" >25条/页</option>
+                                        <option value="50" >50条/页</option>
+                                    </select>
+
+                                    <div class="input-group input-group-sm">
+                                        <input type="search" name="msgTitle" id="search" class="form-control input-sm" placeholder="查询关键字..." style="width:200px;"/>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-default" type="submit" > 查 询 </button>
+                                        </span>
+                                    </div>
+                                    <a href="/notice/msg/template" role="button" class="btn btn-info btn-sm" id="send">添加消息</a>
+
+                                </div>
+                            </form>
+                            <table class="table table-striped table-bordered table-hover footable" data-show-toggle="false">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">#</th>
+                                        <th class="text-center">消息标题</th>
+                                        <th data-breakpoints="all" data-title="消息内容">消息内容</th>
+                                        <th data-breakpoints="all" data-title="模板参数">模板参数</th>
+                                        <th data-breakpoints="all" data-title="消息说明">消息说明</th>
+                                        <th data-breakpoints="all" data-title="消息链接">消息链接</th>
+                                        <th class="text-center">消息接收平台</th>
+                                        <th class="text-center">提醒类型</th>
+                                        <th class="text-center">取消课程</th>
+                                        <th class="text-center">关闭班表</th>
+                                        <th class="text-center">当前状态</th>
+                                        <th class="text-center">发送人</th>
+                                        <th class="text-center">发送时间</th>
+                                        <th data-breakpoints="all" data-title="提醒终止时间">提醒终止时间</th>
+                                        <th class="text-center">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="item,itemStat:${pageInfo.list}">
+                                        <td class="text-center" th:text="${itemStat.index+1}">1</td>
+                                        <td th:text="${item.msgTitle}">紧急公告</td>
+                                        <td th:text="${item.firstData}">台风影响停课2小时</td>
+                                        <td th:utext="${item.keywords}">学校</td>
+                                        <td th:text="${item.remark}">如有任何疑问请联系班主任</td>
+                                        <td th:text="${item.linkUrl}">http://www.etalk365.com/admin</td>
+                                        <td class="text-center" th:text="${item.platformName}">公众号</td>
+                                        <td class="text-center" th:with="prompt=${item.remindType==0?'提醒一次':(item.remindType==1?'手动关闭':(item.remindType==2?'到期关闭':''))}" th:text="${prompt}">提醒一次</td>
+                                        <td class="text-center" th:text="${item.cancelClass==0?'否':'是'}">是</td>
+                                        <td class="text-center" th:text="${item.closeClass==0?'否':'是'}">否</td>
+                                        <td class="text-center" th:text="${item.state==0?'已关闭':'开启中'}">正常</td>
+                                        <td class="text-center" th:text="${item.creator}">admin</td>
+                                        <td class="text-center" th:text="${#dates.format(item.createTime,'yyyy-MM-dd HH:mm:ss')}">2018/04/28 14:37:34</td>
+                                        <td th:text="${#dates.format(item.remindEndTime,'yyyy-MM-dd HH:mm:ss')}">2018/04/28 14:37:34</td>
+                                        <td th:with="isExpire=${item.remindEndTime.getTime() gt nowTime.getTime()}">
+                                            <button class="btn-danger btn btn-xs" th:if="${item.state==1 && (item.remindType==1 || (item.remindType==2 && isExpire))}" onclick="closeShow(1)" th:onclick="'closeShow(this,'+${item.id}+')'">关闭消息提醒</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div th:include="include/pageinfo::pager"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:include="/include/onload_js::onloadJSCustomList(~{::script})">
+    <script type="text/javascript">
+        $("#send").fancybox({
+            aspectRatio : false,
+            type    : 'iframe',
+            width   : '50%',
+            //height  : '70%',
+            padding : 2,
+            margin  : 0,
+            ///  maxWidth	: 1040,
+            //minHeight : 500,
+            autoHeight	: true,
+            autoSize : true,
+            fitToView : false
+        });
+        function closeShow(obj,messageId){
+            $.post('/notice/msg/close/'+messageId,{},function (result) {
+                /*result=JSON.parse(result);*/
+                if (result.status>0){
+                    $(obj).remove();
+                }else {
+                    layer.msg("关闭消息提醒失败");
+                }
+            },"json");
+        }
+        $(function () {
+            $('.footable').footable();
+        });
+    </script>
+</div>
+</body>
+</html>

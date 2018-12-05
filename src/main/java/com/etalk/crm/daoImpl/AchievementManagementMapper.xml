@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.AchievementManagementMapper" >
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.AchievementManagement" >
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="add_user_id" property="addUserId" jdbcType="INTEGER" />
+        <result column="add_time" property="addTime" jdbcType="TIMESTAMP" />
+        <result column="cc_id" property="ccId" jdbcType="INTEGER" />
+        <result column="level_score" property="levelScore" jdbcType="INTEGER" />
+        <result column="term" property="term" jdbcType="INTEGER" />
+        <result column="ssc_id" property="sscId" jdbcType="INTEGER" />
+        <result column="test_time" property="testTime" jdbcType="INTEGER" />
+        <result column="total_score" property="totalScore" jdbcType="INTEGER" />
+        <result column="score" property="score" jdbcType="DECIMAL" />
+        <result column="person_id" property="personId" jdbcType="INTEGER" />
+        <result column="score_type" property="scoreType" jdbcType="INTEGER" />
+        <result column="year" property="year" jdbcType="TIMESTAMP" />
+        <result column="grade_id" property="gradeId" jdbcType="INTEGER" />
+        <result column="wechat_achcollection_id" property="wechatAchievementMsgId" jdbcType="INTEGER" />
+        <result column="push_times" property="pushTimes" jdbcType="INTEGER" />
+        <result column="already_push_times" property="alreadyPushTimes" jdbcType="INTEGER" />
+    </resultMap>
+
+    <!-- 添加 学员成绩 -->
+    <insert id="addAchievement" parameterType="com.etalk.crm.pojo.AchievementManagement" useGeneratedKeys="true" keyProperty="id" >
+        insert into achievement_management (
+            add_user_id,add_time,cc_id,level_score,term,ssc_id,test_time,total_score,score,person_id,score_type,`year`,grade_id,wechat_achcollection_id
+        ) values(
+            #{addUserId},
+            now(),
+            #{ccId},
+            #{levelScore},
+            #{term},
+            #{sscId},
+            #{testTime},
+            #{totalScore},
+            #{score},
+            #{personId},
+            #{scoreType},
+            #{year},
+            #{gradeId},
+            #{wechatAchievementMsgId}
+        )
+    </insert>
+
+    <!--判断  学员成绩信息 是否存在-->
+    <select id="isAchievementExist" parameterType="com.etalk.crm.pojo.AchievementManagement" resultType="java.lang.Integer">
+       SELECT count(1) FROM achievement_management am WHERE am.person_id = #{personId}
+        AND am.year = #{year} AND am.term = #{term} AND am.test_time = #{testTime}
+        <if test="id > 0">
+          AND  am.id != #{id}
+        </if>
+    </select>
+     <!--成绩等级列表-->
+    <select id="gradeLevelList"  resultType="com.etalk.crm.pojo.GradeLevel">
+        select id as id,level as level,level_name as levelName  from  grade_level
+    </select>
+    <!--分制列表-->
+    <select id="gradeTypeList"  resultType="com.etalk.crm.pojo.GradeLevel">
+        select id as id,score_name as levelName  from  grade_type
+    </select>
+
+    <!--查询微信成绩收集 参数-->
+    <select id="selectAchievementCollectionParam" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select id,term,`year`,test_time from wechat_achievement_collection where id = #{wechatAchievementMsgId}
+    </select>
+
+    <!-- 查询  cc 销售目标列表 列表 -->
+    <select id="achievementList"  resultType="com.etalk.crm.pojo.AchievementManagement" parameterType="map">
+        SELECT
+            am.id,
+            am.add_user_id as addUserId,
+            am.add_time as addTime,
+            am.cc_id as ccId,
+            am.level_score as levelScore,
+            am.term as term,
+            am.ssc_id as sscId,
+            am.test_time as testTime,
+            <!--am.total_score as totalScore,-->
+            am.score as score,
+            am.person_id as personId,
+            am.score_type as scoreType,
+            am.YEAR AS `year`,
+            ssc.login_name AS sscName,
+            cc.login_name AS ccName,
+            p.login_name as studentLogin,
+            p.cn_name as cnName,
+            ifnull(gl.level_name,"") as levelName,
+            ifnull(gt.score_name,"") as totalScoreName
+        FROM
+            achievement_management am
+            LEFT JOIN person p ON p.id = am.person_id and p.state = 1
+            LEFT JOIN users ssc ON ssc.id = p.ssc_id and ssc.state = 1
+            LEFT JOIN users cc ON cc.id = p.user_id and cc.state = 1
+            LEFT JOIN grade_level gl on gl.id = am.level_score
+            LEFT JOIN grade_type gt on gt.id = am.total_score
+        where 1 = 1
+        <if test="achievementManagement.ccId >0 ">
+            and cc.id = #{achievementManagement.ccId,jdbcType=INTEGER}
+        </if>
+        <if test="achievementManagement.sscId >0 ">
+            and ssc.id = #{achievementManagement.sscId,jdbcType=INTEGER}
+        </if>
+        <if test="achievementManagement.time!=null and achievementManagement.time !='' ">
+           and  DATE_FORMAT(am.YEAR,'%Y') = #{achievementManagement.time,jdbcType=VARCHAR}
+        </if>
+        <if test="achievementManagement.studentLogin != null and achievementManagement.studentLogin !=''">
+            and (p.login_name like CONCAT('%',#{achievementManagement.studentLogin,jdbcType=VARCHAR},'%')
+            or  p.cn_name like CONCAT('%',#{achievementManagement.studentLogin,jdbcType=VARCHAR},'%'))
+        </if>
+        <if test="achievementManagement.startDate!=null and achievementManagement.startDate!=''">
+             and DATE_FORMAT(am.add_time,'%Y-%m-%d %H:%i:%S')>=#{achievementManagement.startDate,jdbcType=VARCHAR}
+        </if>
+        <if test="achievementManagement.endDate!=null and achievementManagement.endDate!=''">
+            and #{achievementManagement.endDate,jdbcType=VARCHAR}>=  DATE_FORMAT(am.add_time,'%Y-%m-%d %H:%i:%S')
+        </if>
+        <if test="achievementManagement.term>0">
+            and am.term = #{achievementManagement.term,jdbcType=INTEGER}
+        </if>
+         ORDER BY am.add_time DESC
+    </select>
+
+    <!--更新  销售目标-->
+    <update id="ajaxachievementEdit"  parameterType="com.etalk.crm.pojo.AchievementManagement"  useGeneratedKeys="true" keyProperty="id">
+        update achievement_management
+        <set >
+            <if test="year != null">
+                 year = #{year},
+            </if>
+            <if test="term >0">
+                 term = #{term},
+            </if>
+            <if test="testTime >0">
+                 test_time = #{testTime},
+            </if>
+            <if test="scoreType >0">
+                 score_type = #{scoreType},
+            </if>
+            <if test="levelScore >0">
+                 level_score = #{levelScore},
+                 score = 0,
+            </if>
+            <if test="totalScore >0">
+                 total_score = #{totalScore},
+            </if>
+            <if test="gradeId > 0">
+                grade_id = #{gradeId},
+            </if>
+            <if test="score >0">
+                 score = #{score},
+                  level_score = 0,
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+     <!--删除  某条成绩记录-->
+    <delete id="delAchievementManagement" parameterType="java.lang.Integer">
+        delete from achievement_management where id = #{id}
+    </delete>
+    <!--查询  某条成绩记录-->
+    <select id="selectById" resultType="com.etalk.crm.pojo.AchievementManagement" parameterType="java.lang.Integer">
+        SELECT
+            am.id,
+            am.add_user_id as addUserId,
+            am.add_time as addTime,
+            am.cc_id as ccId,
+            am.level_score as levelScore,
+            am.term as term,
+            am.ssc_id as sscId,
+            am.test_time as testTime,
+            am.total_score as totalScore,
+            am.score as score,
+            am.person_id as personId,
+            am.score_type as scoreType,
+            am.YEAR AS `year`,
+            am.grade_id as gradeId,
+            ssc.login_name AS sscName,
+            cc.login_name AS ccName,
+            p.login_name as studentLogin,
+            p.cn_name as cnName,
+            ifnull(gl.level_name,"") as levelName,
+            am.level_score AS levelScore
+        FROM
+            achievement_management am
+            LEFT JOIN users ssc ON ssc.id = am.ssc_id and ssc.state = 1
+            LEFT JOIN users cc ON cc.id = am.cc_id and cc.state = 1
+            LEFT JOIN person p ON p.id = am.person_id and p.state = 1
+            LEFT JOIN grade_level gl on gl.id = am.level_score
+        where am.id = #{id}
+    </select>
+    <!--根据  输入的 关键 字 查询 学员 下拉列表-->
+    <select id="personList" parameterType="java.lang.String" resultType="com.etalk.crm.pojo.Person">
+        SELECT
+            p.id AS id,
+            p.login_name AS loginName,
+            p.phone AS phone,
+            ifnull(p.cn_name,"") AS cnName,
+            ifnull(cc.id,0) as ccId,
+            ifnull(ssc.id,0) as sscId,
+            ifnull(cc.login_name,"") as ccName,
+            ifnull(ssc.login_name,"") as sscName
+        FROM
+            person p
+            LEFT JOIN users cc ON p.user_id = cc.id
+            AND cc.state = 1
+            LEFT JOIN users ssc ON ssc.id = p.ssc_id
+            AND ssc.state = 1
+        WHERE
+            p.state = 1
+        <if test="loginName != null and loginName != ''">
+                 and (p.login_name LIKE concat(concat('%',#{loginName}),'%')
+                    or p.cn_name  LIKE concat(concat('%',#{loginName}),'%')
+                    or p.phone  LIKE concat(concat('%',#{loginName}),'%')
+               )
+        </if>
+        LIMIT 10
+    </select>
+
+    <!--插入微信 消息推送表-->
+    <insert id="addWechatAchievementMsg" parameterType="com.etalk.crm.pojo.AchievementManagement" useGeneratedKeys="true" keyProperty="id">
+        insert into wechat_achievement_collection (add_user_id,term,`year`,test_time,add_time,push_times) values(#{addUserId},#{term},#{year},#{testTime},now(),#{pushTimes})
+    </insert>
+    <!--判断  微信学院成绩收集   消息推送   是否 已推送-->
+    <select id="selectWechatAchievementMsg" parameterType="com.etalk.crm.pojo.AchievementManagement" resultType="java.lang.Integer">
+        select count(1) from wechat_achievement_collection where term = #{term} and test_time = #{testTime} AND `year` = #{year}
+    </select>
+    <!--学员成绩收集 微信消息列表-->
+    <select id="wechatAchievementMsgList" resultMap="BaseResultMap">
+        select wac.id,wac.add_user_id,wac.term,wac.`year`,wac.test_time,wac.add_time,wac.push_times,wac.already_push_times,u.login_name as  studentLogin
+        from wechat_achievement_collection wac left join users u on u.id = wac.add_user_id
+        <if test="time !=null and time !='' ">
+           where  DATE_FORMAT(wac.`year`,'%Y') = #{time,jdbcType=VARCHAR}
+        </if>
+        order by wac.add_time desc
+    </select>
+    
+    <!--查询 某条微信推送消息  信息-->
+    <select id="selectWechatMsgById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select wac.id,wac.add_user_id,wac.term,wac.`year`,wac.test_time,wac.add_time,wac.push_times,wac.already_push_times from
+         wechat_achievement_collection wac where wac.id = #{id}
+    </select>
+
+    <!--修改  学员成绩收集  微信消息推送已推送次数-->
+    <update id="updateWechatMsgById" parameterType="java.lang.Integer">
+        update wechat_achievement_collection set already_push_times = already_push_times+1 where id = #{id}
+    </update>
+</mapper>

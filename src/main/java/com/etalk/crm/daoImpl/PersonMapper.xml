@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.PersonMapper" >
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.Person" >
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="login_name" property="loginName" jdbcType="VARCHAR" />
+        <result column="cn_name" property="cnName" jdbcType="VARCHAR" />
+        <result column="phone" property="phone" jdbcType="VARCHAR" />
+        <result column="grade" property="grade" jdbcType="INTEGER" />
+    </resultMap>
+
+    <!--查询符合条件的老师，用户公告消息发送-->
+    <select id="selectTeacherListByMsgSend" parameterType="java.lang.Integer" resultType="java.lang.String">
+        select DISTINCT login_name
+        from person
+        where role_id=4 and state=1 and testmark=0
+        <if test="teaSiteId!=null">
+            <foreach collection="teaSiteId" item="items" separator="," open=" and tea_site_id in(" close=")">
+                #{items,jdbcType=INTEGER}
+            </foreach>
+        </if>
+        order by login_name
+    </select>
+
+    <!--查询符合条件的学员，用户公告消息发送-->
+    <select id="selectStudentListByMsgSend" resultMap="BaseResultMap">
+        select p.id,p.login_name
+        from person p
+            left join app_person ap on ap.person_id=p.id
+            left join weixin_user wu on wu.student_id=p.id
+        where p.role_id=3 and p.state=1 and p.testmark=0
+            and (ifnull(ap.app_id,'')!='' or ifnull(wu.open_id,'')!='')
+        order by p.login_name
+    </select>
+
+    <!--查询符合条件的学员，用户公告消息发送-->
+    <select id="selectSSCTeacher" resultMap="BaseResultMap">
+        select p.id,p.login_name
+        from person p
+           where login_name like "SSC_%" and  state = 1
+        order by p.login_name
+    </select>
+
+    <resultMap id="PersonResultMap" type="com.etalk.crm.pojo.Person" >
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="login_name" property="loginName" jdbcType="VARCHAR" />
+        <result column="cn_name" property="cnName" jdbcType="VARCHAR" />
+        <result column="login_name" property="loginName" jdbcType="VARCHAR" />
+        <result column="sex" property="sex" jdbcType="INTEGER" />
+        <result column="school" property="school" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <!--查询符合条件的学员，用户试卷发送-->
+    <select id="selectStudentListByPaperSend" resultMap="PersonResultMap">
+        select p.id,p.login_name,p.cn_name
+        from person p
+        where p.role_id=3 and p.state=1
+          <if test="studentName != null and studentName != ''">
+            and ((cn_name like concat(concat('%',#{studentName}),'%')) or (login_name like concat(concat('%',#{studentName}),'%')))
+          </if>
+        order by p.login_name
+    </select>
+
+    <select id="personList" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+      SELECT id,cn_name ,login_name,phone from person where state = 1  and role_id = 3
+          <if test="ccId != null">
+                 and user_id = #{ccId}
+          </if>
+           <if test="loginName != null and loginName != ''">
+                 and (login_name LIKE concat(concat('%',#{loginName}),'%')
+                    or cn_name  LIKE concat(concat('%',#{loginName}),'%')
+                    or phone  LIKE concat(concat('%',#{loginName}),'%')
+               )
+          </if>
+        LIMIT 10
+    </select>
+
+    <select id="selectByPersonId" parameterType="java.lang.Integer" resultType="com.etalk.crm.pojo.Person">
+        SELECT p.id,si.grade as grade,ifnull(p.sex,0) as sex,p.cn_name as cnName,p.login_name as loginName,si.school as school,
+        ifnull(p.user_id,0)  as userId,ifnull(p.ssc_id,0) as sscId,
+        ifnull(year(from_days( datediff( now( ), p.birthday))),0) AS age,si.learning_difficulty as learningDifficulty,
+        si.family_information as familyInformation
+        from person p
+          left join student_info si on p.id = si.person_id
+        where p.state = 1
+          <if test="personId != null">
+                 and p.id = #{personId}
+          </if>
+    </select>
+    <select id="selectPersonByLoginName" parameterType="java.lang.String" resultType="com.etalk.crm.pojo.Person">
+        SELECT distinct p.id,p.stores_id as storesId,wu.open_id as openId,p2.id as refererId from person p
+        LEFT JOIN weixin_user wu ON p.id = wu.student_id
+        LEFT JOIN person p2 ON p2.login_name = p.qrcode
+        where p.state = 1
+        and p.login_name = #{loginName}
+    </select>
+    <!-- 根据登录名集合查询用户 -->
+    <select id="selectPersonByLoginNameList" parameterType="java.util.List" resultType="com.etalk.crm.pojo.RecommendUsers">
+        SELECT distinct p.id as uid,ifnull(p2.id,0) as toUid
+        from person p
+        LEFT JOIN weixin_user wu ON p.id = wu.student_id
+        LEFT JOIN person p2 ON p2.login_name = p.qrcode
+        where p.state = 1
+        and p.login_name in
+        <foreach item="name" collection="loginNameList" separator="," open="(" close=")">
+            #{name}
+        </foreach>
+    </select>
+
+</mapper>

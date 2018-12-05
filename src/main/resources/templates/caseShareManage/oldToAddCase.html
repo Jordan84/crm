@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderCustom('CaseShareAdd',~{::style})">
+    <!--<body oncontextmenu="self.event.returnValue=false" onselectstart="return false">-->
+<!--<link rel="stylesheet"  th:href="@{/static/css/}" />-->
+		<style>
+			/*common*/
+			input,select,textarea{
+				box-sizing: border-box;
+				-webkit-box-sizing: border-box;
+				padding: 0 0.1rem;
+			}
+			select,.inputType2{
+				width: calc(50% - 0.79rem);
+				height: 0.3rem;
+			}
+			textarea{
+			    width: 100%;
+			    height: 1.3rem;
+			    resize: none;
+			    padding: 0.1rem;
+			}
+			#sub{
+			    padding: 0.08rem 0.4rem;
+			    background: #1d9be5;
+			    color: #fff;
+			    border: none;
+			    cursor: pointer;
+			}
+			/*main*/
+			.main{
+				font-size: 0.12rem;
+				padding: 0.2rem;
+				color: #333;
+			}
+			.main ul{}
+			.main ul li{
+				margin:0.15rem 0;
+			}
+			.main ul li .hint{
+				display: inline-block;
+				width: 1.5rem;
+				text-align: right;
+				font-size: 0.14rem;
+				padding-right: 0.1rem;
+				box-sizing: border-box;
+				-webkit-box-sizing: border-box;
+			    vertical-align: top;
+			}
+			.main ul li .hint b{
+				color: red;
+				vertical-align: sub;
+				font-size: 0.12rem;
+			}
+			.main ul li .contain{
+				width: calc(100% - 1.55rem);
+				display: inline-block;
+			}
+			.main ul li .inputType1{
+				width: 100%;
+				height: 0.3rem;
+			}
+			.main ul li .contain .tabs{
+				display: felx;
+				display: -webkit-flex;
+				border: 1px dashed #999;
+				padding: 0.1rem;
+			}
+			.main ul li .contain .tabs span{
+				width: 0.7rem;
+			}
+			.main ul li .contain .tabs div{
+				flex: 1;
+				-webkit-flex: 1;
+			}
+			.main ul li .contain .tabs div label{
+				background: #fff;
+				border: 1px solid #cdcdcd;
+				color: #333;
+				font-weight: 500;
+				margin-right: 10px;
+				border-radius: 3px;
+				padding: 0 0.15rem;
+				display: inline-block;
+				margin-bottom: 0.05rem;
+				cursor: pointer;
+				line-height:25px;
+			}
+			.main ul li .contain .tabs div label:hover{
+				background: #2dcc70;
+				color: #fff;
+				border: 1px solid #2dcc70;
+			}
+			.main ul li .contain .tabs div p{
+				font-size: 0.12rem;
+				color: #666;
+			}
+			.contain .textCount{
+				margin-left:95%;
+			}
+			.main ul li .contain .tabs div .cl{
+				background: #2dcc70;
+				color: #fff;
+				border: 1px solid #2dcc70;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="main">
+			<form class="form-inline" style="margin-bottom:0.5%" id="searchForm" role="form" />
+				<ul>
+					<li>
+						<span class="hint">标题<b>*</b>：</span>
+						<div class="contain">
+							<input name="title" id="title"  type="text" maxlength="50" class="inputType1"/>
+							<span></span>
+						</div>
+						<div id="hiddenLabel" style="display: none">
+						</div>
+					</li>
+					<li>
+						<span class="hint">标签<b>*</b>：</span>
+						<div class="contain">
+							<div class="tabs">
+								<!--<span>常用标签<b>*</b>：</span>-->
+								<div >
+									<label th:class="Titlelabel" th:each="list:${labelsList}" th:text="${list.name}" th:value="${list.id}">lable</label>
+									<p style="color: red">说明：点击标签可选择</p>
+								</div>
+							</div>
+						</div>
+					</li>
+					<li>
+						<span class="hint">分类<b>*</b>：</span>
+						<div class="contain">
+							<select name="sourceTypeId" id="sourceTypeId">
+								<option value="">选择分类</option>
+								<option th:selected="${sourceTypeId == list.id}" th:each="list:${csTypeList}"
+											th:value="${list.id}" th:text="${list.typeName}"></option>
+							</select>
+							<span class="hint">学员套餐<b>*</b>：</span>
+							<select name="packageId" id="packageId">
+								<option value="">选择套餐类型</option>
+								<option  th:each="list:${packageList}"
+											th:value="${list.id}" th:text="${list.typeName}"></option>
+							</select>
+						</div>
+					</li>
+					<li>
+						<span class="hint">选择学员<b>*</b>：</span>
+						<div class="contain">
+							<!--<select name="personId" id="student">
+								<option value="">请选择学员</option>
+								&lt;!&ndash;/*@thymesVar id="loginName" type="java"*/&ndash;&gt;
+								<option  th:value="${personList.id}" th:text="${personList.loginName}" th:each="personList:${personList}"></option>
+							</select>-->
+							<div class="inputType2" style="position: relative;display:inline-block;">
+								<input id="loginName" name="loginName" style="width:100%;height:0.3rem;" th:value="${person.loginName}" placeholder="请输入用户名称" readonly  autocomplete="off" maxlength="30" aria-describedby="inputError2Status">
+								<input type="hidden" th:value="${person.id}" name="personId" id="personId" >
+							</div>
+							<span class="hint">学员姓名<b>*</b>：</span>
+							<input type="text"  id="cnName" th:value="${person.cnName}" name="cnName" value="" class="inputType2"/>
+						</div>
+					</li>
+					<li>
+						<span class="hint">学员性别<b>*</b>：</span>
+						<div class="contain">
+							<select name="sex" id="sex">
+								<option value="">请选择性别</option>
+								<option th:value="1" th:selected="${person.sex==1}">男</option>
+								<option th:value="2" th:selected="${person.sex==2}">女</option>
+							</select>
+							<span class="hint">学员年龄：</span>
+							<input name="age" th:value="${person.age}" type="text" id="age" class="inputType2"/>
+						</div>
+					</li>
+					<li>
+						<span class="hint">学员年级<b>*</b>：</span>
+						<div class="contain">
+							<select name="gradeId" id="gradeId">
+								<option value="">请选择年级</option>
+								<option th:selected="${person.grade == list.id}" th:each="list:${QGradeList}"
+											th:value="${list.id}" th:text="${list.cnName}"></option>
+							</select>
+							<span class="hint">学员学校：</span>
+							<input type="text" th:value="${person.school}" id="school" value="" name="school" class="inputType2"/>
+						</div>
+					</li>
+					<li>
+						<span class="hint">学员家庭情况<b>*</b>：</span>
+						<div class="contain">
+							<textarea maxlength="1000" th:text="${person.familyInformation}" th:name="familyInformation" id="familyInformation"></textarea>
+							<div><span th:class="textCount" value="">0</span><span value="">/1000</span></div>
+						</div>
+					</li>
+					<li>
+						<span class="hint">学员学习困难<b>*</b>：</span>
+						<div class="contain">
+							<textarea maxlength="1000" th:text="${person.learningDifficulty}" th:name="learningDifficulty" id="learningDifficulty"></textarea>
+							<div><span th:class="textCount" value="">0</span><span value="">/1000</span></div>
+						</div>
+					</li>
+					<li>
+						<span class="hint">学员Case分享<b>*</b>：<br/>（Objection及话术）</span>
+						<div class="contain">
+							<textarea maxlength="1000" name="caseShare" id="caseShare"></textarea>
+							<div><span th:class="textCount" value="">0</span><span value="">/1000</span></div>
+						</div>
+					</li>
+					<li>
+						<span class="hint">收获<b>*</b>：</span>
+						<div class="contain">
+							<textarea maxlength="1000" th:name="gain" id="gain" placeholder="自己的收获是什么？（或有成就感的环节）"></textarea>
+							<div><span th:class="textCount" value="">0</span><span value="">/1000</span></div>
+						</div>
+					</li>
+					<li>
+						<span class="hint">注意：</span>
+						<div class="contain">
+							<textarea maxlength="1000" th:name="attention" placeholder="此类case需注意的问题是什么？"></textarea>
+							<div><span th:class="textCount" value="">0</span><span value="">/1000</span></div>
+						</div>
+					</li>
+					<li>
+						<span class="hint"></span>
+						<div class="contain">
+							<a id="sub">提交></a><span style="width: auto;padding: 0 0.1rem;vertical-align: middle;" class="hint">带<b>*</b>必填</span>
+						</div>
+					</li>
+				</ul>
+			</form>
+		</div>
+		<div th:include="/include/onload_js::onloadJSCustom(~{::script})">
+			<script>
+
+			//标题标签选中事件
+			$(".Titlelabel").click(function(){
+			    if($(this).hasClass("cl")){
+					$(this).removeClass("cl");
+				}else{
+					$(this).addClass("cl");
+				}
+			});
+			//文本框输入字数提示
+			$(".contain textarea").keyup(function(){
+				$(this).next().find("span").eq(0).text($(this).val().length+"/");
+				$(this).next().find("span").eq(1).text(1000-$(this).val().length);
+			});
+			//表单提交以及验证
+			$("#sub").click(function(){
+				if($("#title").val()==null || $("#title").val()==""){
+				    layer.msg("标题不能为空");
+				    return;
+				}
+				if($("#title").val().length>50){
+				    layer.msg("标题不能超过50字");
+				    return;
+				}
+				var labelStr = "";
+				var cl = $(".cl");
+				if(typeof(cl)==null || cl.length==0){
+				    layer.msg("请选择标签");
+				    return;
+				}
+				for(var i=0;i<$(".cl").length;i++){
+				    if(i==cl.length-1 || cl.length==1){
+				        labelStr+=$(cl[i]).attr("value");
+					}else{
+				         labelStr+=$(cl[i]).attr("value")+",";
+					}
+				}
+				console.info(labelStr);
+				$('#hiddenLabel').html("<input type='hidden' name='labelStr' value='"+labelStr+"'/>");
+
+				if($("#sourceTypeId").val() == null || $("#sourceTypeId").val()==""){
+				    layer.msg("请选择分类");
+				    return;
+				}
+				if($("#packageId").val()==null || $("#packageId").val()==""){
+					layer.msg("请选择套餐类型");
+				    return;
+				}
+
+				if ($("#personId").val() == null || $("#personId").val()== "") {
+				    layer.msg("请在学员列表中选择学员");
+				    return;
+				}
+
+				if($("#loginName").val() == null || $("#loginName").val() ==""){
+ 					layer.msg("请选择学员");
+				    return;
+				}
+				if($("#sex").val() == null || $("#sex").val() == ""){
+					layer.msg("请选择性别");
+				    return;
+				}
+				if($("#cnName").val() == null || $("#cnName").val()==""){
+                    layer.msg("请填写学员姓名");
+				    return;
+                }
+				if($("#gradeId").val() == null || $("#gradeId").val() == ""){
+					layer.msg("请选择年级");
+				    return;
+				}
+				if($("#familyInformation").val()==null || $("#familyInformation").val()==""){
+				    layer.msg("请填写家庭情况");
+				    return;
+				}
+				if($("#familyInformation").val().length>1000){
+				    layer.msg("家庭情况不能超过1000字");
+				    return;
+				}
+				if($("#learningDifficulty").val() == null ||$("#learningDifficulty").val() == ""){
+				    layer.msg("请填写学习困难");
+				    return;
+				}
+				if($("#learningDifficulty").val().length>1000 ){
+				    layer.msg("学习困难不能超过1000字");
+				    return;
+				}
+				if($("#caseShare").val() == null || $("#caseShare").val() == ""){
+					layer.msg("请填写学员case分享");
+				    return;
+				}
+				if($("#caseShare").val().length>1000){
+					layer.msg("学员case分享不能超过1000字");
+				    return;
+				}
+				if($("#gain").val() == null || $("#gain").val() == ""){
+					layer.msg("请填写收获");
+				    return;
+				}
+				if($("#gain").val().length>1000){
+					layer.msg("收获不能超过1000字");
+				    return;
+				}
+
+				//提交表单
+					$.ajax({
+					 type : "POST", //提交方式
+					 url : "/caseShareManage/addCaseShare",//路径
+					 data :$('#searchForm').serialize(),
+					 //数据，这里使用的是Json格式进行传输JSON.stringify(data),
+					 dataType:"json",
+					 contentType: "application/x-www-form-urlencoded",
+					 success: function (data) {
+						if(data.code > 0){
+							layer.msg('提交成功',{
+                              offset:['50%'],
+                              time: 2000 //2秒关闭（如果不配置，默认是3秒）
+                            },function(){
+							    //[[${oldCrmUrl}]]
+							   window.location.href= "[[${oldCrmUrl}]]admin/orders_closeCaseShare.action";
+                            });
+						}else{
+							layer.msg(data.msg);
+						}
+					},
+					error: function (err) {
+						console.log(err);
+						$("#sub").attr('disabled',false);
+					}
+				})
+			});
+			</script>
+		</div>
+	</body>
+</html>

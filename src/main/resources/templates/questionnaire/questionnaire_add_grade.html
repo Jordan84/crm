@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderCustomEdit('问卷测试',~{::style})">
+    <style>
+        body{overflow: hidden;}
+        .main{width: 100%;height: 100%;overflow-y: auto;}
+        .main .headinfo{width:100%;display:flex;display:-webkit-flex;border: 1px solid #cdcdcd;background: #f6f6f6;}
+        .main .headinfo span{flex:1;padding: 0.1rem;}
+        .main .headinfo span:nth-of-type(2n + 1){text-align: right;}
+        .main .head{border:1px solid #cdcdcd;}
+        .main .head h3{width: 100%;background:#fff;text-align: center;padding: 0.15rem 0;}
+        .main .summary{padding: 0.1rem 0.2rem;}
+        .main .contain{background: #eee;padding: 0.2rem;}
+        .main .contain .formItem{}
+        .main .contain .formItem ul{width: 100%;height:auto;}
+        .main .contain .formItem ul li{padding: 0.05rem 0;color: #333;}
+        .main .contain .formItem ul li .optionItem{padding: 0.05rem 0;}
+        .main .contain .formItem ul .addOption{width: 2.5rem;margin-left: 1.1rem;background:#fff;color:#ccc;border: 1px solid #e5e5e5;}
+        .main .contain .formItem ul li .labelstyle{margin-right: 0.1rem;text-align: right;display: inline-block;width: 1rem;}
+        .main .contain .formItem ul .radioDiv{padding: 0.05rem 0;}
+        .main .contain .itemModel{background: #fff;margin-bottom: 20px;}
+        .main .contain .itemModel h3{font-size:0.14rem;padding: 0.2rem;background:#f6f6f6;line-height: 0.25rem;}
+        .main .contain .itemModel p{font-size:0.14rem;color:#999;padding:0.1rem;}
+        .main .contain .itemModel div{font-size:0.14rem;padding: 0 0.1rem;}
+        .main .contain .itemModel div label{margin-right:0.5rem;color: #666;font-weight: normal;padding: 0.1rem 0;}
+        .main .contain .itemModel textarea{width: 100%;height: 1rem;padding: 0.1rem;resize: none;margin-top: 0.1rem;border: 1px solid #cdcdcd;}
+        .main .contain .itemModel .controlbtn{text-align:right;}
+        .main .contain .itemModel .controlbtn a{color: #0b8ad5;text-decoration: underline;cursor:pointer;padding: 0 0.1rem;}
+    </style>
+<body style="overflow-x:hidden;overflow-y: auto">
+    <div class="main">
+        <div class="head">
+             <h3 th:text="${qustionnaire.paperTitle}"></h3>
+        </div>
+        <div class="headinfo">
+            <span>学员：</span>
+            <span th:text="${qustionnaire.questionParam['studentLogin']}"></span>
+            <span>老师：</span>
+            <span th:text="${qustionnaire.qoc.teacher}"></span>
+            <span>上课时间：</span>
+            <span th:text="${#dates.format(qustionnaire.qoc.releaseTime, 'yyyy-MM-dd HH:mm:ss')}"></span>
+        </div>
+        <div class="summary" th:text="${#strings.replace(qustionnaire.paperSummary,'{学员名}',qustionnaire.questionParam['loginName']).replace('{ssc}',qustionnaire.questionParam['sscName']).replace('{teacher}',qustionnaire.questionParam['teacher'])}"></div>
+        <div class="contain" style="">
+            <div class="quitem">
+                <input id="param" th:attr="param = ${qustionnaire.questionParam}" type="hidden">
+                <div class="itemModel" th:each="questionAndOption ,iterStat: ${qustionnaire.questionAndOptionsList}">
+                    <h3 class="itemtitle"  th:attr="questionId =${questionAndOption.question.questionId}"
+                        th:text="${iterStat.index+1}+'、'+${#strings.replace(questionAndOption.question.questionName,'{学员名}',qustionnaire.questionParam['loginName']).replace('{ssc}',qustionnaire.questionParam['sscName']).replace('{teacher}',qustionnaire.questionParam['teacher'])} "
+                    >
+                    </h3>
+                    <p th:if="${questionAndOption.question.caption != null and questionAndOption.question.caption != '' }">
+                    <p th:if="${questionAndOption.question.caption != null and questionAndOption.question.caption != '' }">
+                        <span th:text="${#strings.replace(questionAndOption.question.caption,'{学员名}',qustionnaire.questionParam['loginName']).replace('{ssc}',qustionnaire.questionParam['sscName']).replace('{teacher}',qustionnaire.questionParam['teacher'])} "></span>
+                    </p>
+                    <div th:each="optionList ,iterStat2: ${questionAndOption.optionList}" class="op">
+                        <label>
+                            <input   th:type="radio" th:name="option+${iterStat.index+1}" th:text="${optionList.optionName}" th:attr="optionId = ${optionList.optionId},optionValue = ${optionList.optionValue}"/>
+                        </label>
+                    </div>
+                    <p th:if="${questionAndOption.question.endnotes != null}">
+                        <span th:text="${#strings.replace(questionAndOption.question.endnotes,'{学员名}',qustionnaire.questionParam['loginName']).replace('{ssc}',qustionnaire.questionParam['sscName']).replace('{teacher}',qustionnaire.questionParam['teacher'])} "></span>
+                    </p>
+                    <p th:if="${questionAndOption.question.state == 1}">
+                        <textarea class="optionSummary" placeholder="备注"></textarea>
+                    </p>
+
+                    <!--<p class="controlbtn"><a onclick="showFormItem(this)">修改</a><a>删除</a></p>-->
+                </div>
+            </div>
+        </div>
+        <div style="text-align:center;">
+            <button onclick="submitAnswer()" id="sub" class="btn btn-primary" type="button"> 确认完成并提交 </button>
+        </div>
+    </div>
+    <div th:include="/include/onload_js::onloadJSCustom(~{::script})">
+        <script>
+            function submitAnswer () {
+                $("#sub").attr('disabled',true);
+                var param = $("#param").attr("param");
+                param = JSON.parse(param)
+                console.info(param);
+                var dataobj = {}
+                dataobj.addUserId = param.addUserId;
+                dataobj.score = 0
+                dataobj.addUserName = param.addUserName;
+                dataobj.teacher = param.teacher;
+                dataobj.loginName = param.loginName;
+                dataobj.addUserId = param.addUserId;
+                dataobj.releaseTime = param.releaseTime;
+                dataobj.personId = param.personId;
+                dataobj.lessonId = param.lessonId;
+                dataobj.paperId = param.paperId;
+                dataobj.sscName = param.sscName;
+                dataobj.studentLogin = param.studentLogin;
+                dataobj.userAnswer = []
+                for (var i = 0; i < $('.itemModel').length; i++) {
+                    var answerobj = {}
+                    dataobj.score = dataobj.score + $('.itemModel').eq(i).find('input[type="radio"]:checked').attr('optionvalue') * 1
+                    answerobj.questionId = $('.itemModel').eq(i).find('.itemtitle').attr('questionid')
+                    answerobj.optionId = $('.itemModel').eq(i).find('input[type="radio"]:checked').attr('optionid')
+                    if(answerobj.optionId == null || answerobj.optionId == ""){
+                        layer.alert("第"+(i+1)+"小题未选择答案，请选择之后再提交！");
+                        $("#sub").attr('disabled',false);
+                        return;
+                    }
+                    if(typeof($('.itemModel').eq(i).find('.optionSummary').val()) != "undefined"){
+                         answerobj.optionSummary = $('.itemModel').eq(i).find('.optionSummary').val();
+                    }else{
+                        answerobj.optionSummary = "";
+                    }
+                    dataobj.userAnswer.push(answerobj)
+                }
+
+                $.ajax({
+                     type : "POST", //提交方式
+                     url : "/questionnaireOc/addgrade",//路径
+                     data : JSON.stringify(dataobj),//数据，这里使用的是Json格式进行传输JSON.stringify(data),
+                     dataType:"json",
+                     contentType: "application/json;charset=utf-8",
+                    success: function (data) {
+                        if(data.code == 1){
+                            layer.msg('提交成功',{
+                              offset:['50%'],
+                              time: 2000 //2秒关闭（如果不配置，默认是3秒）
+                            },function(){
+                                 window.location.href= "[[${oldCrmUrl}]]admin/person_iframeReload.action";
+                            });
+                        }else{
+                            layer.alert(data.msg);
+                        }
+                    },
+                    error: function (err) {
+                        console.log(err);
+                        $("#sub").attr('disabled',false);
+                    }
+                })
+            }
+
+            function myclose(){
+                parent.$.fancybox.close();
+             }
+        </script>
+</body>
+</html>

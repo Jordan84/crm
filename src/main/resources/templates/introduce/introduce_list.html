@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderCustomList('转介绍配置管理',~{::style})">
+    <style type="text/css">
+    </style>
+</head>
+<body>
+<div id="content" class="col-lg-12 col-sm-12" style="padding: 5px;">
+    <div class="row">
+        <div class="box col-md-12">
+            <div class="box-inner">
+                <div class="box-header well" data-original-title="">
+                    <h2>
+                        <i class="glyphicon glyphicon-home"></i> 转介绍配置列表
+                    </h2>
+                </div>
+                <div class="box-content">
+                    <form class="form-inline form-search" role="form" method="post" action="/introduce/set/page/list" onsubmit="return true;">
+                    </form>
+                    <div class="col-xs-12">
+                        <button class="btn btn-info add" style="float: right;margin-bottom: 5px;" >
+                            <span class="glyphicon glyphicon-plus-sign"></span> 添 加
+                        </button>
+                    </div>
+                    <table class="table table-striped table-bordered table-hover" data-show-toggle="false">
+                        <thead>
+                            <tr>
+                                <th style="text-align: center;">#</th>
+                                <th style="text-align: center;">配置名称</th>
+                                <th style="text-align: center;">节点</th>
+                                <th style="text-align: center;">赠礼类型</th>
+                                <th style="text-align: center;">学员类型</th>
+                                <th style="text-align: center;">创建时间</th>
+                                <th style="text-align: center;">创建人</th>
+                                <th style="text-align: center;">状态</th>
+                                <th style="text-align: center;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="intro,iterStat : ${pageInfo.list}">
+                                <td style="text-align: center;" th:text="${iterStat.index+1}">sort</td>
+                                <td style="text-align: center;" th:text="${intro.name}">name</td>
+                                <td style="text-align: center;" th:text="${intro.node==1?'推荐学员购买31天赠送课':''}">node</td>
+                                <td style="text-align: center;" th:text="${intro.giftType==1?'课时':'礼品'}">gift</td>
+                                <td style="text-align: center;" th:text="${intro.studentType==0?'常规':intro.studentType==1?'测试':intro.studentType==2?'市场':intro.studentType==3?'员工':intro.studentType==4?'个人代理':intro.studentType==5?'学生代理':intro.studentType==6?'JP':'市场组长'}">studentType</td>
+                                <td style="text-align: center;" th:text="${#dates.format(intro.recordTime,'yyyy-MM-dd HH:mm:ss')}">recordTime</td>
+                                <td style="text-align: center;" th:text="${intro.recorder}">recorder</td>
+                                <td style="text-align: center;" th:text="${intro.state==1?'开启中':'已关闭'}">state</td>
+                                <td style="text-align: center;">
+                                    <a th:alt="|/introduce/set/page/edit/${intro.id}|" href="javascript:;"  class="btn btn-danger edit" role="button"><span class="glyphicon glyphicon-edit"></span> 修改 </a>
+                                    <a th:onclick="'closeState('+${intro.id}+','+${intro.state}+')'" href="javascript:void(0);" th:class="${intro.state==1?'btn btn-danger':'btn btn-info'}" role="button"><span class="glyphicon glyphicon-volume-off"></span> <span th:text="${intro.state==1?'关闭':'开启'}"></span> </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div th:include="include/pageinfo::pager"></div>
+                </div>
+            </div>
+            <!--/box-->
+        </div>
+        <!--/row-->
+    </div>
+    <!-- content ends -->
+    <div th:include="/include/onload_js::onloadJSCustomList(~{::script})">
+        <script type="text/javascript" th:inline="javascript">
+            $(function () {
+                $(".add").on("click", function () {
+                    var url = "/introduce/set/page/edit/0";
+                    layer.open({
+                        type: 2,
+                        title: false,
+                        closeBtn: 1, //显示关闭按钮
+                        // shade: [0],
+                        shade: 0.4,
+                        area: ['560px', '550px'],
+                        // offset: 'rb', //右下角弹出
+                        // time: 2000, //2秒后自动关闭
+                        // anim: 2,
+                        content: [url, 'no'], //iframe的url，no代表不显示滚动条
+                        end: function () { //此处用于演示
+                        },
+                        cancel: function(index, layero){
+                            window.location.reload();
+                        }
+                    });
+                });
+
+                $(".edit").on("click", function () {
+                    var url = $(this).attr("alt");
+                    layer.open({
+                        type: 2,
+                        title: false,
+                        closeBtn: 1, //显示关闭按钮
+                        // shade: [0],
+                        shade: 0.4,
+                        area: ['560px', '550px'],
+                        //offset: 'rb', //右下角弹出
+                        // time: 2000, //2秒后自动关闭
+                        // anim: 5,
+                        content: [url, 'no'], //iframe的url，no代表不显示滚动条
+                        end: function () { //此处用于演示
+                        },
+                        cancel: function(index, layero){
+                            window.location.reload();
+                        }
+                    });
+                });
+            });
+
+
+            function closeState(id, state) {
+                //询问框
+                layer.confirm('确定修改状态么？', {
+                    btn: ['确认', '取消'] //按钮
+                }, function () {
+
+                    layer.closeAll('dialog');
+                    if(state == 1){
+                        state = 0;
+                    }else{
+                        state = 1;
+                    }
+
+                    var url = "/introduce/set/state/" + id + "/" + state;
+                    console.log("url:" + JSON.stringify(url));
+                    // console.log("parms:" + JSON.stringify(parms));
+                    $.post(url, {}, function (res) {
+                        console.log(res);
+
+                        window.location.reload();
+                    });
+                }, function () {
+                });
+            }
+        </script>
+    </div>
+</div>
+</body>
+</html>

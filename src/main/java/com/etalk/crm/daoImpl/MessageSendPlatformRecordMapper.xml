@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.MessageSendPlatformRecordMapper" >
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.MessageSendPlatformRecord" >
+        <result column="msg_send_id" property="msgSendId" jdbcType="INTEGER" />
+        <result column="receiving_platform_id" property="receivingPlatformId" jdbcType="INTEGER" />
+
+    </resultMap>
+
+    <!--插入消息发送记录-->
+    <insert id="insertMessageSendPlatformRecord" parameterType="com.etalk.crm.pojo.MessageSendPlatformRecord">
+        insert into message_send_platform_record (msg_send_id,receiving_platform_id)values
+        <foreach collection="list" item="items" separator=",">
+            ( #{items.msgSendId,jdbcType=INTEGER}, #{items.receivingPlatformId,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+
+</mapper>

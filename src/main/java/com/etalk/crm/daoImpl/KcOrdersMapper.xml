@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.KcOrdersMapper">
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.KcOrders">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="stores_id" property="storesId" jdbcType="INTEGER"/>
+        <result column="login_name" property="loginName" jdbcType="VARCHAR"/>
+        <result column="person_id" property="personId" jdbcType="INTEGER"/>
+        <result column="classify_id" property="classifyId" jdbcType="INTEGER"/>
+        <result column="classify_level" property="classifyLevel" jdbcType="INTEGER"/>
+        <result column="currencyName" property="currencyName" jdbcType="VARCHAR"/>
+        <result column="package_id" property="packageId" jdbcType="INTEGER"/>
+        <result column="package_type_flag" property="packageTypeFlag" jdbcType="VARCHAR"/>
+        <result column="package_name" property="packageName" jdbcType="VARCHAR"/>
+        <result column="price" property="price" jdbcType="DECIMAL"/>
+        <result column="sale_price" property="salePrice" jdbcType="DECIMAL"/>
+        <result column="pay_money" property="payMoney" jdbcType="DECIMAL"/>
+        <result column="strSalePrice" property="strSalePrice" jdbcType="VARCHAR"/>
+        <result column="strPayMoney" property="strPayMoney" jdbcType="VARCHAR"/>
+        <result column="pay_type" property="payType" jdbcType="VARCHAR"/>
+        <result column="pay_trade_no" property="payTradeNo" jdbcType="VARCHAR"/>
+        <result column="buy_time" property="buyTime" jdbcType="TIMESTAMP"/>
+        <result column="buyer_id" property="buyerId" jdbcType="VARCHAR"/>
+        <result column="lesson_count" property="lessonCount" jdbcType="INTEGER"/>
+        <result column="oldcount" property="oldcount" jdbcType="INTEGER"/>
+        <result column="learned_class" property="learnedClass" jdbcType="INTEGER"/>
+        <result column="strLearnedClass" property="strLearnedClass" jdbcType="VARCHAR"/>
+        <result column="everydayclass" property="everydayclass" jdbcType="INTEGER"/>
+        <result column="introduce" property="introduce" jdbcType="VARCHAR"/>
+        <result column="valid" property="valid" jdbcType="INTEGER"/>
+        <result column="surplus_valid" property="surplusValid" jdbcType="VARCHAR"/>
+        <result column="remark" property="remark" jdbcType="LONGVARCHAR"/>
+        <result column="buycount" property="buycount" jdbcType="INTEGER"/>
+        <result column="oldbuycount" property="oldbuycount" jdbcType="INTEGER"/>
+        <result column="gift" property="gift" jdbcType="INTEGER"/>
+        <result column="state" property="state" jdbcType="INTEGER"/>
+        <result column="creater" property="creater" jdbcType="VARCHAR"/>
+        <result column="stores_name" property="storesName" jdbcType="VARCHAR"/>
+        <result column="cn_name" property="stuName" jdbcType="VARCHAR"/>
+        <result column="en_name" property="enName" jdbcType="VARCHAR"/>
+        <result column="txt_books_name" property="txtBooksName" jdbcType="VARCHAR"/>
+        <result column="surplus" property="surplus" jdbcType="INTEGER"/>
+        <result column="count_class" property="countClass" jdbcType="INTEGER"/>
+        <result column="sum_pay" property="sumPay" jdbcType="DECIMAL"/>
+        <result column="sum_silver" property="sumSilver" jdbcType="DECIMAL"/>
+        <result column="sum_gold" property="sumGold" jdbcType="DECIMAL"/>
+        <result column="sum_diamond" property="sumDiamond" jdbcType="DECIMAL"/>
+        <result column="sum_euram_teacher" property="sumEuramTeacher" jdbcType="INTEGER"/>
+        <result column="sum_chinese_teacher" property="sumChineseTeacher" jdbcType="INTEGER"/>
+        <result column="learned_class_double" property="learnedClassD" jdbcType="DOUBLE"/>
+        <result column="release_time" property="releaseTime" jdbcType="TIMESTAMP"/>
+        <result column="completion_rates" property="completionRates" jdbcType="DOUBLE"/>
+        <result column="type_flag" property="typeFlag" jdbcType="VARCHAR"/>
+        <result column="open_id" property="openId" jdbcType="VARCHAR"/>
+        <result column="textbook_id" property="textbookId" jdbcType="INTEGER"/>
+        <result column="classify_name" property="classifyName" jdbcType="VARCHAR"/>
+        <result column="parent_name" property="parentName" jdbcType="VARCHAR"/>
+        <result column="start_date" property="startDate" jdbcType="TIMESTAMP"/>
+        <result column="freeze_state" property="freezeState" jdbcType="VARCHAR"/>
+        <result column="freeze_valid" property="freezeValid" jdbcType="VARCHAR"/>
+        <result column="freeze_date" property="freezeDate" jdbcType="VARCHAR"/>
+        <result column="speedProgress" property="speedProgress" jdbcType="VARCHAR"/>
+        <result column="oldOrderId" property="oldOrderId" jdbcType="VARCHAR"/>
+        <result column="class_long" property="classLong" jdbcType="INTEGER"/>
+        <result column="class_num" property="classNum" jdbcType="INTEGER"/>
+    </resultMap>
+    <!-- 根据ID查询订单 -->
+    <select id="selectByOrderId" resultMap="BaseResultMap" parameterType="java.lang.String">
+        select ko.id, ko.stores_id,p.login_name, ko.classify_id,ko.classify_level, ko.package_id, ko.package_type_flag,ko.package_name, ko.price,ko.sale_price, ko.pay_money, ko.pay_type, ko.pay_trade_no,
+        ko.buy_time,ko.buyer_id, ko.lesson_count, ko.learned_class, ko.everydayclass, ko.introduce, ko.`valid`, ko.surplus_valid, ko.textbook_id,
+        ko.remark,ko.gift,ko.buycount,ko.oldbuycount,ko.state,ko.oldcount,ko.creater,ko.start_date,ko.person_id,ko.freeze_state,class_num,class_long
+        from kc_orders ko left join person p on p.id=ko.person_id
+        where ko.id = #{orderId,jdbcType=VARCHAR}
+    </select>
+    <!-- 添加订单 -->
+    <insert id="insertOrder" parameterType="com.etalk.crm.pojo.KcOrders">
+        insert into kc_orders
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            stores_id,
+            login_name,
+            person_id,
+            classify_id,
+            classify_level,
+            package_id,
+            package_type_flag,
+            package_name,
+            price,sale_price,
+            pay_money,
+            pay_type,
+            pay_trade_no,
+            buyer_id,
+            buy_time,
+            start_date,
+            lesson_count,
+            learned_class,
+            everydayclass,
+            introduce,
+            textbook_id,
+            `valid`,
+            surplus_valid,
+            remark,
+            gift,
+            buycount,oldbuycount,
+            state,
+            oldcount,
+            creater,
+            freeze_state,
+            class_long,
+            class_num,
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id,jdbcType=VARCHAR},
+            #{storesId,jdbcType=VARCHAR},
+            #{loginName,jdbcType=VARCHAR},
+            #{personId,jdbcType=INTEGER},
+            #{classifyId,jdbcType=INTEGER},
+            #{classifyLevel,jdbcType=INTEGER},
+            #{packageId,jdbcType=INTEGER},
+            #{packageTypeFlag,jdbcType=VARCHAR},
+            #{packageName,jdbcType=VARCHAR},
+            #{price,jdbcType=DECIMAL},
+            #{salePrice,jdbcType=DECIMAL},
+            #{payMoney,jdbcType=DECIMAL},
+            #{payType,jdbcType=VARCHAR},
+            #{payTradeNo,jdbcType=VARCHAR},
+            #{buyerId,jdbcType=VARCHAR},
+            #{buyTime,jdbcType=TIMESTAMP},
+            #{startDate,jdbcType=TIMESTAMP},
+            #{lessonCount,jdbcType=INTEGER},
+            #{learnedClass,jdbcType=INTEGER},
+            #{everydayclass,jdbcType=INTEGER},
+            #{introduce,jdbcType=VARCHAR},
+            #{textbookId,jdbcType=INTEGER},
+            #{valid,jdbcType=INTEGER},
+            #{surplusValid,jdbcType=VARCHAR},
+            #{remark,jdbcType=LONGVARCHAR},
+            #{gift,jdbcType=INTEGER},
+            #{buycount,jdbcType=INTEGER},
+            #{oldbuycount,jdbcType=INTEGER},
+            #{state,jdbcType=INTEGER},
+            #{oldcount,jdbcType=INTEGER},
+            #{creater,jdbcType=VARCHAR},
+            #{freezeState,jdbcType=VARCHAR},
+            #{classLong,jdbcType=INTEGER},
+            #{classNum,jdbcType=INTEGER},
+        </trim>
+    </insert>
+    <!-- 获取学员有效订单最后一个过期日期 -->
+    <select id="getLastOutdate" resultType="java.util.Date">
+        SELECT surplus_valid from kc_orders ko WHERE ko.state=1 and ko.person_id = #{personId}
+        order by surplus_valid desc
+        limit 1;
+    </select>
+</mapper>

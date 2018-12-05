@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--<head th:include="/include/head::commonHeaderList('')">-->
+<head th:include="/include/head::commonHeaderCustom('baseSalaryConfigure',~{::style})">
+
+<style type="text/css">
+.header{
+    margin: 15px 0;
+}
+.font1{
+    width: 80px;
+    font-size: 12px;
+    color: #999;
+    display: inline-block;
+    text-align: right;
+    padding: 0 10px;
+}
+.font2{
+    width: 50px;
+    font-size: 24px;
+    color: #999;
+    font-weight: bold;
+    text-align: center;
+}
+.inputcommen{
+    color: #333;
+    height: 30px;
+    border: 1px solid #CCC;
+    padding: 5px;
+    border-radius: 2px;
+    background: #fff;
+}
+.contain{
+    overflow-y: auto;
+    height: calc(100% - 100px);
+}
+.item{
+    position: relative;
+    background: #eee;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+.item>div{
+    margin-bottom: 10px;
+}
+.item>i{
+    font-size: 12px;
+    cursor: pointer;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    background: #ff6363;
+    color: #fff;
+    border-radius: 50%;
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    line-height: 15px;
+    text-align: center;
+}
+.controlbtn{
+    margin: 10px;
+}
+.controlbtn button{
+    width: auto;
+    height: auto;
+    padding: 5px 20px;
+    border: 1px solid #cdcdcd;
+}
+.footer{
+    width: 100%;
+    text-align: center;
+    position: absolute;
+    bottom: 5px;
+    background: #fff;
+}
+.footer button{
+    min-width: 100px;
+}
+</style>
+<body>
+    <div class="header">
+        <span class="font1">配置名称</span>
+        <input class="inputcommen" name ="baseSalaryName" style="width: calc(100% - 110px);" type="text" placeholder="请填写配置名称">
+    </div>
+    <div class="contain">
+        <div class="item">
+            <!--<i>x</i>-->
+            <div>
+               <span class="font1">第1区间</span>
+                <input class="inputcommen" type="number" name="intervalMinValue"/>
+                <select class="inputcommen" name="intervalMinSign">
+                    <option value="">不选</option>
+                   <option value="1"><</option>
+                    <option value="2"><=</option>
+                </select>
+                <span class="font1 font2">x</span>
+                <select class="inputcommen" name="intervalMaxSign">
+                    <option value="">不选</option>
+                    <option value="1"><</option>
+                    <option value="2"><=</option>
+                </select>
+                <input class="inputcommen" type="number" name="intervalMaxValue" />
+            </div>
+            <div>
+                <span class="font1">底薪</span>
+                <input class="inputcommen" type="number" name="baseSalary" />
+            </div>
+        </div>
+        <div class="controlbtn">
+            <button id="addDom" class="inputcommen">添加配置</button>
+            <button id="removeDom" class="inputcommen">删除配置</button>
+        </div>
+    </div>
+    <div class="footer">
+        <button class="inputcommen" onclick="parent.layer.closeAll()">取消</button>
+        <button class="inputcommen" id="submit" style="background: #1d9be5;color:#fff;">添加</button>
+    </div>
+    <div th:include="/include/onload_js::onloadJSCustomList(~{::script})">
+       <script>
+           $("#addDom").click(function(){
+                var index = parseInt($(".item:last").index());
+                var html ="";
+                html+='<div class="item">';
+                html+='<div>';
+                html+='  <span class="font1">第<i>'+parseInt(index+2)+'</i>区间</span>';
+                html+='    <input class="inputcommen" type="number" name="intervalMinValue" type="text"/>';
+                html+='    <select class="inputcommen" name="intervalMinSign">';
+                html+='        <option value="">请选择</option>';
+                html+='        <option value="1"><</option>';
+                html+='        <option value="2"><=</option>';
+                html+='    </select>';
+                html+='    <span class="font1 font2">x</span>';
+                html+='    <select class="inputcommen" type="number" name="intervalMaxSign">';
+                html+='        <option value="">请选择</option>';
+                html+='        <option value="1"><</option>';
+                html+='        <option value="2"><=</option>';
+                html+='    </select>';
+                html+='    <input class="inputcommen" name="intervalMaxValue" type="text"/>';
+                html+='</div>';
+                html+='<div>';
+                html+='    <span class="font1">底薪</span>';
+                html+='    <input class="inputcommen" type="number"  name="baseSalary"  type="text"/>';
+                html+='</div>';
+                html+='</div>';
+                $(".controlbtn").before(html);
+
+        });
+
+        $("#removeDom").click(function(){
+            $(".item:last").remove();
+        });
+
+        $("#submit").click(function(){
+             var dataobj = {};
+            if($("input[name='baseSalaryName']").val() == null || $("input[name='baseSalaryName']").val() == ""){
+                layer.tips('请填写配置', $("input[name='baseSalaryName']"), {
+                    tips: [1, '#0FA6D8'],
+                    tipsMore: false,
+                    time: 3000
+                });
+                $("input[name='baseSalaryName']").focus();
+                return false;
+            }else {
+                if($("input[name='baseSalaryName']").val().length>30){
+                    layer.tips('配置名称不能超过三十字', $("input[name='baseSalaryName']"), {
+                        tips: [1, '#0FA6D8'],
+                        tipsMore: false,
+                        time: 3000
+                    });
+                    $("input[name='baseSalaryName']").focus();
+                    return false;
+                }
+                dataobj.baseSalaryName = ($("input[name='baseSalaryName']").val());
+            }
+            dataobj.paramList = [];
+            for(var i = 0;i<$(".item").length;i++){
+                var dataitem = {};
+                var minValue = $(".item").eq(i).find("input[name='intervalMinValue']");
+                var maxValue = $(".item").eq(i).find("input[name='intervalMaxValue']");
+                var minSign = $(".item").eq(i).find("select[name='intervalMinSign']");
+                var maxSign = $(".item").eq(i).find("select[name='intervalMaxSign']");
+                var baseSalary = $(".item").eq(i).find("input[name='baseSalary']");
+                dataitem.sort = i+1;
+                if($(minValue).val() == ""){
+                    layer.tips('请填该区间数值', $(minValue), {
+                        tips: [1, '#0FA6D8'],
+                        tipsMore: false,
+                        time: 3000
+                    });
+                    $(minValue).focus();
+                     return false;
+                }else{
+                     dataitem.intervalMinValue = $(minValue).val();
+                }
+
+                if($(minSign).val() == ""){
+                    layer.tips('请选择区间符号', $(minSign), {
+                        tips: [1, '#0FA6D8'],
+                        tipsMore: false,
+                        time: 3000
+                    });
+                    $(minSign).focus();
+                    return false;
+                }else{
+                    dataitem.intervalMinSign = $(minSign).val();
+                }
+
+                if($(maxSign).val() == ""){
+                    layer.tips('请选择区间符号', $(maxSign), {
+                        tips: [1, '#0FA6D8'],
+                        tipsMore: false,
+                        time: 3000
+                    });
+                    $(maxSign).focus();
+                    return false;
+                }else{
+                    dataitem.intervalMaxSign = $(maxSign).val();
+                }
+                if($(maxValue).val() == ""){
+                    layer.tips('请填该区间数值', $(maxValue), {
+                        tips: [1, '#0FA6D8'],
+                        tipsMore: false,
+                        time: 3000
+                    });
+                    $(maxValue).focus();
+                   return false;
+                }else{
+                    dataitem.intervalMaxValue = $(maxValue).val();
+                }
+
+                if(parseInt($(maxValue).val()) <= parseInt($(minValue).val())){
+                     layer.tips('该区间第二个数值不能小于该区间第一个值', $(maxValue), {
+                        tips: [1, '#0FA6D8'],
+                        tipsMore: false,
+                        time: 4000
+                    });
+                    $(maxValue).focus();
+                   return false;
+                }
+
+                if($(baseSalary).val() == ""){
+                    layer.tips('请填写区间底薪', $(baseSalary), {
+                        tips: [1, '#0FA6D8'],
+                        tipsMore: false,
+                        time: 3000
+                    });
+                    $(baseSalary).focus();
+                    return false;
+                }else{
+                    dataitem.baseSalary = $(baseSalary).val();
+                }
+                if(i > 0){
+                    var premaxValue = $(".item").eq(i-1).find("input[name='intervalMaxValue']");
+                    var premaxSign = $(".item").eq(i-1).find("select[name='intervalMaxSign']");
+
+                    if(parseInt(minValue.val()) < parseInt(premaxValue.val())){
+                        layer.tips('您填写的区间数值应该大于上一个区间最大值，请重新填写', $(minValue), {
+                            tips: [1, '#0FA6D8'],
+                            tipsMore: false,
+                            time: 3000
+                        });
+                        $(minValue).focus();
+                        return false;
+                    }
+
+                    if(premaxValue.val() == minValue.val() && premaxSign.val() == minSign.val()){
+                        layer.tips('您选择该区间的符号会覆盖上个区间，请更换符号', $(minSign), {
+                            tips: [1, '#0FA6D8'],
+                            tipsMore: false,
+                            time: 3000
+                        });
+                        $(minSign).focus();
+                        return false;
+                    }
+                }
+                dataobj.paramList.push(dataitem);
+            }
+            console.info(dataobj);
+            $.ajax({
+                 type : "POST", //提交方式
+                 url : "/baseSalaryConfigure/submitsalaryConfigure",//路径
+                 data : JSON.stringify(dataobj),//数据，这里使用的是Json格式进行传输JSON.stringify(data),
+                 dataType:"json",
+                 contentType: "application/json;charset=utf-8",
+                 success: function (data) {
+                    if(data.code>0){
+                        layer.msg(data.msg,{
+                          offset:['50%'],
+                          time: 2000 //2秒关闭（如果不配置，默认是3秒）
+                        },function(){
+                         window.parent.location.reload();
+                    });
+                    }else if(data.code == -2){
+                        layer.tips(data.msg, $("input[name='baseSalaryName']"), {
+                            tips: [1, '#0FA6D8'],
+                            tipsMore: false,
+                            time: 3000
+                        });
+                        $("input[name='baseSalaryName']").val("").focus();
+                    }else{
+                         layer.msg(data.msg);
+                    }
+                },
+                error: function (err) {
+                    console.log(err)
+                }
+            })
+        });
+    </script>
+    </div>
+</body>
+</html>

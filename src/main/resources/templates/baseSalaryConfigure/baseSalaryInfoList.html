@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderList('baseSalaryConfigure')">
+    <!--<body oncontextmenu="self.event.returnValue=false" onselectstart="return false">-->
+<!--<link rel="stylesheet"  th:href="@{/static/css/}" />-->
+<body>
+<div id="content" class="col-lg-12 col-sm-12">
+    <div class="row">
+        <div class="box col-md-12">
+            <div class="box-inner">
+                <div class="box-header well" data-original-title="">
+                    <h2>
+                        <i class="glyphicon glyphicon-user"></i> baseSalaryConfigure
+                    </h2>
+                    <div class="box-icon">
+                        <!-- <a href="#" class="btn btn-setting btn-round btn-default"><i class="glyphicon glyphicon-cog"></i></a> -->
+                        <a href="javascript:void(0);" id="smaller" class="btn btn-minimize btn-round btn-default"><i class="glyphicon glyphicon-chevron-up"></i></a>
+                        <!-- <a href="#"	class="btn btn-close btn-round btn-default"><i class="glyphicon glyphicon-remove"></i></a> -->
+                    </div>
+                </div>
+                <div class="box-content">
+                   <div class="col-xs-12">
+                        <button class="btn btn-info add" id="add" style="float: right;margin-bottom: 5px;">
+                            <span class="glyphicon glyphicon-plus-sign"></span> 添 加
+                        </button>
+                    </div>
+                    <table class="table table-striped table-bordered table-hover " data-show-toggle="false">
+                        <thead>
+                            <tr>
+                                <th style="text-align: center;">配置名称</th>
+                                <th style="text-align: center;">添加人</th>
+                                <th style="text-align: center;">添加时间</th>
+                                <th style="text-align: center;">是否有效</th>
+                                <th style="width: 200px;text-align: center;" data-breakpoints="xs sm" data-title="操作">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="baseSalaryList,baseSalaryListStat: ${baseSalaryList}">
+                                <td style="text-align: center;" th:text="${baseSalaryList.baseSalaryName}"></td>
+                                <td style="text-align: center;" th:text="${baseSalaryList.addUserName}"></td>
+                                <td style="text-align: center;" th:text="${#dates.format(baseSalaryList.addTime, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                                <td style="text-align: center;">
+                                     <span  class="label-success label " style="cursor:pointer" th:attr="data-state=${baseSalaryList.state},data-id=${baseSalaryList.id}" th:if="${baseSalaryList.state==1}">有效</span>
+                                    <span  class="label label-default"  style="cursor:pointer" th:attr="data-state=${baseSalaryList.state},data-id=${baseSalaryList.id}"  th:if="${baseSalaryList.state==0}">无效</span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <a  th:attr="data-id=${baseSalaryList.id}"  class="btn btn-success lookup"><span class="glyphicon glyphicon-export"></span> 查 看 </a>
+                                    <a  th:attr="data-id=${baseSalaryList.id}"  class="btn btn-danger eidt"><span class="glyphicon glyphicon-edit"></span> 编 辑 </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:include="/include/onload_js::onloadJSCustomList(~{::script})">
+    <script>
+        $(function () {
+            //查看按钮
+            $(".lookup").click(function(){
+                var url = "/baseSalaryConfigure/salaryConfigureDetail?id="+$(this).attr("data-id");
+                layer.open({
+                    type: 2,
+                    title: false,
+                    closeBtn: 1, //显示关闭按钮
+                    shade: [0],
+                    area: ['40%', '95%'],
+                    //offset: 'rb', //右下角弹出
+                    // time: 2000, //2秒后自动关闭
+                    anim: 2,
+                    content: [url, 'no'], //iframe的url，no代表不显示滚动条
+                    end: function () {
+                        //location.reload();
+                   }
+                 });
+            });
+
+            //添加页面
+            $("#add").click(function(){
+                var url = "/baseSalaryConfigure/addSalaryConfigure";
+                layer.open({
+                    type: 2,
+                    title: false,
+                    closeBtn: 1, //显示关闭按钮
+                    shade: [0],
+                    area: ['40%', '95%'],
+                    //offset: 'rb', //右下角弹出
+                    // time: 2000, //2秒后自动关闭
+                    anim: 2,
+                    content: [url, 'no'], //iframe的url，no代表不显示滚动条
+                    end: function () {
+                        //location.reload();
+                   }
+                 });
+            });
+
+            //编辑页面
+            $(".eidt").click(function(){
+                var url = "/baseSalaryConfigure/eidtsalaryConfigure?id="+$(this).attr("data-id");
+                layer.open({
+                    type: 2,
+                    title: false,
+                    closeBtn: 1, //显示关闭按钮
+                    shade: [0],
+                    area: ['40%', '95%'],
+                    //offset: 'rb', //右下角弹出
+                    // time: 2000, //2秒后自动关闭
+                    anim: 2,
+                    content: [url, 'no'], //iframe的url，no代表不显示滚动条
+                    end: function () {
+                        //location.reload();
+                   }
+                 });
+            });
+        });
+
+       $(".label").click(function(){
+            var obj = $(this);
+            var state = $(obj).attr("data-state");
+            var content = "";
+            if(state == 0){
+                state = 1;
+                content = "确认要启用么？"
+            }else{
+                 state = 0;
+                 content = "确认要禁用么？"
+            }
+            layer.open({
+              content: content
+              ,btn: ['确认', '取消']
+              ,yes: function(index, layero){
+                  var id = $(obj).attr("data-id");
+                    $.ajax({
+                     type : "POST", //提交方式
+                     url : "/baseSalaryConfigure/isValid",//路径
+                     data : {
+                         "id" : id,
+                         "state" :state
+                     },
+                     dataType:"json",
+                     // contentType: "application/json;charset=utf-8",
+                     success: function (data) {
+                        if(data.code>0){
+                            layer.msg(data.msg,{
+                              offset:['50%'],
+                              time: 2000 //2秒关闭（如果不配置，默认是3秒）
+                            },function(){
+                            $(obj).attr("data-state",state);
+                            if(state == 1){
+                                $(obj).removeClass("label-default").addClass("label-success");
+                                $(obj).text("有效");
+                            }else{
+                                $(obj).removeClass("label-success").addClass("label-default");
+                                $(obj).text("无效");
+                            }
+                        });
+                        }else{
+                           layer.msg(data.msg);
+                        }
+                    },
+                    error: function (err) {
+                        console.info("取消");
+                        cancelState(obj);
+                    }
+                })
+              }
+              ,btn2: function(index, layero){
+                 cancelState(obj);
+              }
+              ,cancel: function(){
+                cancelState(obj);
+              }
+            });
+        });
+
+        function cancelState(obj){
+            if($(obj).is(':checked')){
+               $(obj).attr("checked",false);
+            }else{
+               $(obj).attr("checked",true);
+           }
+        }
+    </script>
+</div>
+</body>
+</html>

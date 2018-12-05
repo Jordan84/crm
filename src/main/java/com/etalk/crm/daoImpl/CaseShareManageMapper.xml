@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.etalk.crm.dao.CaseShareManageMapper">
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.CaseShareManage">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="add_user_id" property="addUserId" jdbcType="INTEGER"/>
+        <result column="person_id" property="personId" jdbcType="INTEGER"/>
+        <result column="source_type_id" property="sourceTypeId" jdbcType="INTEGER"/>
+        <result column="sex" property="sex" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+        <result column="add_user_name" property="addUserName" jdbcType="VARCHAR"/>
+        <result column="page_views" property="pageViews" jdbcType="INTEGER"/>
+        <result column="point_count" property="pointCount" jdbcType="INTEGER"/>
+        <result column="title" property="title" jdbcType="VARCHAR"/>
+        <result column="cn_name" property="cnName" jdbcType="VARCHAR"/>
+        <result column="grade_id" property="gradeId" jdbcType="INTEGER"/>
+        <result column="age" property="age" jdbcType="INTEGER"/>
+        <result column="school" property="school" jdbcType="VARCHAR"/>
+        <result column="package_id" property="packageId" jdbcType="INTEGER"/>
+        <result column="family_information" property="familyInformation" jdbcType="VARCHAR"/>
+        <result column="learning_difficulty" property="learningDifficulty" jdbcType="VARCHAR"/>
+        <result column="case_share" property="caseShare" jdbcType="VARCHAR"/>
+        <result column="gain" property="gain" jdbcType="VARCHAR"/>
+        <result column="attention" property="attention" jdbcType="VARCHAR"/>
+        <result column="label_str" property="labelStr" jdbcType="VARCHAR"/>
+        <result column="login_name" property="loginName" jdbcType="VARCHAR"/>
+        <result column="state" property="state" jdbcType="INTEGER"/>
+    </resultMap>
+    <select id="caseShareList" resultMap="BaseResultMap" parameterType="com.etalk.crm.pojo.CaseShareManage">
+         SELECT
+        csm.id,
+        csm.state,
+        csm.source_type_id,
+        csm.add_user_id,
+        csm.sex,
+        csm.create_time,
+        csm.add_user_name,
+        csm.page_views,
+        csm.point_count,
+        csm.title,
+        csm.grade_id,
+        csm.age,
+        csm.school,
+        csm.family_information,
+        csm.learning_difficulty,
+        csm.case_share,
+        csm.gain,
+        csm.attention,
+        cst.type_name typeName,
+        qg.cn_name AS gradeName,
+        rr.reject_reason as rejectReason,
+        csm.recommend as recommend
+    FROM
+        case_share_manage csm
+    LEFT JOIN case_share_type cst ON cst.id = csm.source_type_id
+    LEFT JOIN question_grade qg ON qg.id = csm.grade_id
+    left join  (select reject_reason,case_share_id  from case_reject_reason group by case_share_id order by add_time desc) rr
+        on rr.case_share_id = csm.id
+
+    <if test="labelList != null and labelList.size()>0 " >
+        JOIN case_label_selected cls on cls.case_share_id = csm.id
+        AND cls.label_id in
+        <foreach collection="labelList" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </if>
+    where cst.state = 1
+    <if test="sourceTypeId != null and sourceTypeId>0" >
+       AND csm.source_type_id = #{sourceTypeId}
+    </if>
+    <if test="addUserId >0">
+        and csm.add_user_id = #{addUserId}
+        <if test="state ==0">
+            or csm.state = 2
+        </if>
+        <if test="state >0">
+            and csm.state = #{state}
+        </if>
+    </if>
+    <if test="addUserId == 0 and state > 0">
+         and csm.state = #{state}
+    </if>
+    <if test="sex != null and sex >0" >
+      AND csm.sex = #{sex}
+    </if>
+    <if test="gradeId != null and gradeId>0" >
+      AND csm.grade_id = #{gradeId}
+    </if>
+    <if test="title != null and title != '' " >
+      AND csm.title LIKE concat(concat('%',#{title}),'%')
+    </if>
+        group by csm.id
+    <if test="publishSort >0 " >
+        <if test="publishSort ==1" >
+            order by csm.create_time asc
+        </if>
+        <if test="publishSort ==2" >
+            order by csm.create_time desc
+        </if>
+    </if>
+
+    <if test="pageViewsSort >0 " >
+        <if test="pageViewsSort == 1 " >
+            order by csm.page_views asc
+        </if>
+        <if test="pageViewsSort == 2 " >
+            order by csm.page_views desc
+        </if>
+    </if>
+
+    <if test="thumpupSort >0 " >
+        <if test="thumpupSort == 1 " >
+            order by csm.point_count asc
+        </if>
+        <if test="thumpupSort == 2 " >
+            order by csm.point_count desc
+        </if>
+    </if>
+    <if test="thumpupSort == null and  pageViewsSort == null and publishSort == null" >
+        order by csm.state asc, csm.create_time desc
+    </if>
+    </select>
+
+    <insert id="addcaseShare" parameterType="com.etalk.crm.pojo.CaseShareManage" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO case_share_manage (source_type_id ,add_user_id ,person_id,sex,create_time,update_time,add_user_name,page_views,point_count,title,grade_id,cn_name,
+        age,school,package_id,family_information,learning_difficulty,case_share,gain,attention,label_str,login_name)
+        values(#{sourceTypeId}, #{addUserId},#{personId},#{sex},now(),now(),#{addUserName},0,0,#{title}
+        ,#{gradeId},#{cnName},#{age},#{school},#{packageId},#{familyInformation},#{learningDifficulty},#{caseShare},#{gain},#{attention},#{labelStr},#{loginName})
+    </insert>
+
+    <select id="selectByPersonId" resultType="java.lang.Integer" parameterType="java.lang.Integer">
+      select  count(1) from case_share_manage where 1 = 1
+         <if test="personId != null">
+              AND person_id = #{personId}
+         </if>
+    </select>
+
+    <select id="selectByCaseShareId" parameterType="java.lang.Integer" resultType="com.etalk.crm.pojo.CaseShareManage">
+        SELECT
+        csm.id,
+        csm.source_type_id  sourceTypeId,
+        csm.add_user_id addUserId,
+        csm.sex,
+        csm.create_time createTime,
+        csm.update_time updateTime,
+        csm.add_user_name addUserName,
+        csm.page_views pageViews,
+        csm.cn_name cnName,
+        csm.point_count pointCount,
+        csm.title,
+        csm.grade_id gradeId,
+        csm.age,
+        csm.school school,
+        csm.package_id packageId,
+        csm.family_information familyInformation,
+        csm.learning_difficulty learningDifficulty,
+        csm.case_share caseShare,
+        csm.gain gain,
+        csm.attention attention,
+        csm.label_str as labelStr,
+        cst.type_name typeName,
+        qg.cn_name AS gradeName,
+        csp.package_name as packageName,
+        person_id as personId,
+        login_name as loginName
+    FROM
+        case_share_manage csm
+    LEFT JOIN case_share_type cst ON cst.id = csm.source_type_id
+    LEFT JOIN question_grade qg ON qg.id = csm.grade_id
+    LEFT JOIN case_share_package csp on csp.id = csm.package_id
+    where cst.state = 1
+        <if test="caseShareId != null">
+              AND csm.id = #{caseShareId}
+         </if>
+    </select>
+
+    <select id="packageList" resultType="com.etalk.crm.pojo.CaseShareType">
+        select id id ,package_name typeName from case_share_package where state = 1
+    </select>
+
+    <update id="updateCaseShare" parameterType="com.etalk.crm.pojo.CaseShareManage">
+        update case_share_manage
+        <trim prefix="set" suffixOverrides=",">
+            <if test="updateTime != null ">
+                update_time = now(),
+            </if>
+            <if test="sourceTypeId >0">
+                source_type_id = #{sourceTypeId},
+            </if>
+            <if test="sex >0">
+                sex = #{sex},
+            </if>
+            <if test="cnName != null and cnName !=''">
+                cn_name = #{cnName},
+            </if>
+            <if test="loginName != null and loginName !=''">
+                login_name = #{loginName},
+            </if>
+            <if test="title != null and title !=''">
+                title = #{title},
+            </if>
+            <if test="gradeId >0">
+                grade_id = #{gradeId},
+            </if>
+            <if test="age >0">
+                age = #{age},
+            </if>
+            <if test="school != null and school !=''">
+                school = #{school},
+            </if>
+            <if test="packageId >0">
+                package_id = #{packageId},
+            </if>
+            <if test="familyInformation != null and familyInformation !=''">
+                family_information = #{familyInformation},
+            </if>
+            <if test="learningDifficulty != null and learningDifficulty !=''">
+                learning_difficulty = #{learningDifficulty},
+            </if>
+            <if test="caseShare != null and caseShare !=''">
+                case_share = #{caseShare},
+            </if>
+            <if test="gain != null and gain !=''">
+                gain = #{gain},
+            </if>
+            <if test="attention != null and attention !=''">
+                attention = #{attention},
+            </if>
+            <if test="labelStr != null and labelStr !=''">
+                 label_str = #{labelStr},
+            </if>
+            <if test="pageViews != null">
+                 page_views = #{pageViews},
+            </if>
+            <if test="pointCount != null">
+                 point_count = #{pointCount},
+            </if>
+            <if test="state >0">
+                state = #{state},
+            </if>
+            <if test="recommend != null and recommend !='' ">
+                recommend = #{recommend}
+            </if>
+        </trim>
+
+        where id = #{id}
+    </update>
+    <!--根据ID   查询-->
+    <select id="selectById" resultType="com.etalk.crm.pojo.CaseShareManage" parameterType="java.lang.Integer">
+       select  csm.page_views pageViews,csm.point_count pointCount,id from case_share_manage csm where 1 = 1
+        <if test="id >0 ">
+            and  csm.id = #{id}
+        </if>
+    </select>
+    <!--更新  student_info  -->
+    <update id="updateStuInfo" parameterType="com.etalk.crm.pojo.Person">
+        update student_info set family_information = #{familyInformation},learning_difficulty = #{learningDifficulty}
+        where person_id = #{id}
+    </update>
+
+    <!--判断 case  是否存在-->
+    <select id="stuInfoIsExist" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select count(1) FROM student_info WHERE person_id = #{personId}
+    </select>
+
+    <!--更新stuINode   learning_difficulty family_information -->
+    <insert id="insertIntoStuInfo" parameterType="com.etalk.crm.pojo.Person">
+        insert into student_info (person_id,learning_difficulty,family_information) values (#{id},#{learningDifficulty},#{familyInformation})
+    </insert>
+
+    <!--插入  ca'se  选择的标签  用于搜索-->
+    <insert id="bacthInsertLabel" parameterType="java.util.List">
+        insert into case_label_selected (case_share_id, label_id)
+             values
+             <foreach collection ="list" item="item" index= "index" separator =",">
+                 (
+                 #{item.caseShareId,jdbcType=INTEGER}, #{item.labelId,jdbcType=INTEGER}
+                 )
+             </foreach >
+    </insert>
+    <!--删除原来选择的标签-->
+     <delete id="deleteByCaseId" parameterType="java.lang.Integer" >
+       delete  from  case_label_selected
+        where case_share_id = #{caseShareId}
+    </delete>
+
+    <!--审核不通过的理由-->
+    <insert id="addRejectReason" parameterType="com.etalk.crm.pojo.CaseRejectReason">
+        insert into  case_reject_reason (case_share_id,reject_reason,add_time) values
+        (#{caseId},#{rejectReason},now())
+    </insert>
+
+    <!--审核通过后  推  精  荐 等标识  列表-->
+    <select id="recommendList" resultType="com.etalk.crm.pojo.Recommend">
+        select id as id ,name as name ,img_url as imgUrl from  case_recommend
+        where 1 = 1
+        <if test="recommendIds != null and recommendIds.size>0 ">
+            and  id in
+            <foreach collection="recommendIds" item="item" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+</mapper>

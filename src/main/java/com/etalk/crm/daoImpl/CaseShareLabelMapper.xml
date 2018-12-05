@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.CaseShareLabelMapper" >
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.CaseShareLabel" >
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="name" property="name" jdbcType="VARCHAR" />
+        <result column="state" property="state" jdbcType="INTEGER" />
+    </resultMap>
+
+    <!--查询教学基地列表-->
+    <select id="selectLabelList" resultMap="BaseResultMap">
+        select id,name,state from case_share_label where state=1
+    </select>
+
+    <select id="selectByIds" resultMap="BaseResultMap" parameterType="java.util.List">
+        select id,name,state from case_share_label where state=1
+        and id in
+       <foreach collection="list" item="item" separator="," open="(" close=")">
+					#{item}
+       </foreach>
+    </select>
+</mapper>

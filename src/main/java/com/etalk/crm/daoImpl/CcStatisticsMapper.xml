@@ -1,0 +1,477 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.CcStatisticsMapper" >
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.CcStatistics" >
+    </resultMap>
+    <!-- 查询所有type-->
+    <select id="selectType" resultType="com.etalk.crm.pojo.CcStatistics">
+        select `name` AS chinnelName ,id from channel_type ct WHERE  id != 8 ORDER BY sort
+    </select>
+    <!--统计 某个 cc 的例子-->
+    <select id="selectLeads" resultType="com.etalk.crm.pojo.CcStatistics" parameterType="java.lang.Integer">
+         SELECT
+            ifnull(COUNT( p.id ),0) AS leadsCounter,
+            ct.id as id,
+            ct.`name` chinnelName
+        FROM
+            person p
+            LEFT JOIN channel_info ci ON ci.id = p.source
+            LEFT JOIN channel_type ct ON ci.type = ct.id
+        WHERE
+            p.state = 1
+            AND role_id = 3
+            AND testmark IN ( 0, 5 )
+            AND ci.state = 1
+            AND ct.id != 8
+            <!--AND DATE_FORMAT( p.register_time, '%Y-%m' ) = '2018-09'-->
+            AND DATE_FORMAT( p.register_time, '%Y-%m' ) = DATE_FORMAT( now(), '%Y-%m' )
+            AND p.user_id = #{ccId}
+        GROUP BY
+            ct.id
+        ORDER BY
+            ct.sort
+    </select>
+
+    <!--统计 某个 cc 的demo-->
+    <select id="selectDemo" resultType="com.etalk.crm.pojo.CcStatistics" parameterType="java.lang.Integer">
+            SELECT
+                ifnull(sum(kc.testCount),0) as demoCounter,
+                ct.id
+            FROM
+                 (
+                SELECT
+                    count(1) AS testCount,kc.person_id,p.source
+                FROM
+                    kc_orders kc LEFT JOIN lessons le ON le.order_id = kc.id
+                    LEFT JOIN person p on p.id = kc.person_id
+                WHERE
+                    kc.state = 1 and le.state = 2 AND  p.state = 1
+                AND p.role_id = 3 and testmark in (0,5) AND kc.package_type_flag = 1
+                <!--AND DATE_FORMAT(le.release_time, '%Y-%m' ) = '2018-09'-->
+                AND DATE_FORMAT(le.release_time, '%Y-%m' ) = DATE_FORMAT( now(), '%Y-%m' )
+                AND p.user_id = #{ccId}
+                <!--and p.user_id = 9-->
+                    GROUP BY kc.person_id,kc.id
+                ) kc
+                LEFT JOIN channel_info ci ON ci.id = kc.source
+              LEFT JOIN channel_type ct ON ci.type = ct.id
+                WHERE ci.state = 1
+            GROUP BY ct.id;
+    </select>
+
+    <!--统计 某个 cc 的订单-->
+    <select id="selectOrders" resultType="com.etalk.crm.pojo.CcStatistics" parameterType="java.lang.Integer">
+       SELECT
+            ct.`name`,
+            sum( kc.testCount ) orderCounter,
+            ct.id
+        FROM
+            (
+            SELECT
+                kc.person_id,
+                ifnull(COUNT( kc.person_id ),0) AS testCount
+            FROM
+                kc_orders kc
+            WHERE
+                kc.state = 1
+                AND kc.package_type_flag IN ( 0, 2)
+               <!-- AND DATE_FORMAT( kc.buy_time, '%Y-%m' ) = '2018-08'-->
+                AND DATE_FORMAT( kc.buy_time, '%Y-%m' ) = DATE_FORMAT( now(), '%Y-%m' )
+            GROUP BY
+                kc.person_id
+            ) kc
+            LEFT JOIN person p ON kc.person_id = p.id
+            LEFT JOIN channel_info ci ON ci.id = p.source
+            LEFT JOIN channel_type ct ON ci.type = ct.id
+        WHERE
+            p.state = 1
+            AND p.role_id = 3
+            AND testmark IN ( 0, 5 )
+            AND p.source != 0
+            AND ci.state = 1
+            AND ct.id != 8
+            AND p.user_id = #{ccId}
+        GROUP BY
+            ct.id
+        ORDER BY ct.sort;
+    </select>
+     <!--统计 os sm ofads  三列合并最大  demo/orders  (demo数除订单数量)-->
+    <select id="mergeSooMaxRatio" resultType="java.lang.Double">
+        select ifnull(min(t.od),0) as mergeSooMaxRatio from (select demo.demoCounter,orders.orderCounter,demo.user_id,ROUND(demo.demoCounter/orders.orderCounter,2) as od from (select sum(me.orderCounter) orderCounter, me.user_id from(SELECT
+            ct.`name`,
+            IFNULL(sum(kc.testCount),0) as orderCounter,
+            ct.id,
+            p.user_id
+        FROM
+             (
+            SELECT
+                kc.person_id,
+                COUNT(kc.person_id) testCount
+            FROM
+                kc_orders kc
+            WHERE
+                kc.state = 1
+                AND kc.package_type_flag IN ( 0, 2)
+                <!--AND DATE_FORMAT(kc.buy_time, '%Y-%m' ) = '2018-08'-->
+                 AND DATE_FORMAT( kc.buy_time, '%Y-%m' ) = DATE_FORMAT( now(), '%Y-%m' )
+            GROUP BY
+                kc.person_id
+            ) kc
+            LEFT JOIN person p ON kc.person_id = p.id
+            LEFT JOIN channel_info ci ON ci.id = p.source
+         LEFT JOIN channel_type ct ON ci.type = ct.id
+
+        WHERE
+            p.state = 1
+            AND p.role_id = 3 and testmark in (0,5)
+            AND p.source != 0
+            AND ci.state = 1  and ct.id in (6,7,9)
+        GROUP BY p.user_id ,ct.id) as me GROUP BY me.user_id) as orders
+        JOIN
+        (select sum(me.demoCounter) demoCounter, me.user_id FROM (SELECT
+        ct.`name`,
+            IFNULL(sum(kc.testCount),0) as demoCounter,
+            ct.id,
+            p.user_id
+        FROM
+             (
+            SELECT
+                count(1) AS testCount,kc.person_id
+            FROM
+                kc_orders kc LEFT JOIN lessons le ON le.order_id = kc.id
+            WHERE
+                kc.state = 1 and le.state = 2  AND kc.package_type_flag = 1
+                <!--AND DATE_FORMAT(le.release_time, '%Y-%m' ) = '2018-08'-->
+                 AND DATE_FORMAT(le.release_time, '%Y-%m' ) = DATE_FORMAT( now(), '%Y-%m' )
+                GROUP BY kc.person_id,kc.id
+            ) kc
+            LEFT JOIN person p on p.id = kc.person_id
+            LEFT JOIN channel_info ci ON ci.id = p.source
+          LEFT JOIN channel_type ct ON ci.type = ct.id
+            WHERE
+            p.state = 1
+            AND p.role_id = 3 and testmark in (0,5)
+            AND p.source != 0
+            AND ci.state = 1 and ct.id in (6,7,9)
+        GROUP BY ct.id,p.user_id) as me GROUP BY me.user_id) as demo on demo.user_id = orders.user_id) as t ;
+    </select>
+    <!--统计  除了 2：ref  以外所有渠道 最大的 ratio-->
+    <select id="MargeExceptRefMaxRatio" resultType="java.lang.Double">
+        select ifnull(min(t.od),0) as mergeSooMaxRatio from (select demo.demoCounter,orders.orderCounter,demo.user_id,ROUND(demo.demoCounter/orders.orderCounter,2) as od from (select sum(me.orderCounter) orderCounter, me.user_id from(SELECT
+            ct.`name`,
+            IFNULL(sum(kc.testCount),0) as orderCounter,
+            ct.id,
+            p.user_id
+        FROM
+             (
+            SELECT
+                kc.person_id,
+                COUNT(kc.person_id) testCount
+            FROM
+                kc_orders kc
+            WHERE
+                kc.state = 1
+                AND kc.package_type_flag IN ( 0, 2)
+                AND DATE_FORMAT(kc.buy_time, '%Y-%m' ) = DATE_FORMAT( now(), '%Y-%m' )
+            GROUP BY
+                kc.person_id
+            ) kc
+            LEFT JOIN person p ON kc.person_id = p.id
+            LEFT JOIN channel_info ci ON ci.id = p.source
+         LEFT JOIN channel_type ct ON ci.type = ct.id
+
+        WHERE
+            p.state = 1
+            AND p.role_id = 3 and testmark in (0,5)
+            AND p.source != 0
+            AND ci.state = 1  and ct.id != 2
+        GROUP BY p.user_id ,ct.id) as me GROUP BY me.user_id) as orders
+        JOIN
+        (select sum(me.demoCounter) demoCounter, me.user_id FROM (SELECT
+        ct.`name`,
+            IFNULL(sum(kc.testCount),0) as demoCounter,
+            ct.id,
+            p.user_id
+        FROM
+             (
+            SELECT
+                count(1) AS testCount,kc.person_id
+            FROM
+                kc_orders kc LEFT JOIN lessons le ON le.order_id = kc.id
+            WHERE
+                kc.state = 1 and le.state = 2  AND kc.package_type_flag = 1
+                AND DATE_FORMAT(le.release_time, '%Y-%m' ) = DATE_FORMAT( now(), '%Y-%m' )
+                GROUP BY kc.person_id,kc.id
+            ) kc
+            LEFT JOIN person p on p.id = kc.person_id
+            LEFT JOIN channel_info ci ON ci.id = p.source
+          LEFT JOIN channel_type ct ON ci.type = ct.id
+            WHERE
+            p.state = 1
+            AND p.role_id = 3 and testmark in (0,5)
+            AND p.source != 0
+            AND ci.state = 1 and ct.id != 2
+        GROUP BY ct.id,p.user_id) as me GROUP BY me.user_id) as demo on demo.user_id = orders.user_id) as t
+    </select>
+
+
+    <!--统计 各个渠道 最大的 的ratio（除了 os sm ofads ）  demo/orders  (demo数除订单数量)-->
+    <select id="selectMaxRatio" resultType="com.etalk.crm.pojo.CcStatistics" >
+        SELECT
+            ifnull(min(t.od ),0) maxRatio,id as id
+        FROM
+            (
+            SELECT
+                demo.id,
+                demo.user_id,
+                ROUND ( demo.demoCounter / orders.orderCounter, 2 ) AS od
+            FROM
+                (SELECT
+                    ct.`name`,
+                    IFNULL( sum( kc.testCount ), 0 ) AS demoCounter,
+                    ct.id,
+                    p.user_id
+                FROM
+                    (
+                    SELECT
+                        count(1) AS testCount,
+                        kc.person_id
+                    FROM
+                        kc_orders kc
+                        LEFT JOIN lessons le ON le.order_id = kc.id
+                    WHERE
+                        kc.state = 1
+                        AND le.state = 2
+                        AND kc.package_type_flag = 1
+                        <!--AND DATE_FORMAT( le.release_time, '%Y-%m' ) = '2018-08'-->
+                        AND DATE_FORMAT( le.release_time, '%Y-%m' ) = DATE_FORMAT( now(), '%Y-%m' )
+                    GROUP BY
+                        kc.person_id,
+                        kc.id
+                    ) kc
+                    LEFT JOIN person p ON p.id = kc.person_id
+                    LEFT JOIN channel_info ci ON ci.id = p.source
+                    LEFT JOIN channel_type ct ON ci.type = ct.id
+                WHERE
+                    p.state = 1
+                    AND p.role_id = 3
+                    AND testmark IN ( 0, 5 )
+                    AND p.source != 0
+                    AND ci.state = 1
+                    AND ct.id NOT IN ( 6, 7, 8, 9, 10 )
+                GROUP BY ct.id, p.user_id ) AS demo
+                JOIN ( SELECT
+                    ct.`name`,
+                    IFNULL( sum( kc.testCount ), 0 ) AS orderCounter,
+                    ct.id,
+                    p.user_id
+                FROM
+                    (
+                    SELECT
+                        kc.person_id,
+                        COUNT( kc.person_id ) testCount
+                    FROM
+                        kc_orders kc
+                    WHERE
+                        kc.state = 1
+                        AND kc.package_type_flag IN ( 0, 2)
+                        <!--AND DATE_FORMAT( kc.buy_time, '%Y-%m' ) = '2018-08'-->
+                        AND DATE_FORMAT( kc.buy_time, '%Y-%m' ) = DATE_FORMAT( now(), '%Y-%m' )
+                    GROUP BY
+                        kc.person_id
+                    ) kc
+                    LEFT JOIN person p ON kc.person_id = p.id
+                    LEFT JOIN channel_info ci ON ci.id = p.source
+                    LEFT JOIN channel_type ct ON ci.type = ct.id
+                WHERE
+                    p.state = 1
+                    AND p.role_id = 3
+                    AND testmark IN ( 0, 5 )
+                    AND p.source != 0
+                    AND ci.state = 1
+                    AND ct.id NOT IN ( 6, 7, 8, 9, 10 )
+                GROUP BY
+                    ct.id,
+                    p.user_id
+                ) AS orders ON demo.id = orders.id
+                AND demo.user_id = orders.user_id
+            ) AS t
+        GROUP BY t.id;
+    </select>
+
+    <!--DSR相关 demo  数量 数据-->
+    <select id="dsrDemo" resultType="com.etalk.crm.pojo.CcStatistics" parameterType="java.lang.Integer">
+        SELECT
+            DATE_FORMAT( le.release_time, '%d' ) time,
+            ifnull(count(le.person_id),0) as demoCounter
+        FROM
+            kc_orders kc
+            LEFT JOIN lessons le ON le.order_id = kc.id
+            LEFT JOIN person p on p.id = le.person_id
+        WHERE
+            kc.state = 1
+            AND kc.package_type_flag = 1
+            AND le.state = 2
+            <!--AND DATE_FORMAT(le.release_time, '%Y-%m' ) = '2018-08'-->
+            AND DATE_FORMAT(le.release_time, '%Y-%m' ) = DATE_FORMAT( now(), '%Y-%m' )
+            <!--and p.user_id = 9-->
+            AND p.user_id = #{ccId}
+        GROUP BY DAY (le.release_time )
+    </select>
+
+    <select id="dsrOrders" resultType="com.etalk.crm.pojo.CcStatistics" parameterType="java.lang.Integer">
+        SELECT
+            ifnull(COUNT(kc.person_id),0) as orderCounter,ifnull(sum(kc.pay_money),0) as totalAmount,DATE_FORMAT( kc.buy_time, '%d') time
+            FROM
+                kc_orders kc
+            LEFT JOIN person p on p.id = kc.person_id
+            WHERE
+                kc.state = 1 and  p.state = 1
+            AND role_id = 3
+            AND testmark IN ( 0, 5 )
+                AND kc.package_type_flag IN ( 0, 2)
+                AND DATE_FORMAT( kc.buy_time, '%Y-%m') = DATE_FORMAT( now(), '%Y-%m' )
+                AND p.user_id = #{ccId}
+            GROUP BY  DAY(kc.buy_time)
+    </select>
+    <select id="dsrDescription" resultType="com.etalk.crm.pojo.CcStatistics" parameterType="java.lang.Integer">
+        SELECT
+        max(kc.buy_time) AS maxBuyTime,
+        ifnull(timestampdiff( DAY, max( kc.buy_time ), NOW( ) ),0) as days
+    FROM
+        kc_orders kc
+        LEFT JOIN person p ON p.id = kc.person_id
+        AND p.state = 1
+        AND p.role_id = 3
+        AND p.testmark IN ( 0, 5 )
+    WHERE
+        kc.state = 1
+        AND kc.package_type_flag IN ( 0, 2)
+        <!--AND DATE_FORMAT( kc.buy_time, '%Y-%m' ) = '2018-08'-->
+        AND DATE_FORMAT( kc.buy_time, '%Y-%m' ) = DATE_FORMAT( now(), '%Y-%m' )
+        AND p.user_id = #{ccId}
+    </select>
+
+    <!--cc个人例子数统计-->
+    <select id="ccLeadsCounter" resultType="com.etalk.crm.pojo.CcStatistics" parameterType="java.lang.Integer">
+       SELECT
+          ifnull(COUNT( p.id ),0) AS leadsCounter,
+					DATE_FORMAT( p.register_time, '%d') time
+        FROM
+            person p
+        WHERE
+            p.state = 1
+            AND role_id = 3
+            AND testmark IN ( 0, 5 )
+            <!--AND DATE_FORMAT( p.register_time, '%Y-%m' ) = '2018-09' -->
+            AND DATE_FORMAT( p.register_time, '%Y-%m' ) = DATE_FORMAT(now(), '%Y-%m' )
+            AND p.user_id = #{ccId}
+        GROUP BY day(p.register_time)
+    </select>
+
+    <!--cc  个人成单  定金 数统计-->
+    <select id="ccDeposit" parameterType="java.lang.Integer" resultType="com.etalk.crm.pojo.CcStatistics">
+       SELECT
+            IFNULL(sum(pay_money),0) deposit ,DATE_FORMAT( kc.buy_time, '%d') time
+            FROM
+                kc_orders kc
+                LEFT JOIN person p on p.id = kc.person_id
+            WHERE
+                kc.state = 1
+                AND kc.package_type_flag IN ( 0, 2)
+            <![CDATA[
+                <!--AND DATE_FORMAT( kc.buy_time, '%Y-%m') = '2018-09' -->
+              AND DATE_FORMAT( kc.buy_time, '%Y-%m') = DATE_FORMAT( now(), '%Y-%m' )
+            and kc.pay_money < kc.sale_price ]]>
+            and  p.state = 1
+            AND p.role_id = 3
+            AND p.testmark IN ( 0, 5 )
+            <!--and p.user_id = 9-->
+            AND p.user_id = #{ccId}
+           GROUP BY  DAY(kc.buy_time);
+    </select>
+
+    <!--cc 本季度每个月销售业绩展示 -->
+    <select id="everyMonthSalary" parameterType="java.lang.Integer" resultType="com.etalk.crm.pojo.CcStatistics">
+        SELECT
+            ifnull(sum(kc.pay_money),0) as totalAmount,DATE_FORMAT( kc.buy_time, '%Y-%m-%d') `date`
+            FROM
+                kc_orders kc
+            LEFT JOIN person p on p.id = kc.person_id
+            WHERE
+                kc.state = 1 and  p.state = 1
+            AND role_id = 3
+            AND testmark IN ( 0, 5 )
+                AND kc.package_type_flag IN ( 0, 2)
+            and QUARTER(kc.buy_time) = QUARTER(now())
+            AND DATE_FORMAT( kc.buy_time, '%Y') = DATE_FORMAT(now(), '%Y')
+            AND p.user_id = #{ccId}
+            GROUP BY  MONTH(kc.buy_time);
+    </select>
+     <!--cc 本季度销售业绩统计  以便确定其底薪-->
+    <select id="thisQuarterlyResults" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+              SELECT
+                ifnull(sum(kc.pay_money),0) as totalAmount,DATE_FORMAT( kc.buy_time, '%d') time
+            FROM
+                kc_orders kc
+            LEFT JOIN person p on p.id = kc.person_id
+            WHERE
+                kc.state = 1 and  p.state = 1
+            AND role_id = 3
+            AND testmark IN ( 0, 5 )
+                AND kc.package_type_flag IN ( 0, 2)
+                and QUARTER(kc.buy_time) = QUARTER(now())
+                <!--and QUARTER(kc.buy_time)=QUARTER(DATE_SUB(now(),interval 1 QUARTER))-->
+            AND DATE_FORMAT( kc.buy_time, '%Y') = DATE_FORMAT(now(), '%Y')
+            AND p.user_id = #{ccId}
+    </select>
+    <!--查询  某cc  设置的 底薪配置区间表-->
+    <select id="ccBaseSalaryConf" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select salary_configure_id from cc_base_salary_configure where cc_id = #{ccId}
+    </select>
+
+     <!--cc 上个季度销售业绩统计  以便确定其底薪-->
+    <select id="lastQuarterlyResults" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+              SELECT
+            ifnull(sum(kc.pay_money),0) as totalAmount
+            FROM
+                kc_orders kc
+            LEFT JOIN person p on p.id = kc.person_id
+            WHERE
+                kc.state = 1 and  p.state = 1
+            AND role_id = 3
+            AND testmark IN ( 0, 5 )
+                AND kc.package_type_flag IN ( 0, 2)
+                and QUARTER(kc.buy_time)=QUARTER(DATE_SUB(now(),interval 1 QUARTER))
+            AND DATE_FORMAT( kc.buy_time, '%Y') = DATE_FORMAT(now(), '%Y')
+             AND p.user_id = #{ccId}
+    </select>
+
+     <!--查询  某cc  设置的销售提成配置区间表-->
+    <select id="ccSalesCommissionConfId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select sales_commission_id from cc_sales_commission_configure where cc_id = #{ccId}
+    </select>
+
+    <!---查询  某cc  本月销售业绩-->
+    <select id="ccthisMonthSalesVolume" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        SELECT  ifnull(SUM( kc.pay_money ),0) total  FROM kc_orders kc
+         WHERE person_id IN (SELECT p.id  FROM  person p WHERE p.state = 1 AND p.role_id = 3
+            AND p.testmark IN ( 0, 5 )
+            AND kc.state = 1
+            AND kc.package_type_flag IN ( 0, 2 )
+            AND DATE_FORMAT( kc.buy_time, '%Y-%m' ) = DATE_FORMAT( now(), '%Y-%m' )
+             AND p.user_id = #{ccId}) <!---->
+    </select>
+
+    <!--cc 近三个月 销售业绩统计 以便确定 cc  在哪个销售俱乐部-->
+    <select id="ccThreeMonthSalesVolume" resultType="java.lang.Integer">
+        SELECT  ifnull(SUM( kc.pay_money ),0) total  FROM kc_orders kc
+         WHERE person_id IN (SELECT p.id  FROM  person p WHERE p.state = 1 AND p.role_id = 3
+            AND p.testmark IN ( 0, 5 )
+            AND kc.state = 1
+            AND kc.package_type_flag IN ( 0, 2 )
+           and kc.buy_time BETWEEN DATE_SUB(NOW(),INTERVAL 3 month) AND NOW()
+          AND p.user_id = #{ccId})
+    </select>
+
+</mapper>

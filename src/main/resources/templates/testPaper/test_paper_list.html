@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderList('试卷管理')">
+    <!--<body oncontextmenu="self.event.returnValue=false" onselectstart="return false">-->
+<body>
+
+<div id="content" class="col-lg-12 col-sm-12" style="padding: 5px;">
+    <div class="row">
+        <div class="box col-md-12" style="margin-top: 5px;">
+            <div class="box-inner">
+                <div class="box-header well" data-original-title="">
+                    <h2>
+                        <i class="glyphicon glyphicon-education"></i>试卷列表
+                    </h2>
+                </div>
+                <div class="box-content">
+                    <form class="form-inline form-search" role="form" method="post" action="/testPaper/page/list" onsubmit="return checkForm();">
+                        <div class="form-group" data-chosenWidth="true" style="margin-bottom: 5px;">
+                            <select name="pageSize" class="form-control input-sm" id="pagesize">
+                                <option value="10">10条/页</option>
+                                <option value="25">25条/页</option>
+                                <option value="50">50条/页</option>
+                            </select>
+                            <div class="input-group input-group-sm">
+                                <input type="search" name="search" id="search" class="form-control input-sm" placeholder="查询关键字..." style="width:200px;"/>
+                                <span class="input-group-btn">
+                                    <button class="btn btn-default" type="submit"> 查 询 </button>
+                                </span>
+                            </div>
+                            <a href="javascript:void(0);" onclick="addNewPaper()" role="button" class="btn btn-info">生成新试卷</a>
+                        </div>
+                    </form>
+                    <table class="table table-striped table-bordered table-hover" data-show-toggle="false">
+                        <thead>
+                        <tr>
+                            <th class="text-center">#</th>
+                            <th class="text-center">试卷标题</th>
+                            <th class="text-center">试卷类型</th>
+                            <th class="text-center">试卷难度</th>
+                            <th class="text-center">年级</th>
+                            <th class="text-center">最后操作</th>
+                            <th class="text-center">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="paper,itemStat:${pageInfo.list}">
+                            <td class="text-center" th:text="${itemStat.index+1}">1</td>
+                            <td class="text-center" th:text="${paper.cnName}">试卷标题</td>
+                            <td class="text-center" th:text="${paper.typeCnName}">试卷类型</td>
+                            <td class="text-center" th:text="${paper.degreeCnName}">试卷难度</td>
+                            <td class="text-center" th:text="${paper.gradeCnName}">年级</td>
+                            <td class="text-center" th:text="${#dates.format(paper.recordTime, 'yyyy-MM-dd HH:mm:ss')}">最后操作</td>
+                            <td style="text-align: center;">
+                                <a href="javascript:void(0);" th:alt="|${testServerUrl}testPaper/#/?tpid=${paper.id}&qid=0&pid=0&sid=0|" onclick="preview(this);" class="btn btn-info preview" role="button"><span
+                                        class="glyphicon glyphicon-eye-open"></span>
+                                    预览 </a>
+                                <a th:alt="${paper.id}" onclick="edit(this)" href="javascript:void(0);" class="btn btn-danger edit" role="button"><span class="glyphicon glyphicon-edit"></span> 修改 </a>
+                                <a th:onclick="'sendPaperConfirm('+${paper.id}+',this)'" href="javascript:void(0);" class="btn btn-danger" role="button"><span class="glyphicon glyphicon-share"></span> 发送 </a>
+                                <a th:onclick="'deletePaper('+${paper.id}+',this)'" href="javascript:void(0);" class="btn btn-danger" role="button"><span class="glyphicon glyphicon-floppy-remove"></span> 删除 </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div th:include="include/pageinfo::pager"></div>
+                </div>
+            </div>
+        </div>
+        <!--/box-->
+    </div>
+    <!--/row-->
+</div>
+<!-- content ends -->
+
+<div th:include="/include/onload_js::onloadJSCustomList(~{::script})">
+    <script>
+        $(function () {
+        });
+
+        function checkForm() {
+            var bl = true;
+            if ($("#search").val().trim() == "") {
+                //bl = false;
+                //layer.msg('搜索关键字不能为空', {icon: 2});
+            }
+            //$(":submit").attr("disabled", bl);
+            return bl;
+        }
+
+        /**
+         *试卷修改
+         */
+        function edit(obj) {
+            var url = "/testPaper/page/edit/" + $(obj).attr("alt");
+            //iframe窗口
+            layer.open({
+                type: 2,
+                title: false,
+                closeBtn: 1, //显示关闭按钮
+                // shade: [0],
+                shade: 0.4,
+                area: ['880px', '400px'],
+                //offset: 'rb', //右下角弹出
+                // time: 2000, //2秒后自动关闭
+                // anim: 2,
+                content: [url, 'no'], //iframe的url，no代表不显示滚动条
+                end: function () { //此处用于演示
+                }
+            });
+        }
+
+        /**
+         * 试卷预览
+         */
+        function preview(obj) {
+            var url = $(obj).attr("alt");
+            console.log("url=" + url);
+            //iframe窗口
+            top.layer.open({
+                type: 2,
+                title: false,
+                closeBtn: 1, //显示关闭按钮
+                // shade: [0],
+                shade: 0.4,
+                area: ['880px', '88%'],
+                //offset: 'rb', //右下角弹出
+                // time: 2000, //2秒后自动关闭
+                // anim: 2,
+                content: [url, 'yes'], //iframe的url，no代表不显示滚动条
+                end: function () { //此处用于演示
+                }
+            });
+        }
+
+        /**
+         * 生成新试卷
+         *
+         */
+        function addNewPaper() {
+            parent.tabListInit("add_new_paper", "生成试卷", "/testPaper/page/add");
+        }
+
+        /**
+         * 发送试卷给学生
+         * @param id 试卷ID
+         * @param obj 点击的当前元素
+         */
+        function sendPaperConfirm(id, obj) {
+            var url = "/testPaper/page/chooseStudent?testPaperId=" + id;
+            var item = $(obj).parent().siblings().eq(1);
+
+            //询问框
+            layer.confirm('您确认发送试卷《' + $(item).html() + '》么？', {
+                btn: ['确认', '取消'] //按钮
+            }, function () {
+                layer.closeAll('dialog');
+                $(obj).button('loading');
+
+                parent.tabListInit("send_paper_confirm", "发送试卷", url);
+
+                //恢复按钮状态
+                $(obj).button('reset');
+            });
+        }
+
+        /**
+         * 删除试卷
+         * @param id 试卷ID
+         * @param obj 点击的当前元素
+         */
+        function deletePaper(id, obj) {
+            //询问框
+            layer.confirm('您确认删除该试卷么，学生的相关做题记录也会全部删除？', {
+                btn: ['确认', '取消'] //按钮
+            }, function () {
+
+                layer.closeAll('dialog');
+
+                $.get("/testPaper/delete/" + id, {}, function (res) {
+                    doDeleteResult(res);
+                }, 'json');
+
+                function doDeleteResult(res) {
+                    console.log(res);
+                    if (res != null && res.status == 1) {
+                        layer.msg('删除成功', {icon: 1});
+                        window.location.reload();
+                    } else {
+                        layer.msg('操作失败', {icon: 2});
+                    }
+                }
+            }, function () {
+                layer.msg('您放弃了操作', {
+                    time: 20000, //20s后自动关闭
+                    btn: ['明白了', '知道了']
+                });
+            });
+        }
+    </script>
+</div>
+</body>
+</html>

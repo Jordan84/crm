@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderCustomEdit('查看赠送名单',~{::style})">
+    <style type="text/css">
+        /*关键设置 tbody出现滚动条*/
+        table {
+            text-align: center;
+        }
+
+        /*关键设置 tbody出现滚动条*/
+        table tbody {
+            display: block;
+            max-height: 300px;
+            overflow-y: scroll;
+        }
+
+        table thead,
+        tbody tr {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        table thead tr th{
+            border-bottom: solid 1px rgb(221, 221, 221) !important;
+            border-bottom-width: 2px;
+        }
+
+        table tbody tr td{
+            border-bottom: none !important;;
+        }
+
+        /*关键设置：滚动条默认宽度是16px 将thead的宽度减16px*/
+        table thead {
+            width: calc(100% - 1em)
+        }
+    </style>
+</head>
+<body>
+<div class="ch-container">
+    <div class="row">
+        <form class="form-horizontal" method="post">
+            <div class="box">
+                <legend class="text-center" style="padding-bottom:15px;font-weight: bold;" contenteditable="false">查看赠送名单</legend>
+                <div class="dataArea">
+                    <ul>
+                        <li>
+                            <div class="form-group">
+                                <div class="col-xs-1 title"></div>
+                                <div class="col-xs-10 item">
+                                    <table class="table table-striped table-bordered table-hover" data-show-toggle="false">
+                                        <thead>
+                                        <tr>
+                                            <th style="text-align: center;">#</th>
+                                            <th style="text-align: center;">学员</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr th:each="stu,iterStat : ${pageInfo.list}">
+                                        <td style="text-align: center;" th:text="${iterStat.index+1}">sort</td>
+                                        <td style="text-align: center;" th:text="${stu.loginName}">name</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                    <div th:include="include/pageinfo::pager"></div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div th:include="/include/onload_js::onloadJSCustomEdit(~{::script})">
+    <script type="text/javascript">
+    </script>
+</div>
+</body>
+</html>

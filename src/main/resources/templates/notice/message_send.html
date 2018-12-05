@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeader('公告通知发送')"/>
+<body>
+<div class="ch-container">
+    <div class="row">
+        <div id="content" class="col-md-12 col-sm-12" style="padding:2px;width: 99%;">
+            <div class="row">
+                <div class="box col-md-12" style="margin-top:5px;" >
+                    <div class="row" th:if="${errMsg} " ><label class="col-sm-12" th:text="${errMsg}" ></label></div>
+                    <form class="form-horizontal" th:action="@{/notice/msg/send}" method="post" th:onsubmit="'return checkForm();'">
+                        <fieldset>
+                            <!--<legend contenteditable="false">公告通知</legend>-->
+                            <div class="col-sm-4" style="padding: 0 0;">
+                                <fieldset>
+                                    <legend contenteditable="false" style="font-size: 16px;padding: 0 0;margin-bottom: 10px;">课程筛选条件</legend>
+                                    <div class="row" style="padding-bottom:10px;padding-right: 10px;">
+                                        <label class="control-label col-sm-5" style="padding-left: 0px;padding-right: 5px;">课程开始时间:</label>
+                                        <div class="col-sm-7" style="padding: 0 0;">
+                                            <input name="classStartTime" id="startDate" class="form-control Wdate" style="padding: 0 2px;height: 34px;" placeholder="课程开始时间" autocomplete="off" onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:00',readOnly:true,minDate:'%y-%M-%d 07:00:00',maxDate:'#F{$dp.$D(\'showEndTime\')}',minTime:'08:00:00',maxTime:'23:00:00',hmsMenuCfg:{H:[1,6],m: [20, 3]}})">
+                                        </div>
+                                    </div>
+
+                                    <div class="row" style="padding-bottom:10px;padding-right: 10px;">
+                                        <label class="control-label col-sm-5" style="padding-left: 0px;padding-right: 5px;">课程结束时间:</label>
+                                        <div class="col-sm-7" style="padding: 0 0;">
+                                            <input name="classEndTime" id="endDate" class="Wdate form-control" style="padding: 0 2px;height: 34px;" placeholder="课程结束时间" autocomplete="off" onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:00',readOnly:true,minDate:'#F{$dp.$D(\'showEndTime\') || \'%y-%M-%d 07:00:00\'}',minTime:'08:00:00',maxTime:'23:00:00',hmsMenuCfg:{H:[1,6],m: [10,6]}})">
+                                        </div>
+                                    </div>
+                                    <div class="row" style="padding-bottom:10px;padding-right: 10px;">
+                                        <label class="control-label col-sm-5" style="padding-left: 0px;padding-right: 5px;">上课方式:</label>
+                                        <div class="col-sm-7" style="padding: 0 2px;">
+                                            <select name="classWayId" id="classWayId" class="form-control" style="padding: 0 2px;">
+                                                <option value="">--上课方式--</option>
+                                                <option th:each="item:${msgInfo.classWayList}" th:text="${item.cnName}" th:value="${item.id}"></option>
+                                                <option th:remove="all">ET3</option>
+                                                <option th:remove="all">QQ</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row" style="padding-bottom:10px;padding-right: 10px;">
+                                        <label class="control-label col-sm-5" style="padding-left: 0px;padding-right: 5px;">课程状态:</label>
+                                        <div class="col-sm-7" style="padding: 0 2px;">
+                                            <select name="state" id="state" class="form-control" style="padding: 0 2px;"
+                                                    onchange="if($(this).val()=='' || $(this).val()=='1'){$('#cancelClass').show();
+                                                    }else{$('#cancelClass').hide();$('#cancelClass').find('select').val(0);$('#cancelClass').find('select').trigger('change');}">
+                                                <option value="">--课程状态--</option>
+                                                <option th:value="1">已预约</option>
+                                                <option th:value="2">已完成</option>
+                                                <option th:value="3">已旷课</option>
+                                                <option th:value="4">已取消</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row" id="cancelClass" style="padding-bottom:10px;padding-right: 10px;">
+                                        <label class="control-label col-sm-5" style="padding-left: 0px;padding-right: 5px;">取消课程:</label>
+                                        <div class="col-sm-7 radio" style="padding: 0 0;">
+                                            <select class="form-control" name="cancelClass" style="padding: 0 2px;" onchange="if($(this).val()==0){$('#cancelClassReason').hide();}else {$('#cancelClassReason').show();}">
+                                                <option value="0">不取消预约约课</option>
+                                                <option value="1">取消全部预约课程</option>
+                                                <option value="2">取消非Demo预约课程</option>
+                                                <option value="3">取消Demo课预约课程</option>
+                                            </select>
+                                           <!-- <label>
+                                                <input type="radio" name="cancelClass" value="0" checked onclick="$('#cancelClassReason').hide();">不取消预约
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="cancelClass" value="1" onclick="$('#cancelClassReason').show();">全部预约取消
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="cancelClass" value="2" onclick="$('#cancelClassReason').show();">非Demo课预约取消
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="cancelClass" value="3" onclick="$('#cancelClassReason').show();">Demo课预约取消
+                                            </label>-->
+                                        </div>
+                                    </div>
+                                    <div class="row" id="cancelClassReason" style="padding-bottom:10px;padding-right: 10px;display: none;">
+                                        <div class="col-sm-1" style="padding: 0 0;"></div>
+                                        <div class="col-sm-11" style="padding: 0 2px;">
+                                            <select name="cancelClassReasonId" id="cancelClassReasonId" class="form-control" style="padding: 0 2px;">
+                                                <option value="">--选择取消课程原因--</option>
+                                                <option th:each="item:${msgInfo.voidReason}" th:text="${item.cnName}" th:value="${item.id}">--选择取消课程原因--</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                                <fieldset>
+                                    <legend contenteditable="false" style="font-size: 16px;padding: 0 0;margin-bottom: 10px;">老师筛选条件</legend>
+                                    <div class="row" style="padding-bottom:10px;padding-right: 10px;z-index: inherit;">
+                                        <label class="control-label col-sm-5" style="padding-left: 0px;padding-right: 5px;">海外教学基地:</label>
+                                        <div class="col-sm-7" style="padding: 2px 2px;">
+                                            <select name="teaSiteId" id="teaSiteId" class="selectpicker show-tick form-control" multiple style="padding: 2px 2px">
+                                                <!--<option value="">&#45;&#45;教学基地&#45;&#45;</option>-->
+                                                <option th:each="item:${msgInfo.teaSiteList}" th:text="${item.cnName}" th:value="${item.id}"></option>
+                                                <option th:remove="all">基地1</option>
+                                                <option th:remove="all">基地2</option>
+                                                <option th:remove="all">基地3</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row" style="padding-bottom:10px;padding-right: 10px;">
+                                        <label class="control-label col-sm-5" style="padding-left: 0;padding-right: 5px;">排除老师:</label>
+                                        <div class="col-sm-7" style="padding: 0 0;">
+                                            <button class="btn btn-warning" type="button" onclick="teaWhiteList();">选择排除老师</button>
+                                            <input type="hidden" name="excludeTeacher" id="excludeTeacher">
+                                        </div>
+                                    </div>
+                                    <div class="row" style="padding-bottom:10px;">
+                                        <label class="control-label col-sm-5" style="padding-left: 0;padding-top: 2px;padding-right: 5px;">关闭空闲班表:</label>
+                                        <div class="col-sm-7 radio" style="padding: 0 0;">
+                                            <label>
+                                                <input type="radio" name="closeClass" value="1" onclick="$('.closeCourse,#closeCourse').show();"> 是
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="closeClass" value="0" checked onclick="$('.closeCourse,#closeCourse').hide();"> 否
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="row closeCourse" style="padding-bottom:10px;padding-right: 10px;display: none;">
+                                        <label class="control-label col-sm-5" style="padding-left: 0px;padding-right: 5px;">关闭课表开始时间:</label>
+                                        <div class="col-sm-7" style="padding: 0 0;">
+                                            <input name="courseStartTime" id="courseStartTime" class="form-control Wdate" style="padding: 0 2px;height: 34px;" placeholder="关闭课表开始时间" autocomplete="off" onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:00',readOnly:true,minDate:'%y-%M-%d 07:00:00',maxDate:'#F{$dp.$D(\'showEndTime\')}',minTime:'08:00:00',maxTime:'23:00:00',hmsMenuCfg:{H:[1,6],m: [20, 3]}})">
+                                        </div>
+                                    </div>
+
+                                    <div class="row closeCourse" style="padding-bottom:10px;padding-right: 10px;display: none;">
+                                        <label class="control-label col-sm-5" style="padding-left: 0px;padding-right: 5px;">关闭课表结束时间:</label>
+                                        <div class="col-sm-7" style="padding: 0 0;">
+                                            <input name="courseEndTime" id="courseEndTime" class="Wdate form-control" style="padding: 0 2px;height: 34px;" placeholder="关闭课表结束时间" autocomplete="off" onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:00',readOnly:true,minDate:'#F{$dp.$D(\'showEndTime\') || \'%y-%M-%d 07:00:00\'}',minTime:'08:00:00',maxTime:'23:00:00',hmsMenuCfg:{H:[1,6],m: [10,6]}})">
+                                        </div>
+                                    </div>
+                                    <div class="row text-center" style="margin-bottom: 10px;">
+                                        <button class="btn btn-danger" id="closeCourse" type="button" style="width: 100px;display: none;" onclick="closeFreeClass()">关闭课表</button> <button class="btn btn-success" type="button" style="width: 100px;" onclick="searchStudent()">筛选学员</button>
+                                    </div>
+                                </fieldset>
+                            </div>
+                            <div class="col-sm-2">
+                                <fieldset>
+                                    <legend contenteditable="false" style="font-size: 16px;padding: 0 0;margin-bottom: 0px;">学员列表</legend>
+                                    <div class="box col-sm-12" style="padding-left: 5px;padding-right: 0px;">
+                                        <select name="listStudentId" id="receiveList" class="form-control" multiple="multiple" style="padding: 0 0px;height: 450px;">
+                                            <option th:remove="all">18566225185</option>
+                                        </select>
+                                    </div>
+                                </fieldset>
+                            </div>
+                            <div class="col-sm-2">
+                                <fieldset style="margin-top: 20px;">
+                                    <legend contenteditable="false" style="font-size: 16px;padding: 0 0;margin-bottom: 0px;">消息类型</legend>
+                                    <div class="controls-row radio" style="padding-left:5px;">
+                                        <label>
+                                            <input type="radio" name="isUrgentNotice" value="4" > 紧急公告
+                                        </label>
+                                    </div>
+                                    <div class="controls-row radio" style="padding-left:5px;">
+                                        <label>
+                                            <input type="radio" name="isUrgentNotice" value="5" checked > 普通通知
+                                        </label>
+                                    </div>
+
+                                </fieldset>
+                                <fieldset id="platformList">
+                                    <legend contenteditable="false" style="font-size: 16px;padding: 0 0;margin-bottom: 0px;">展示平台</legend>
+                                    <div class="controls-row checkbox" style="padding-left:5px;" th:each="platformItem,itemSte:${msgInfo.platformList}">
+                                        <label>
+                                            <input type="checkbox" name="platformList" th:name="${'platformList['+itemSte.index+']'}" value="1" checked  th:text="${platformItem.name}" th:value="${platformItem.id}">
+                                        </label>
+                                    </div>
+                                    <div class="controls-row checkbox" style="padding-left:5px;" th:remove="all">
+                                        <label>
+                                            <input type="checkbox" name="platformList" value="1" checked> 微信通知
+                                        </label>
+                                    </div>
+                                    <div class="controls-row checkbox" style="padding-left:5px;" th:remove="all">
+                                        <label>
+                                            <input type="checkbox" name="platformList" value="2" checked> APP
+                                        </label>
+                                    </div>
+                                    <div class="controls-row checkbox" style="padding-left:5px;" th:remove="all">
+                                        <label>
+                                            <input type="checkbox" name="platformList" value="3" checked> PC ET
+                                        </label>
+                                    </div>
+
+                                </fieldset>
+
+                                <fieldset style="margin-top: 20px;">
+                                    <legend contenteditable="false" style="font-size: 16px;padding: 0 0;margin-bottom: 0px;">展示类型</legend>
+                                    <div class="controls-row radio" style="padding-left:5px;">
+                                        <label>
+                                            <input type="radio" name="remindType" value="0" checked onclick="if (this.checked){$('#showTime').hide();}"> 提示一次
+                                        </label>
+                                    </div>
+                                    <div class="controls-row radio" style="padding-left:5px;">
+                                        <label>
+                                            <input type="radio" name="remindType" value="1" onclick="if (this.checked){$('#showTime').hide();}"> 手动关闭
+                                        </label>
+                                    </div>
+                                    <div class="controls-row radio" style="padding-left:5px;">
+                                        <label>
+                                            <input type="radio" name="remindType" value="2" onclick="if (this.checked){$('#showTime').show();}else {$('#showTime').hide();}"> 按时间段提醒
+                                        </label>
+                                        <div style="display: none;" id="showTime">
+                                            <input type="text" class="form-control Wdate" style="height: 34px;" name="remindStartTime" id="showStartTime" maxlength="20" placeholder="提醒开始日期" onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss',readOnly:true,minDate:'%y-%M-%d %H:%m:%s',maxDate:'#F{$dp.$D(\'showEndTime\')}'})">
+                                            <input type="text" class="form-control Wdate" style="margin-top: 15px;height: 34px;" name="remindEndTime" id="showEndTime" maxlength="20" placeholder="提醒结束日期" onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss',readOnly:true,minDate:'#F{$dp.$D(\'showStartTime\')||\'%y-%M-%d %H:%m:%s\'}'})">
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+                            <div class="col-sm-4">
+                                <fieldset>
+                                    <legend contenteditable="false" style="font-size: 16px;padding: 0 0;margin-bottom: 0px;">编辑消息内容</legend>
+                                    <div class="controls-row" style="padding-bottom:5px;">
+                                        <label class="control-label col-sm-2" style="padding-left: 0px;padding-right: 5px;">模板:</label>
+                                        <div class="col-sm-10" style="padding: 2px 2px;"><!--th:onclick="changeTemplateInfo()"-->
+                                            <select name="id" id="selectTemplate" class="form-control" style="padding: 2px 2px" onchange="changeTemplate(this)">
+                                                <option value="">--选择消息模板--</option>
+                                                <option th:each="item:${msgInfo.templateList}" th:text="${item.msgTitle}" th:value="${item.id}">--模板-</option>
+                                                <option th:remove="all">模板1</option>
+                                                <option th:remove="all">模板2</option>
+                                                <option th:remove="all">模板3</option>
+                                            </select>
+                                            <input type="hidden" name="templateId" id="templateId">
+                                        </div>
+                                    </div>
+                                    <div class="controls-row" style="padding-bottom:5px;">
+                                        <label class="control-label col-sm-2" style="padding-left: 0px;padding-right: 5px;">标题:</label>
+                                        <div class="col-sm-10" style="padding: 2px 2px;">
+                                            <input name="msgTitle" id="msgTitle" class="form-control" maxlength="80" style="padding: 0 2px;">
+                                        </div>
+                                    </div>
+                                    <div class="controls-row" style="padding-left:10px;">消息内容:</div>
+                                    <div class="controls-row" style="padding-bottom:5px;padding-left:10px;">
+                                        <textarea name="firstData" rows="5" id="firstData" style="width: 100%;" maxlength="500"></textarea>
+                                    </div>
+
+                                    <div class="controls-row key1" id="key1" style="padding-left:10px;display: none;">通知名称:</div>
+                                    <div class="controls-row key1" style="padding-bottom:5px;padding-left:10px;display: none;">
+                                        <input name="keyword1" id="keyword1" class="form-control" maxlength="50" style="padding: 0 2px;">
+                                    </div>
+                                    <div class="controls-row key2" id="key2" style="padding-left:10px;display: none;">通知编号:</div>
+                                    <div class="controls-row key2" style="padding-bottom:5px;padding-left:10px;display: none;">
+                                        <input name="keyword2" id="keyword2" class="form-control" maxlength="50" style="padding: 0 2px;">
+                                    </div>
+                                    <div class="controls-row key3" id="key3" style="padding-left:10px;display: none;">通知摘要:</div>
+                                    <div class="controls-row key3" style="padding-bottom:5px;padding-left:10px;display: none;">
+                                        <input name="keyword3" id="keyword3" class="form-control" maxlength="50" style="padding: 0 2px;">
+                                    </div>
+                                    <div class="controls-row key4" id="key4" style="padding-left:10px;display: none;">通知编号:</div>
+                                    <div class="controls-row key4" style="padding-bottom:5px;padding-left:10px;display: none;">
+                                        <input name="keyword4" id="keyword4" class="form-control" maxlength="50" style="padding: 0 2px;">
+                                    </div>
+
+                                    <div class="controls-row remark" style="padding-left:10px;display: none;">底部消息:</div>
+                                    <div class="controls-row remark" style="padding-bottom:5px;padding-left:10px;display: none;">
+                                        <textarea name="remark" rows="5" id="remark" style="width: 100%;" maxlength="500"></textarea>
+                                    </div>
+                                    <div class="controls-row linkUrl" style="padding-left:10px;display: none;">链接地址:</div>
+                                    <div class="controls-row linkUrl" style="padding-bottom:5px;padding-left:10px;display: none;">
+                                        <input name="linkUrl" id="linkUrl" class="form-control" maxlength="180" style="padding: 0 2px;">
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </fieldset>
+                        <fieldset style="text-align: center;">
+                            <legend contenteditable="false"></legend>
+                            <button class="btn btn-default" type="button" onclick="parent.$.fancybox.close();"> 稍后再发 </button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <button class="btn btn-primary" type="submit"> 发送消息 </button>
+                        </fieldset>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:include="/include/onload_js::onloadJSCustom(~{::script})">
+    <script language="javascript" type="text/javascript" src="../../static/My97DatePicker/WdatePicker.js" th:src="@{/static/My97DatePicker/WdatePicker.js}"></script>
+    <script>
+        function teaWhiteList(){
+            $.ajax({
+                url:"/notice/msg/teacherList",
+                type:'post',
+                contentType : "application/json",
+                dataType : 'json',
+                traditional:true,
+                data:JSON.stringify({"classWayId":$("#classWayId").val(),"state":$("#state").val(),"classStartTime":$("#startDate").val().replace(" ","T"),"classEndTime":$("#endDate").val().replace(" ","T"),"teaSiteId":$("#teaSiteId").val()}),
+                success:function (result) {
+                   /* result=JSON.parse(result);*/
+                    console.log(result);
+                    if (result.status==1){
+                        if (result.data.length == 0) {
+                            layer.msg("没有找到符合条件的老师");
+                        } else {
+                            layer.open({
+                                type: 1,
+                                closeBtn: 1, //不显示关闭按钮
+                                skin: 'layui-layer-rim', //加上边框
+                                area: ['100%', '95%'], //宽高
+                                shadeClose: true, //开启遮罩关闭
+                                content: createHtml(result.data),
+                                success: function(layero, index){
+                                   //默认打开已选中的老师列
+                                    var domIndex=0;
+                                    $("input[name='teacherLoginName']:checked").each(function () {
+                                        var hdom=$(this).parent().parent().parent().prev();
+                                        if (domIndex!=hdom.index()) {
+                                            hdom.children().get(0).click();
+                                            domIndex=hdom.index();
+                                        }
+                                    })
+                                }
+                            });
+                        }
+                    }else {
+                        layer.msg("获取老师列表失败");
+                    }
+                }
+            });
+        }
+        function createHtml(listTea) {
+            var excludeTeacher=new Array();
+            var teaStr=$("#excludeTeacher").val();
+            if (teaStr!=null && $.trim(teaStr)!="") {
+                excludeTeacher=teaStr.split(",");
+            }
+            var dataHtml="";
+            if (listTea!=null){
+                var firstLetter="";
+                for (var i=0;i<listTea.length;i++){
+                    var checked="";
+                    for (var j=0;j<excludeTeacher.length;j++) {
+                        if (excludeTeacher[j]==listTea[i]){
+                            checked="checked";
+                        }
+                    }
+                    if (firstLetter != listTea[i].substr(0,1).toLowerCase()) {
+                        firstLetter = listTea[i].substr(0, 1).toLowerCase();
+                        if (i > 0) {
+                            dataHtml += "</div><h3 style='padding: 0.1rem 0.2rem;box-sizing: border-box;border-bottom: 1px solid #cdcdcd;cursor:pointer;' onclick='$(this).children().get(0).click();'>"+firstLetter.toUpperCase()+"<i onclick='divOpened(this)' class='fa fa-angle-double-down' style='float:right;cursor:pointer;color: #666;'></i></h3><div class='row checkbox' style='margin-left:10px; width: 99%;display:none;'>";
+                        }else {
+                            dataHtml="<h3 style='padding: 0.1rem 0.2rem;box-sizing: border-box;border-bottom: 1px solid #cdcdcd;cursor:pointer;' onclick='$(this).children().get(0).click();'>"+firstLetter.toUpperCase()+"<i onclick='divOpened(this)' class='fa fa-angle-double-down' style='float:right;cursor:pointer;color: #666;'></i></h3><div class='row checkbox' style='margin-left:10px; width: 99%;display:none;'>";
+                        }
+                    }
+                    dataHtml+="<div class='col-sm-2' style='margin-bottom: 10px;'><label><input type='checkbox' name='teacherLoginName' value='"+listTea[i]+"' "+checked+" onclick='clickCheckBox();'> "+listTea[i]+"</label></div>";
+                }
+                dataHtml+="</div>"
+            }
+            return dataHtml;
+        }
+        function divOpened (dom) {
+            $(dom).parent('h3').next('div').toggle('fast')
+            $(dom).toggleClass('fa-angle-double-down','fa-angle-double-up')
+            $(dom).toggleClass('fa-angle-double-up','fa-angle-double-down')
+        }
+        function clickCheckBox() {
+            var teaStr=new Array();
+            $("input[name='teacherLoginName']:checked").each(function () {
+                teaStr.push($(this).val());
+            })
+            $("#excludeTeacher").val(teaStr.join(","))
+        }
+        //查询学员信息
+        function searchStudent(){
+            $.ajax({
+                url:"/notice/msg/studentList",
+                type:'post',
+                contentType : "application/json",
+                dataType : 'json',
+                traditional:true,
+                data:JSON.stringify(
+                    {"classWayId":$("#classWayId").val(),"state":$("#state").val(),"classStartTime":$("#startDate").val().replace(" ","T"),"cancelClass":$("#cancelClass").find("select").val()
+                    ,"classEndTime":$("#endDate").val().replace(" ","T"),"teaSiteId":$("#teaSiteId").val(),"excludeTeacher":$("#excludeTeacher").val().split(",")
+                    }),
+                success:function (result) {
+                    $("#receiveList").empty();
+                    if (result.status==1){
+                        if (result.data!=null) {
+                            if (result.data.length == 0) {
+                                layer.msg("没有找到符合条件的学生");
+                            } else {
+                                var shtml = "";
+                                var resultData = result.data;
+                                for (var i = 0; i < resultData.length; i++) {
+                                    shtml += "<option value='" + resultData[i].id + "'>" + resultData[i].loginName + "</option>";
+                                }
+                                $("#receiveList").html(shtml);
+                            }
+                        }
+                    }else {
+                        layer.msg("获取老师列表失败");
+                    }
+                }
+            });
+        }
+        function changeTemplate(obj) {
+            var templateId=$(obj).val();
+            if (templateId!=null && $.trim(templateId)!="") {
+                $.post("/notice/msg/template/"+templateId,{},function (result) {
+                    if (result.status==1){
+                        var resultData=result.data;
+                        console.log(resultData);
+                        if (resultData!=null){
+
+                            $("#firstData").val(resultData.firstData);
+                            $("#msgTitle").val(resultData.msgTitle);
+
+                            if (resultData.templateId!="") {
+                                $("#templateId").val(resultData.templateId);
+                                $("#remark").val(resultData.remark);
+                                $("#linkUrl").val(resultData.linkUrl);
+                                $(".linkUrl").show();
+                                $(".remark").show();
+                            }else {
+                                $("#templateId").val("");
+                                $("#remark").val("");
+                                $("#linkUrl").val("");
+                                $(".linkUrl").hide();
+                                $(".remark").hide();
+                            }
+
+                            if (resultData.key1!=null && $.trim(resultData.key1)!=""){
+                                $("#key1").text(resultData.key1);
+                                $("#keyword1").val(resultData.keyword1);
+                                $(".key1").show();
+                            } else {
+                                $(".key1").hide();
+                            }
+                            if (resultData.key2!=null && $.trim(resultData.key2)!=""){
+                                $("#key2").text(resultData.key2);
+                                $("#keyword2").val(resultData.keyword2);
+                                $(".key2").show();
+                            } else {
+                                $(".key2").hide();
+                            }
+                            if (resultData.key3!=null && $.trim(resultData.key3)!=""){
+                                $("#key3").text(resultData.key3);
+                                $("#keyword3").val(resultData.keyword3);
+                                $(".key3").show();
+                            } else {
+                                $(".key3").hide();
+                            }
+                            if (resultData.key4!=null && $.trim(resultData.key4)!=""){
+                                $("#key4").text(resultData.key4);
+                                $("#keyword4").val(resultData.keyword4);
+                                $(".key4").show();
+                            } else {
+                                $(".key4").hide();
+                            }
+                        } else {
+                            displayHide();
+                            layer.msg("没有模板信息");
+                        }
+                    } else {
+                        displayHide();
+                        layer.msg("获取模板信息失败");
+                    }
+                },"json");
+            }else {
+                displayHide();
+            }
+        }
+        //关闭课表
+        function closeFreeClass() {
+            if ($("input[name='closeClass']:checked").val()!=1) {
+                layer.msg("没有选择关闭老师空闲班表");
+                return false;
+            }
+            if ($.trim($("#courseStartTime").val())==""){
+                layer.msg("请选择关闭课表开始时间");
+                return false;
+            }
+            if ($.trim($("#courseEndTime").val())==""){
+                layer.msg("请选择关闭课表结束时间");
+                return false;
+            }
+            $.ajax({
+                url:"/notice/close/free/class",
+                type:'post',
+                contentType : "application/json",
+                dataType : 'json',
+                traditional:true,
+                data:JSON.stringify(
+                    {"courseStartTime":$("#courseStartTime").val().replace(" ","T"),"courseEndTime":$("#courseEndTime").val().replace(" ","T")
+                        ,"teaSiteId":$("#teaSiteId").val(),"excludeTeacher":$("#excludeTeacher").val().split(",")
+                    }),
+                success:function (result) {
+                    if (result.status==1){
+                        layer.msg("空闲班表关闭成功");
+                    }else {
+                        layer.msg(result.errMsg);
+                    }
+                }
+            });
+        }
+        function displayHide() {
+            $("#templateId").val("");
+            $("#firstData").val("");
+            $("#remark").val("");
+            $("#msgTitle").val("");
+            $("#linkUrl").val("");
+            $(".linkUrl").hide();
+            $(".remark").hide();
+            $(".key1").hide();
+            $("#key1").text("模板参数1");
+            $(".keyword1").val("");
+            $(".key2").hide();
+            $("#key2").text("模板参数1");
+            $(".keyword2").val("");
+            $(".key3").hide();
+            $("#key3").text("模板参数1");
+            $(".keyword3").val("");
+            $(".key4").hide();
+            $("#key4").text("模板参数1");
+            $(".keyword4").val("");
+        }
+        //form表单数据验证
+        function checkForm() {
+
+            if ($("input[name='cancelClass']:checked").val()>0 && $("#cancelClassReasonId").val()==""){
+                layer.msg("请选择取消课程原因");
+                return false;
+            }
+            if ($("#platformList").find("input[type='checkbox']:checked").length==0) {
+                layer.msg("请选择消息展示平台");
+                return false;
+            }
+            if ($("#platformList").find("input[type='checkbox']:checked").val()==1 && $("#selectTemplate").val()=="") {
+                layer.msg("发送微信消息必须选择模板");
+                return false;
+            }
+            if ($("input[name='remindType']:checked").val()==2 && $.trim($("#showEndTime").val())==""){
+                layer.msg("请选择提醒结束时间");
+                return false;
+            }
+
+            if ($.trim($("#msgTitle").val())=="") {
+                $("#msgTitle").select();
+                layer.msg("请输入消息标题");
+                return false;
+            }
+            if ($.trim($("#firstData").val())=="") {
+                $("#firstData").select();
+                layer.msg("请输入消息内容");
+                return false;
+            }
+
+            if ($("#receiveList").find("option").length==0){
+                if (!confirm('您没有选择学员，您的设置是否对所有学员生效？')){
+                    return false;
+                }
+            }else {
+                $("#receiveList").find("option").each(function () {
+                    if ($(this).val() != "") {
+                        $(this).attr("selected", true)
+                    }
+                })
+            }
+
+            return true;
+        }
+        var status=[[${status==null?0:status}]];
+        if (status==1){
+            layer.msg("消息发送成功！");
+        }
+        //$("#teaSiteId").chosen({search_contains: true,"width":"100%"});
+        //$(".chosen-container").css("width","100%");
+        $('#teaSiteId').selectpicker({noneSelectedText: '--教学基地--'});
+        //$('#teaSiteId').selectpicker('refresh');
+    </script>
+</div>
+</body>
+</html>

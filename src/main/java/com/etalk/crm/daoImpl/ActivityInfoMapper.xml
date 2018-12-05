@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.ActivityInfoMapper">
+    <select id="getActivityList" parameterType="java.lang.String" resultType="java.util.Map">
+        SELECT ai.id as id,ai.activity_name as name FROM activity_info ai
+        <if test="search!=null and search!=''">
+            WHERE ai.activity_name LIKE concat('%',#{search},'%')
+        </if>
+    </select>
+</mapper>

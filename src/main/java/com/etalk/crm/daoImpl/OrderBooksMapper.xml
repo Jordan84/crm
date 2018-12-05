@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.OrderBooksMapper">
+    <insert id="insertOrderBooks" parameterType="com.etalk.crm.pojo.OrderBooks" useGeneratedKeys="true" keyProperty="id">
+        insert into order_books
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            stores_id,
+            person_id,
+            order_id,
+            textbooks_id,
+            `sequence`,
+            finish,
+            currentpage,
+            pageindex,
+            complete,
+            register,
+            regist_time,
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{storesId,jdbcType=INTEGER},
+            #{personId,jdbcType=INTEGER},
+            #{orderId,jdbcType=INTEGER},
+            #{textbooksId,jdbcType=INTEGER},
+            #{sequence,jdbcType=INTEGER},
+            #{finish,jdbcType=INTEGER},
+            #{currentpage,jdbcType=VARCHAR},
+            <if test="pageindex==null">
+                -1,
+            </if>
+            <if test="pageindex!=null">
+                #{pageindex,jdbcType=INTEGER},
+            </if>
+            #{complete,jdbcType=INTEGER},
+            #{register,jdbcType=VARCHAR},
+            #{registTime,jdbcType=TIMESTAMP},
+        </trim>
+    </insert>
+</mapper>

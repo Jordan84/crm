@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Configuration>  
+    <properties>  
+        <property name="LOG_HOME">${sys:catalina.home}/logs</property>
+        <!--<property name="LOG_HOME">logs</property>-->
+    </properties>  
+    <Appenders>  
+        <Console name="Console" target="SYSTEM_OUT">  
+        	<!-- <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/> -->
+            <PatternLayout pattern="%date{yyyy-MM-dd HH:mm:ss.SSS} %level [%thread][%file:%line] - %msg%n" />  
+        </Console>  
+  
+        <RollingRandomAccessFile name="InfoFile" fileName="${LOG_HOME}/etalk_crm_info.log" filePattern="${LOG_HOME}/$${date:yyyy-MM-dd}/etalk_new_crm_info-%d{yyyy-MM-dd}-%i.log">
+            <Filters>  
+                <ThresholdFilter level="warn" onMatch="DENY" onMismatch="NEUTRAL" />  
+                <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY" />  
+            </Filters>  
+            <PatternLayout pattern="%date{yyyy-MM-dd HH:mm:ss.SSS} %level [%thread][%file:%line] - %msg%n" />  
+            <Policies>  
+                <TimeBasedTriggeringPolicy interval="1"/>  
+                <SizeBasedTriggeringPolicy size="5 MB" />  
+            </Policies>
+            <DefaultRolloverStrategy max="50">
+                <Delete basePath="${LOG_HOME}/" maxDepth="2">
+                    <IfFileName glob="*/etalk_crm_info*.log" />
+                    <IfLastModified age="2d" />
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingRandomAccessFile>  
+          
+        <RollingRandomAccessFile name="ErrorFile" fileName="${LOG_HOME}/etalk_crm_error.log" filePattern="${LOG_HOME}/$${date:yyyy-MM-dd}/etalk_new_crm_error-%d{yyyy-MM-dd}-%i.log">
+            <Filters>  
+                <ThresholdFilter level="fatal" onMatch="DENY" onMismatch="NEUTRAL" />  
+                <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY" />  
+            </Filters>  
+            <PatternLayout pattern="%date{yyyy-MM-dd HH:mm:ss.SSS} %level [%thread][%file:%line] - %msg%n" />  
+            <Policies>  
+                <TimeBasedTriggeringPolicy interval="1"/>  
+                <SizeBasedTriggeringPolicy size="5 MB" />  
+            </Policies>
+            <DefaultRolloverStrategy max="50">
+                <Delete basePath="${LOG_HOME}/" maxDepth="2">
+                    <IfFileName glob="*/etalk_crm_error*.log" />
+                    <IfLastModified age="2d" />
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingRandomAccessFile>  
+        
+        <NoSql name="mongoAppender">
+	      	<MongoDb databaseName="LogDataBase" collectionName="logWebNewCrm" server="39.108.170.56" port="2190" userName="jordan" password="jordan@365"/>
+	    </NoSql>
+	    
+    </Appenders>  
+  	
+    <Loggers>
+        <!--<logger name="com.etalk.crm.dao" level="debug" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>-->
+    	<AsyncLogger name="com.etalk.crm" level="info" includeLocation="true">
+	      <AppenderRef ref="mongoAppender"/>
+	      <AppenderRef ref="InfoFile"/>
+	    </AsyncLogger>
+	    
+        <Root level="info">
+            <AppenderRef ref="ErrorFile" />
+            <!--<AppenderRef ref="Console" />-->
+        </Root>  
+    </Loggers>  
+</Configuration> 

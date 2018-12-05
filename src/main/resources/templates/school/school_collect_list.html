@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderCustomList('学校管理',~{::style})">
+    <style type="text/css">
+        .input-group-btn {
+            padding: 5px 2px;
+        }
+    </style>
+</head>
+<body>
+<div id="content" class="col-lg-12 col-sm-12" style="padding: 5px;">
+    <div class="row">
+        <div class="box col-md-12">
+            <div class="box-inner">
+                <div class="box-header well" data-original-title="">
+                    <h2>
+                        <i class="glyphicon glyphicon-home"></i> 市场推广学校详情表
+                    </h2>
+                </div>
+                <div class="box-content">
+                    <form class="form-inline form-search" role="form" method="post" action="/school/page/list" onsubmit="return true;">
+                        <div class="form-group">
+                            <div class="input-group col-xs-12">
+                                <div class="input-group-btn">
+                                    <select th:field="*{pageInfo.pageSize}" class="form-control input-sm" onchange="$('form').submit();" required>
+                                        <option value="10">10条/页</option>
+                                        <option value="25">25条/页</option>
+                                        <option value="50">50条/页</option>
+                                    </select>
+                                </div>
+                                <div id="citys" class="input-group-btn">
+                                    <select class="form-control input-sm" name="province"></select>
+                                    <select class="form-control input-sm" name="city"></select>
+                                    <select class="form-control input-sm" name="area" onchange="$('form').submit();"></select>
+                                </div>
+                                <div class="input-group-btn">
+                                    <select name="schoolId" class="form-control input-sm" onchange="$('form').submit();">
+                                        <option value="-1" selected> -- 地点 --</option>
+                                    </select>
+                                </div>
+                                <div class="input-group-btn">
+                                    <select name="effect" class="form-control input-sm" onchange="$('form').submit();">
+                                        <option value="-1"> -- 效果 --</option>
+                                        <option value="1">好</option>
+                                        <option value="2">一般</option>
+                                        <option value="3">差</option>
+                                    </select>
+                                </div>
+                                <div class="input-group-btn">
+                                    <select name="hasPolice" class="form-control input-sm" onchange="$('form').submit();">
+                                        <option value="-1"> -- 有无保安驱赶 --</option>
+                                        <option value="1">有</option>
+                                        <option value="0">无</option>
+                                    </select>
+                                </div>
+                                <span class="input-group-btn">
+                                    <input type="search" name="search" id="search" th:value="${searchParam.search}" class="form-control input-sm" placeholder="查询关键字..." style="width:200px;"/>
+                                </span>
+                                <span class="input-group-btn">
+                                    <button class="btn btn-default" type="submit"> 查 询 </button>
+                                </span>
+                                <span class="input-group-btn">
+                                    <a id="add" role="button" class="btn btn-info" href="javascript:void(0);" alt="/school/page/edit"><span class="glyphicon glyphicon-plus-sign"></span> 添 加 </a>
+                                </span>
+                                <span class="input-group-btn">
+                                    <a id="exportToExcel" role="button" class="btn btn-info" href="javascript:void(0);" onclick="exportExcel();"><span class="glyphicon glyphicon-share"></span> 导出到Excel </a>
+                                </span>
+                            </div>
+                        </div>
+                    </form>
+                    <table class="table table-striped table-bordered table-hover footable" data-show-toggle="false">
+                        <thead>
+                        <tr>
+                            <th style="text-align: center;">#</th>
+                            <th style="text-align: center;">区域</th>
+                            <th style="text-align: center;">地点/学校</th>
+                            <th data-breakpoints="all" data-title="地点/学校">地点/学校</th>
+                            <th style="text-align: center;">效果</th>
+                            <th data-breakpoints="all" data-title="效果">效果</th>
+                            <th style="text-align: center;">采集时间</th>
+                            <th style="text-align: center;">有无保安驱赶</th>
+                            <th style="text-align: center;">最近地铁站</th>
+                            <th style="text-align: center;">学校情况备注</th>
+                            <th data-breakpoints="all" data-title="学校情况备注">学校情况备注</th>
+                            <th style="text-align: center;">采集日期1</th>
+                            <th style="text-align: center;">采集日期2</th>
+                            <th style="text-align: center;">采集日期3</th>
+                            <th style="text-align: center;">采集日期4</th>
+                            <th style="text-align: center;">采集日期5</th>
+                            <th style="text-align: center;">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="collectInfo,iterStat : ${pageInfo.list}">
+                            <td style="text-align: center;" th:text="${iterStat.index+1}">sort</td>
+                            <td style="text-align: center;" th:text="|${collectInfo.provinceName}/${collectInfo.cityName}/${collectInfo.areaName}|">provinceName</td>
+                            <td style="text-align: center;" th:text="${collectInfo.schoolName}">schoolName</td>
+                            <td style="text-align: left;" th:text="${collectInfo.schoolName}">schoolName</td>
+                            <td style="text-align: center;" th:text="${collectInfo.effect==1?'好':collectInfo.effect==2?'一般':'差'}">effect</td>
+                            <td style="text-align: left;" th:text="${collectInfo.effect==1?'好':collectInfo.effect==2?'一般':'差'}">effect</td>
+                            <td style="text-align: center;" th:text="${collectInfo.collectTimeString}">collectTime</td>
+                            <td style="text-align: center;" th:text="${collectInfo.hasPolice==1}?'有':'无'">hasPolice</td>
+                            <td style="text-align: center;" th:text="${collectInfo.subway}">subway</td>
+                            <td style="text-align: center;" th:text="${collectInfo.schoolDescShort}" data-toggle="tooltip" data-placement="right" th:title="${collectInfo.schoolDesc}">schoolDesc</td>
+                            <td style="text-align: left;" th:text="${collectInfo.schoolDesc}">schoolDesc</td>
+                            <td style="text-align: center;" th:text="${collectInfo.collectDate.size()>=1?(#dates.format(collectInfo.collectDate.get(0).collectDate, 'yyyy-MM-dd')):''}">collectDate</td>
+                            <td style="text-align: center;" th:text="${collectInfo.collectDate.size()>=2?(#dates.format(collectInfo.collectDate.get(1).collectDate, 'yyyy-MM-dd')):''}">collectDate</td>
+                            <td style="text-align: center;" th:text="${collectInfo.collectDate.size()>=3?(#dates.format(collectInfo.collectDate.get(2).collectDate, 'yyyy-MM-dd')):''}">collectDate</td>
+                            <td style="text-align: center;" th:text="${collectInfo.collectDate.size()>=4?(#dates.format(collectInfo.collectDate.get(3).collectDate, 'yyyy-MM-dd')):''}">collectDate</td>
+                            <td style="text-align: center;" th:text="${collectInfo.collectDate.size()>=5?(#dates.format(collectInfo.collectDate.get(4).collectDate, 'yyyy-MM-dd')):''}">collectDate</td>
+                            <td style="text-align: center;">
+                                <a href="javascript:void(0);" th:alt="|/school/page/edit/${collectInfo.id}|" class="btn btn-info edit" role="button"><span class="glyphicon glyphicon-edit"></span> 修改 </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div th:include="include/pageinfo::pager"></div>
+                </div>
+            </div>
+            <!--/box-->
+        </div>
+        <!--/row-->
+    </div>
+    <!-- content ends -->
+    <div th:include="/include/onload_js::onloadJSCustomList(~{::script})">
+        <script th:src="@{/static/js/jquery-citys.js}"></script>
+        <script type="text/javascript" th:inline="javascript">
+            /*<![CDATA[*/
+            var provinceCode = /*[[${searchParam.province}]]*/'';
+            var cityCode = /*[[${searchParam.city}]]*/'';
+            var areaCode = /*[[${searchParam.area}]]*/'';
+            var schoolId = /*[[${searchParam.schoolId}]]*/'';
+            var effect = /*[[${searchParam.effect}]]*/'';
+            var hasPolice = /*[[${searchParam.hasPolice}]]*/'';
+            /*]]>*/
+
+            // 初始化省市区
+            var options = {url: '/school/city'};
+
+            $(document).ready(function () {
+                if (areaCode != '' && areaCode > 0) {
+                    //展示学校
+                    showSchoolData(areaCode);
+                    if (provinceCode != '' && provinceCode > 0 && cityCode != '' && cityCode > 0) {
+                        options = {
+                            url: '/school/city',
+                            province: provinceCode,
+                            city: cityCode,
+                            area: areaCode
+                        };
+                    }
+                }
+                $('#citys').citys(options);
+
+                if (schoolId != null) {
+                    $('select[name="schoolId"]').val(schoolId);
+                }
+                if (effect != null) {
+                    $('select[name="effect"]').val(effect);
+                }
+                if (hasPolice != null) {
+                    $('select[name="hasPolice"]').val(hasPolice);
+                }
+            });
+
+            $(function () {
+
+                $('.footable').footable();
+
+                $('[data-toggle="tooltip"]').tooltip({
+                    container: 'body'
+                });
+
+
+                $("#add").on("click",function () {
+                    var url = $(this).attr("alt");
+                    layer.open({
+                        type: 2,
+                        title: false,
+                        closeBtn: 1, //显示关闭按钮
+                        // shade: [0],
+                        shade: 0.4,
+                        area: ['90%', '90%'],
+                        // offset: 'rb', //右下角弹出
+                        // time: 2000, //2秒后自动关闭
+                        // anim: 2,
+                        content: [url, 'yes'], //iframe的url，no代表不显示滚动条
+                        end: function () { //此处用于演示
+                        },
+                        cancel: function (index, layero) {
+                        }
+                    });
+                });
+
+                $(".edit").on("click",function () {
+                    var url = $(this).attr("alt");
+                    layer.open({
+                        type: 2,
+                        title: false,
+                        closeBtn: 1, //显示关闭按钮
+                        // shade: [0],
+                        shade: 0.4,
+                        area: ['90%', '90%'],
+                        // offset: 'rb', //右下角弹出
+                        // time: 2000, //2秒后自动关闭
+                        // anim: 2,
+                        content: [url, 'yes'], //iframe的url，no代表不显示滚动条
+                        end: function () { //此处用于演示
+                        },
+                        cancel: function (index, layero) {
+                        }
+                    });
+                });
+            });
+
+            function showSchoolData(areaCode) {
+                $.post("/school/list/" + areaCode, {}, function (res) {
+                    console.log(JSON.stringify(res));
+                    if (res != null && res.status == 1) {
+                        var schoolHtml = "<option value='-1' selected> -- 地点 -- </option>"; //添加列表头
+                        var schools = res.data;
+                        for (var idx in schools) {
+                            var item = schools[idx];
+                            if (schoolId == item.id) {
+                                schoolHtml += "<option value='" + item.id + "' selected>" + item.schoolName + "</option>"
+                            } else {
+                                schoolHtml += "<option value='" + item.id + "'>" + item.schoolName + "</option>"
+                            }
+                        }
+                        $('select[name="schoolId"]').html(schoolHtml);
+                    } else {
+                        layer.msg('操作失败', {icon: 2});
+                    }
+                });
+            }
+
+            function exportExcel() {
+                var url = "/school/exportExcel";
+                url += "?";
+                url += "province=" + $("select[name='province']").val();
+                url += "&city=" + $("select[name='city']").val();
+                url += "&area=" + $("select[name='area']").val();
+                url += "&schoolName=" + $("select[name='schoolName']").val();
+                url += "&effect=" + $("select[name='effect']").val();
+                url += "&hasPolice=" + $("select[name='hasPolice']").val();
+                window.location.href = url;
+            }
+        </script>
+    </div>
+</div>
+</body>
+</html>

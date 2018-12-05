@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderCustomList('知识点管理',~{::style})">
+    <style type="text/css">
+    </style>
+</head>
+<body>
+<div id="content" class="col-lg-12 col-sm-12" style="padding: 5px;">
+    <div class="row">
+        <div class="box col-md-12">
+            <div class="box-inner">
+                <div class="box-header well" data-original-title="">
+                    <h2>
+                        <i class="glyphicon glyphicon-home"></i> 知识点列表
+                    </h2>
+                </div>
+                <div class="box-content">
+                    <form class="form-inline form-search" role="form" enctype="multipart/form-data" method="post" th:action="@{/questionKnowledge/page/list}">
+                        <div class="form-group" style="margin-bottom: 5px;">
+                            <select th:field="*{pageInfo.pageSize}" class="form-control input-sm" onchange="$('form').submit();" required>
+                                <option value="10">10条/页</option>
+                                <option value="25">25条/页</option>
+                                <option value="50">50条/页</option>
+                            </select>
+                            <div class="input-group input-group-sm">
+                                <input type="search" name="search" id="search" class="form-control input-sm" placeholder="查询关键字..." style="width:200px;"/>
+                                <span class="input-group-btn">
+                                    <button class="btn btn-default" type="submit"> 查 询 </button>
+                                </span>
+                            </div>
+                            <a id="add" role="button" class="btn btn-info add" href="javascript:void(0);"><span class="glyphicon glyphicon-plus-sign"></span>添加知识点</a>
+                            <input class="form-control" type="file" name="filename"/>
+                            <button class="btn btn-primary" href="javascript:void(0);" onclick="importKnowledge();">导入知识点</button>
+                            <span style="color: red;" th:text="${msg}"></span>
+                        </div>
+                    </form>
+                    <table class="table table-striped table-bordered table-hover" data-show-toggle="false">
+                        <thead>
+                        <tr>
+                            <th style="text-align: center;">#</th>
+                            <th style="text-align: center;">知识点名称</th>
+                            <th style="text-align: center;">添加日期</th>
+                            <th style="text-align: center;">添加人</th>
+                            <th style="text-align: center;">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="know,iterStat : ${pageInfo.list}">
+                            <td style="text-align: center;" th:text="${iterStat.index+1}">sort</td>
+                            <td style="text-align: center;" th:text="${know.cnName}">cnName</td>
+                            <td style="text-align: center;" th:text="${#dates.format(know.recordTime,'yyyy-MM-dd HH:mm:ss')}">recordTime</td>
+                            <td style="text-align: center;" th:text="${know.recorder}">recorder</td>
+                            <td style="text-align: center;">
+                                <a href="javascript:;" class="btn btn-danger edit" role="button" th:alt="${know.id}"><span class="glyphicon glyphicon-pencil"></span> 修改 </a>
+                                <a href="javascript:;" class="btn btn-info related-question" role="button" th:alt="${know.id}"><span class="glyphicon glyphicon-backward"></span> 查看关联题目 </a>
+                                <a href="javascript:;" class="btn btn-info related-textbooks" role="button" th:alt="${know.id}"><span class="glyphicon glyphicon-forward"></span> 查看关联教材 </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div th:include="include/pageinfo::pager"></div>
+                </div>
+            </div>
+            <!--/box-->
+        </div>
+        <!--/row-->
+    </div>
+    <div th:include="/include/onload_js::onloadJSCustomList(~{::script})">
+        <script type="text/javascript">
+            $(function () {
+                $(".add").on("click", function () {
+                    var url = "/questionKnowledge/page/edit";
+                    layer.open({
+                        type: 2,
+                        title: false,
+                        closeBtn: 1, //显示关闭按钮
+                        // shade: [0],
+                        shade: 0.4,
+                        area: ['750px', '400px'],
+                        // offset: 'rb', //右下角弹出
+                        // time: 2000, //2秒后自动关闭
+                        // anim: 2,
+                        content: [url, 'no'], //iframe的url，no代表不显示滚动条
+                        end: function () { //此处用于演示
+                        },
+                        cancel: function (index, layero) {
+                        }
+                    });
+                });
+
+                $(".edit").on("click", function () {
+                    var url = "/questionKnowledge/page/edit/" + $(this).attr("alt");
+                    layer.open({
+                        type: 2,
+                        title: false,
+                        closeBtn: 1, //显示关闭按钮
+                        // shade: [0],
+                        shade: 0.4,
+                        area: ['750px', '400px'],
+                        // offset: 'rb', //右下角弹出
+                        // time: 2000, //2秒后自动关闭
+                        // anim: 2,
+                        content: [url, 'no'], //iframe的url，no代表不显示滚动条
+                        end: function () { //此处用于演示
+                        },
+                        cancel: function (index, layero) {
+                        }
+                    });
+                });
+
+                $(".related-question").on("click", function () {
+                    var url = "/questionKnowledge/page/relatedQuestion/" + $(this).attr("alt");
+                    layer.open({
+                        type: 2,
+                        title: false,
+                        closeBtn: 1, //显示关闭按钮
+                        // shade: [0],
+                        shade: 0.4,
+                        area: ['800px', '600px'],
+                        // offset: 'rb', //右下角弹出
+                        // time: 2000, //2秒后自动关闭
+                        // anim: 2,
+                        content: [url, 'no'], //iframe的url，no代表不显示滚动条
+                        end: function () { //此处用于演示
+                        },
+                        cancel: function (index, layero) {
+                        }
+                    });
+                });
+
+                $(".related-textbooks").on("click", function () {
+                    var url = "/questionKnowledge/page/relatedTextbooks/" + $(this).attr("alt");
+                    layer.open({
+                        type: 2,
+                        title: false,
+                        closeBtn: 1, //显示关闭按钮
+                        // shade: [0],
+                        shade: 0.4,
+                        area: ['800px', '600px'],
+                        // offset: 'rb', //右下角弹出
+                        // time: 2000, //2秒后自动关闭
+                        // anim: 2,
+                        content: [url, 'no'], //iframe的url，no代表不显示滚动条
+                        end: function () { //此处用于演示
+                        },
+                        cancel: function (index, layero) {
+                        }
+                    });
+                });
+            });
+
+            function importKnowledge() {
+                $("form").attr("action", "/questionKnowledge/importKnowledge");
+                $("form").submit();
+            }
+        </script>
+    </div>
+</div>
+</body>
+</html>

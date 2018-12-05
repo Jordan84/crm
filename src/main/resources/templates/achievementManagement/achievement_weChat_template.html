@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--<head th:include="/include/head::commonHeaderList('')">-->
+<head th:include="/include/head::commonHeaderCustom('baseSalaryConfigure',~{::style})">
+<style type="text/css">
+</style>
+<style type="text/css">
+    .dataArea .form-group {
+        margin-right: 0;
+        margin-left: 0;
+    }
+    .error {
+        color: red;
+        border-color: red;
+    }
+
+    .error:focus {
+        color: red;
+        border-color: red;
+    }
+
+    .red {
+        color: red;
+    }
+
+    .dataArea .title {
+        padding: 5px 10px 0 0;
+    }
+
+    .dataArea .item {
+        /*padding: 0 20px 10px 0;*/
+    }
+
+    .action {
+        text-align: center;
+    }
+
+    .action a {
+        width: 52%;
+    }
+     ul li{
+        list-style-type:none;
+     }
+
+    .ch-container{
+        margin-left: -9%;
+    }
+</style>
+</head>
+<body scroll="no" style="overflow-x:hidden;overflow-y:hidden">
+    <div class="ch-container" style="overflow-x:hidden;overflow-y:hidden">
+        <div class="row">
+            <form class="form-horizontal">
+                <div class="box">
+                    <legend class="text-center" style="padding-bottom:15px;font-weight: bold;margin-left: 11%;" contenteditable="false">学员成绩收集推送</legend>
+                    <div class="dataArea">
+                        <ul>
+                            <div id="step1">
+                                <li>
+                                    <div class="form-group">
+                                        <div class="col-xs-3 text-right title">年度：</div>
+                                        <div class="col-xs-8 item">
+                                            <input class="form-control" id="year" onfocus="selectYear()" type="text" placeholder="请选择年度" autocomplete="off"/>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-group">
+                                        <div class="col-xs-3 text-right title">学期：</div>
+                                        <div class="col-xs-8 item">
+                                            <select  class="form-control" name="achievementManagement.term" id="term">
+                                                <option value="0">--请选择--</option>
+                                                <option value="1">上学期</option>
+                                                <option value="2">下学期</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-group">
+                                        <div class="col-xs-3 text-right title">考试：</div>
+                                        <div class="col-xs-8 item">
+                                            <select  class="form-control" id="testTime" name="achievementManagement.testTime" >
+                                                <option value="0">--请选择--</option>
+                                                <option value="1">期中</option>
+                                                <option value="2">期末</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-group">
+                                        <div class="col-xs-3 text-right title">推送次数：</div>
+                                        <div class="col-xs-8 item">
+                                            <input class="form-control" pushTimes id="pushTimes" type="number" placeholder="请填写推送次数">
+                                        </div>
+                                    </div>
+                                </li>
+                            </div>
+                            <li>
+                                <div>
+                                    <div class="form-group action" style="margin-top: 50px;margin-left: 55px;">
+                                        <span class="col-xs-6 text-right">
+                                            <a class="btn btn-default" onclick="layerClose();"><span>取 消</span></a>
+                                        </span>
+                                        <span class="col-xs-6 text-left">
+                                            <a class="btn btn-primary" onclick="push();"><span>提 交</span></a>
+                                        </span>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div th:include="/include/onload_js::onloadJSCustomList(~{::script})">
+        <script type="text/javascript">
+            //日期插件格式化
+            function selectYear() {
+                    WdatePicker({ dateFmt: 'yyyy', isShowToday: false, isShowClear: false,minDate: '{%y+1}-M-%d' });
+            }
+
+            //上一步 按钮  按钮
+            function push(){
+                if($("#year").val() == null || $("#year").val() == "") {
+                    layer.tips('请选择年份', '#year', {
+                        tips: [1, '#0FA6D8'],
+                        tipsMore: false,
+                        time: 3000
+                    });
+                     $("#year").focus();
+                    return;
+                }
+
+                if($("#term").val() == null || $("#term").val() == 0) {
+                    layer.tips('请选择学期', '#term', {
+                        tips: [1, '#0FA6D8'],
+                        tipsMore: false,
+                        time: 3000
+                    });
+                     $("#term").focus();
+                    return;
+                }
+
+                if($("#testTime").val() == null || $("#testTime").val() == 0) {
+                    layer.tips('请选择考试时间', '#testTime', {
+                        tips: [1, '#0FA6D8'],
+                        tipsMore: false,
+                        time: 3000
+                    });
+                    $("#testTime").focus();
+                    return;
+                }
+
+                if($("#pushTimes").val() == null) {
+                    layer.tips('请填写可推送次数', '#testTime', {
+                        tips: [1, '#0FA6D8'],
+                        tipsMore: false,
+                        time: 3000
+                    });
+                    $("#pushTimes").focus();
+                    return;
+                }
+
+                if(parseInt($("#pushTimes").val()) <=0){
+                     layer.tips('填写的可推送次数要大于0', '#pushTimes', {
+                        tips: [1, '#0FA6D8'],
+                        tipsMore: false,
+                        time: 3000
+                    });
+                    $("#pushTimes").focus();
+                    return;
+                }
+
+                var x = String($("#pushTimes").val()).indexOf('.') + 1;   //小数点的位置
+                if(x != 0){
+                     layer.tips('填写的次数不能有小数点', '#pushTimes', {
+                        tips: [1, '#0FA6D8'],
+                        tipsMore: false,
+                        time: 3000
+                     });
+                     $("#pushTimes").focus();
+                     return;
+                }
+
+                var json = {
+                    'time':$('#year').val(),
+                    'term':$('#term').val(),
+                    'testTime':$('#testTime').val(),
+                    "pushTimes" : $("#pushTimes").val()
+                }
+
+                $.ajax({
+                    type:'post',
+                    url:'/achievementCollectionManager/addWechatAchievementMsg',
+                    data :JSON.stringify(json),
+                    cache:false,
+                    contentType:"application/json;charset=utf-8",
+                    dataType:'json',
+                    success:function(data){
+                        if(data.code>0){
+                            layer.msg(data.msg,{
+                              offset:['50%'],
+                              time: 3000 //2秒关闭（如果不配置，默认是3秒）
+                            },function(){
+                                window.parent.location.reload();
+                            });
+                        }else{
+                            layer.msg(data.msg);
+                        }
+                    }
+                });
+            }
+
+            //关闭layer弹窗
+            function layerClose(){
+                var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+                // parent.layer.close(index); //再执行关闭
+                parent.layer.close(index);
+            }
+        </script>
+    </div>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.MessageTemplateMapper" >
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.MessageTemplate" >
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="template_id" property="templateId" jdbcType="VARCHAR" />
+        <result column="msg_title" property="msgTitle" jdbcType="VARCHAR" />
+        <result column="first_data" property="firstData" jdbcType="VARCHAR" />
+        <result column="keyword1" property="keyword1" jdbcType="VARCHAR" />
+        <result column="keyword2" property="keyword2" jdbcType="VARCHAR" />
+        <result column="keyword3" property="keyword3" jdbcType="VARCHAR" />
+        <result column="keyword4" property="keyword4" jdbcType="VARCHAR" />
+        <result column="remark" property="remark" jdbcType="VARCHAR" />
+        <result column="link_url" property="linkUrl" jdbcType="VARCHAR" />
+        <result column="message_info" property="keywordNames" jdbcType="VARCHAR" />
+    </resultMap>
+    <!--查询已有模板信息-->
+    <select id="selectMessageTemplateById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select mt.id,mt.template_id,mt.msg_title,mt.first_data,mt.keyword1,mt.keyword2,mt.keyword3,mt.keyword4,mt.remark,mt.link_url,wm.message_info
+        from message_template mt
+            left join weixin_message wm on wm.id=mt.template_id
+        where mt.state=1 and mt.id=#{id,jdbcType=INTEGER}
+    </select>
+    <!--查询所有可用的消息模板id和名称-->
+    <select id="selectIdAndNameList" resultMap="BaseResultMap">
+        select id,msg_title
+        from message_template
+        where state=1
+    </select>
+</mapper>

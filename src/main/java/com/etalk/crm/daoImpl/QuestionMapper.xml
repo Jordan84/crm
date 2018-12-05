@@ -1,0 +1,642 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.etalk.crm.dao.QuestionMapper">
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.QuestionBanks">
+        <result column="id" property="id" jdbcType="INTEGER"/>
+        <result column="parentid" property="parentid" jdbcType="INTEGER"/>
+        <result column="input_type" property="inputType" jdbcType="INTEGER"/>
+        <result column="qgrade_id" property="qgradeId" jdbcType="INTEGER"/>
+        <result column="qgrade_name" property="qgradeName" jdbcType="VARCHAR"/>
+        <result column="qterm_id" property="qtermId" jdbcType="INTEGER"/>
+        <result column="qunit_id" property="qunitId" jdbcType="INTEGER"/>
+        <result column="qlesson_time_id" property="qlessonTimeId" jdbcType="INTEGER"/>
+        <result column="mistake_id" property="mistakeId" jdbcType="VARCHAR"/>
+        <result column="qtype_id" property="qtypeId" jdbcType="INTEGER"/>
+        <result column="qtype_name" property="qtypeName" jdbcType="VARCHAR"/>
+        <result column="qmode_id" property="qmodeId" jdbcType="INTEGER"/>
+        <result column="qmode_name" property="qmodeName" jdbcType="VARCHAR"/>
+        <result column="qddegree_id" property="qddegreeId" jdbcType="INTEGER"/>
+        <result column="qddegree_name" property="qddegreeName" jdbcType="VARCHAR"/>
+        <result column="title" property="title" jdbcType="VARCHAR"/>
+        <result column="qtitle" property="qtitle" jdbcType="VARCHAR"/>
+        <result column="audio_title" property="audioTitle" jdbcType="VARCHAR"/>
+        <result column="audio_url" property="audioUrl" jdbcType="VARCHAR"/>
+        <result column="content_title" property="contentTitle" jdbcType="VARCHAR"/>
+        <result column="content" property="content" jdbcType="VARCHAR"/>
+        <result column="fraction" property="fraction" jdbcType="VARCHAR"/>
+        <result column="tag_title" property="questionTags" jdbcType="VARCHAR"/>
+        <result column="state" property="state" jdbcType="INTEGER"/>
+        <result column="sort" property="sort" jdbcType="INTEGER"/>
+        <result column="recorder" property="recorder" jdbcType="VARCHAR"/>
+        <result column="record_time" property="recordTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    <!-- 根据题目标题查询题目 -->
+    <select id="selectByTitle" parameterType="java.util.Map" resultMap="BaseResultMap">
+        SELECT qb.id as id,qb.parentid,qb.input_type,qg.id as qgrade_id,qg.cn_name as qgrade_name,qt.id as qtype_id,qt.cn_name as qtype_name,qm.id as qmode_id,qm.cn_name as qmode_name,qdd.id as
+        qddegree_id,qdd.cn_name as qddegree_name,qb.title,qb.state,qb.sort,qb.record_time,qtg.tag_title
+        FROM question_grade qg,question_types qt,question_mode
+        qm,question_difficulty_degree qdd,question_banks qb
+        LEFT JOIN
+        (select qt2.qbank_id,GROUP_CONCAT(qt2.tag_title) as tag_title from question_banks qb2,question_tag qt2
+        where qb2.id = qt2.qbank_id
+        GROUP BY qt2.qbank_id) qtg
+        ON qb.id = qtg.qbank_id
+        WHERE qb.qgrade_id = qg.id and qb.qtype_id = qt.id and qb.qmode_id = qm.id and
+        qb.qddegree_id = qdd.id
+        AND qb.parentid = 0
+        <if test="title != null and title != ''">
+            AND
+            (
+             qb.id = #{title} or
+             qb.title LIKE CONCAT('%',#{title,jdbcType=VARCHAR},'%') or
+             qb.qtitle LIKE CONCAT('%',#{title,jdbcType=VARCHAR},'%'))
+        </if>
+        ORDER BY qb.sort asc,qb.record_time desc
+    </select>
+    <!-- 根据年级和知识点查询题目 -->
+    <select id="selectByGradeAndKnowledge" parameterType="java.util.Map" resultMap="BaseResultMap">
+        SELECT qb.id as id,qb.input_type,qg.id as qgrade_id,qg.cn_name as qgrade_name,qt.id as qtype_id,qt.cn_name as qtype_name,qm.id as qmode_id,qm.cn_name as qmode_name,qdd.id as
+        qddegree_id,qdd.cn_name as qddegree_name,qb.title,qb.state,qb.sort
+        FROM question_banks qb,question_grade qg,question_types qt,question_mode
+        qm,question_difficulty_degree qdd
+        WHERE qb.qgrade_id = qg.id and qb.qtype_id = qt.id and qb.qmode_id = qm.id and
+        qb.qddegree_id = qdd.id
+        <if test="qgradeId != null and qgradeId != ''">
+            AND qb.qgrade_id = #{qgradeId}
+        </if>
+        ORDER BY sort
+    </select>
+    <!-- 根据题目ID查询题目 -->
+    <select id="selectByQuestionId" parameterType="Integer" resultMap="BaseResultMap">
+        SELECT qb.id as id,qb.parentid,qb.input_type,qg.id as qgrade_id,qg.cn_name as qgrade_name,qb.qterm_id,qb.qunit_id,qb.qlesson_time_id,qb.mistake_id as mistake_id,qt.id as qtype_id,qt.cn_name as qtype_name,qm.id as qmode_id,qm.cn_name as qmode_name,qdd.id as qddegree_id,qdd.cn_name as qddegree_name,qb.title,qb.qtitle,qb.content,qb.audio_title,qb.audio_url,qb.content_title,qb.fraction,qb.state,qb.sort,qb.recorder,qb.record_time,group_concat(qk.cn_name) as relatedKnowledgeName, group_concat(qbk.qknowledge_id) as relatedKnowledgeString
+        FROM question_grade qg,question_types qt,question_mode qm,question_difficulty_degree qdd,question_banks qb
+        LEFT JOIN question_banks_knowledge qbk ON qbk.qbank_id = qb.id
+        LEFT JOIN question_knowledge qk ON qbk.qknowledge_id = qk.id
+        WHERE qb.qgrade_id = qg.id and qb.qtype_id = qt.id and qb.qmode_id = qm.id and qb.qddegree_id = qdd.id
+        AND qb.id = #{questionId}
+        GROUP BY qb.id
+    </select>
+    <!-- 查询子题目 -->
+    <select id="selectChild" parameterType="Integer" resultMap="BaseResultMap">
+        SELECT qb.id as id,qb.parentid,qb.input_type as inputType,qg.id as qgrade_id,qg.cn_name as qgrade_name,qt.id as qtype_id,qt.cn_name as qtype_name,qm.id as qmode_id,qm.cn_name as qmode_name,qdd.id as qddegree_id,qdd.cn_name as qddegree_name,qb.title,qb.qtitle,qb.content,qb.audio_title,qb.audio_url,qb.content_title,qb.fraction,qb.state,qb.sort,qb.recorder,qb.record_time
+        FROM question_banks qb,question_grade qg,question_types qt,question_mode qm,question_difficulty_degree qdd
+        WHERE qb.qgrade_id = qg.id and qb.qtype_id = qt.id and qb.qmode_id = qm.id and qb.qddegree_id = qdd.id
+        AND qb.parentid = #{parentId}
+    </select>
+    <!-- 插入题库 -->
+    <insert id="saveQuestionBank" parameterType="com.etalk.crm.pojo.QuestionBanks" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO question_banks (
+            input_type,
+            qgrade_id,
+            qterm_id,
+            qunit_id,
+            qlesson_time_id,
+            mistake_id,
+            qtype_id,
+            qmode_id,
+            qddegree_id,
+            title,
+            qtitle,
+            audio_title,
+            audio_url,
+            content_title,
+            content,
+            fraction,
+            parentid,
+            recorder,
+            record_time
+        )
+        VALUES (
+            #{inputType,jdbcType=INTEGER},
+            #{qgradeId,jdbcType=INTEGER},
+            #{qtermId,jdbcType=INTEGER},
+            #{qunitId,jdbcType=INTEGER},
+            #{qlessonTimeId,jdbcType=INTEGER},
+            #{mistakeId,jdbcType=INTEGER},
+            #{qtypeId,jdbcType=INTEGER},
+            #{qmodeId,jdbcType=INTEGER},
+            #{qddegreeId,jdbcType=INTEGER},
+            #{title,jdbcType=VARCHAR},
+            #{qtitle,jdbcType=VARCHAR},
+            #{audioTitle,jdbcType=VARCHAR},
+            #{audioUrl,jdbcType=VARCHAR},
+            #{contentTitle,jdbcType=VARCHAR},
+            #{content,jdbcType=VARCHAR},
+            #{fraction,jdbcType=VARCHAR},
+            #{parentid,jdbcType=VARCHAR},
+            'admin',
+            current_timestamp
+        )
+    </insert>
+    <!-- 更新题目 -->
+    <update id="updateQuestionBank" parameterType="com.etalk.crm.pojo.QuestionBanks">
+        UPDATE question_banks
+        <trim prefix="set" suffixOverrides=",">
+            input_type = #{inputType},
+            qgrade_id = #{qgradeId},
+            qterm_id = #{qtermId},
+            qunit_id = #{qunitId},
+            qlesson_time_id = #{qlessonTimeId},
+            mistake_id = #{mistakeId},
+            qtype_id = #{qtypeId},
+            qmode_id = #{qmodeId},
+            qddegree_id = #{qddegreeId},
+            <if test="title != null">
+                title = #{title,jdbcType=VARCHAR},
+            </if>
+            <if test="qtitle != null">
+                qtitle = #{qtitle,jdbcType=VARCHAR},
+            </if>
+            <if test="audioTitle != null">
+                audio_title = #{audioTitle,jdbcType=VARCHAR},
+            </if>
+            <if test="audioUrl != null">
+                audio_url = #{audioUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="contentTitle != null">
+                content_title = #{contentTitle,jdbcType=VARCHAR},
+            </if>
+            <if test="content != null">
+                content = #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="fraction != null">
+                fraction = #{fraction,jdbcType=VARCHAR},
+            </if>
+        </trim>
+        WHERE
+        id = #{id}
+    </update>
+
+    <resultMap id="QGradeListResultMap" type="com.etalk.crm.pojo.QuestionGrade">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="cn_name" property="cnName" jdbcType="VARCHAR"/>
+        <result column="en_name" property="enName" jdbcType="VARCHAR"/>
+        <result column="state" property="state" jdbcType="INTEGER"/>
+        <result column="sort" property="sort" jdbcType="INTEGER"/>
+    </resultMap>
+    <!-- 查询年级 -->
+    <select id="selectQGradeList" resultMap="QGradeListResultMap">
+        SELECT qg.id,qg.cn_name,qg.en_name,qg.state,qg.sort
+        FROM question_grade qg
+    </select>
+    <!-- 查询知识点 -->
+    <select id="selectQKnowledgeList" resultType="com.etalk.crm.pojo.QuestionKnowledge">
+        SELECT qk.id,qk.cn_name as cnName,qk.en_name as enName,qk.sort,qk.state,qk.recorder,qk.record_time as recordTime
+        FROM question_knowledge qk
+        <if test="search != null and search != ''">
+            WHERE qk.cn_name LIKE concat(concat('%',#{search}),'%')
+        </if>
+    </select>
+    <!-- 根据名称查询知识点ID -->
+    <select id="selectIdByKnowledgeName" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT qk.id FROM question_knowledge qk WHERE qk.cn_name = #{knowledgeName}
+    </select>
+    <!-- 根据ID查询知识点 -->
+    <select id="selectQKnowledgeById" resultType="com.etalk.crm.pojo.QuestionKnowledge">
+        select ques.id, cnName, relateQuestionString, relatedTextbooks, pageString, pageNameString, tbook.rootId, tbook.parentId, tbook.subId, tbook.type, mis.mistakeString, mis.mistakeNameString
+        from (SELECT qk.id, qk.cn_name as cnName, qk.en_name as enName, qk.sort, qk.state, qk.recorder, qk.record_time as recordTime, group_concat(qbk.qbank_id) as relateQuestionString
+              FROM question_knowledge qk
+                       LEFT JOIN question_banks_knowledge qbk ON qk.id = qbk.qknowledge_id
+                       LEFT JOIN question_banks qb ON qb.id = qbk.qbank_id
+              WHERE qk.id = #{id}
+              GROUP BY qk.id) ques
+        LEFT JOIN
+             (SELECT qk.id, tc.root_id as rootId, tc.parent_id as parentId, tb.type,tc.id as subId, tk.textbooks_id as relatedTextbooks, group_concat(tk.textbooks_page) as pageString, group_concat(tk.textbooks_page_name) as pageNameString
+              FROM question_knowledge qk
+                       LEFT JOIN textbooks_knowledge tk ON tk.qknowledge_id = qk.id
+                       LEFT JOIN textbooks tb ON tk.textbooks_id = tb.id
+                       LEFT JOIN category_textbooks ct
+                       on tb.id = ct.textbooks_id
+                       LEFT JOIN textbookes_category tc
+                       on ct.category_id = tc.id
+              WHERE qk.id = #{id}
+              GROUP BY qk.id) tbook
+                      ON ques.id = tbook.id
+        LEFT JOIN (
+             SELECT qk.id,group_concat(lpm.id) as mistakeString,group_concat(lpm.cn_name) as mistakeNameString
+             FROM question_knowledge qk
+                  LEFT JOIN question_knowledge_mistake qkm
+                  ON qkm.qknowledge_id = qk.id
+                  LEFT JOIN knowledge_point_mistakes lpm
+                  ON qkm.mistake_id = lpm.id
+             WHERE qk.id = #{id}
+             GROUP BY qk.id
+        ) mis
+        ON tbook.id = mis.id
+    </select>
+    <!-- 添加知识点 -->
+    <insert id="saveQKnowledge" parameterType="com.etalk.crm.pojo.QuestionKnowledge" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO question_knowledge(cn_name, en_name, sort, state, recorder, record_time)
+        VALUES (
+            #{cnName,jdbcType=VARCHAR},
+            #{enName,jdbcType=VARCHAR},
+            1,
+            1,
+            'admin',
+            current_timestamp
+        )
+    </insert>
+    <!-- 修改知识点 -->
+    <update id="editQKnowledge" parameterType="com.etalk.crm.pojo.QuestionKnowledge">
+        UPDATE question_knowledge
+        <trim prefix="set" suffixOverrides=",">
+            id = #{id},
+            <if test="cnName != null">
+                cn_name = #{cnName,jdbcType=VARCHAR},
+            </if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+    <!-- 检测是否存在 -->
+    <select id="checkKnowledgeExist" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT COUNT(1) FROM question_knowledge qk WHERE qk.cn_name = #{cnName}
+    </select>
+    <select id="checkOtherKnowledgeExist" parameterType="java.util.Map" resultType="java.lang.Integer">
+        SELECT COUNT(1) FROM
+        (SELECT cn_name FROM question_knowledge qk WHERE qk.cn_name != #{oldCnName}) other
+        WHERE other.cn_name = #{newCnName}
+    </select>
+    <!-- 删除某个知识点与题目的关联 -->
+    <delete id="deleteRelatedQuestionByKnowledgeId" parameterType="java.lang.Integer">
+        DELETE FROM question_banks_knowledge WHERE qknowledge_id = #{knowledgeId}
+    </delete>
+    <!-- 批量添加知识点与题目的关联 -->
+    <insert id="batchSaveQuestionBanksKnowledge" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO question_banks_knowledge (
+        qbank_id,
+        qknowledge_id,
+        state,
+        recorder,
+        record_time
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.qbankId,jdbcType=INTEGER},
+            #{item.qknowledgeId,jdbcType=INTEGER},
+            1,
+            #{item.recorder,jdbcType=VARCHAR},
+            current_timestamp
+            )
+        </foreach>
+    </insert>
+    <!-- 查询知识点关联的题目 -->
+    <select id="getQuestionListByKnowledgeId" parameterType="java.lang.Integer" resultType="java.util.Map">
+        SELECT qb.title,qbk.recorder,qbk.record_time as recordTime
+        FROM question_banks qb,question_banks_knowledge qbk
+        WHERE qb.id = qbk.qbank_id
+        AND qbk.qknowledge_id = #{knowledgeId}
+    </select>
+    <!-- 根据题目ID集合查询知识点关联的题目 -->
+    <select id="getQuestionListByQuestionIdList" resultType="java.util.HashMap">
+        SELECT qb.id,qb.title
+        FROM question_banks qb
+        WHERE qb.parentid = 0
+        <if test="null != questionList and questionList.size > 0">
+            AND qb.id IN
+            <foreach item="item" index="index" collection="questionList" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+    <resultMap id="QTypesListResultMap" type="com.etalk.crm.pojo.QuestionTypes">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="cn_name" property="cnName" jdbcType="VARCHAR"/>
+        <result column="en_name" property="enName" jdbcType="VARCHAR"/>
+        <result column="state" property="state" jdbcType="INTEGER"/>
+    </resultMap>
+    <!-- 题类 -->
+    <select id="selectQTypesList" resultMap="QTypesListResultMap">
+        SELECT qt.id,qt.cn_name,qt.en_name,qt.state
+        FROM question_types qt
+    </select>
+    <resultMap id="QModeListResultMap" type="com.etalk.crm.pojo.QuestionMode">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="cn_name" property="cnName" jdbcType="VARCHAR"/>
+        <result column="en_name" property="enName" jdbcType="VARCHAR"/>
+        <result column="state" property="state" jdbcType="INTEGER"/>
+    </resultMap>
+    <!-- 题型 -->
+    <select id="selectQModeList" resultMap="QModeListResultMap">
+        SELECT qm.id,qm.cn_name,qm.en_name,qm.state
+        FROM question_mode qm
+    </select>
+    <resultMap id="QDifficultyDegreeListResultMap" type="com.etalk.crm.pojo.QuestionDifficultyDegree">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="cn_name" property="cnName" jdbcType="VARCHAR"/>
+        <result column="en_name" property="enName" jdbcType="VARCHAR"/>
+        <result column="state" property="state" jdbcType="INTEGER"/>
+    </resultMap>
+    <!-- 难度系数 -->
+    <select id="selectQDifficultyDegreeList" resultMap="QDifficultyDegreeListResultMap">
+        SELECT qdd.id,qdd.cn_name,qdd.en_name,qdd.state
+        FROM question_difficulty_degree qdd
+    </select>
+    <!-- 删除题目 -->
+    <delete id="deleteByQuestionId" parameterType="Integer">
+        DELETE FROM question_banks WHERE id = #{id}
+    </delete>
+    <!-- 删除子题目 -->
+    <delete id="deleteSubQuestionsByQuestionId">
+        DELETE FROM question_banks WHERE parentid = #{parentid}
+    </delete>
+    <!-- 查询某个题目对应的所有图片 -->
+    <select id="selectQuestionBanksImgByQuestionId" parameterType="Integer" resultType="com.etalk.crm.pojo.QuestionBanksImg">
+        SELECT qbi.id as id,qbi.qbank_id as qbankId,qbi.img_title as imgTitle,qbi.img_url as imgUrl,qbi.sort as sort
+        FROM question_banks_img qbi WHERE qbi.qbank_id = #{qbankId}
+    </select>
+    <!--删除图片(需要删除所有文件及子问题对应的图片)-->
+    <delete id="deleteQuestionBanksImg" parameterType="Integer">
+        DELETE FROM question_banks_img WHERE qbank_id = #{qbankId}
+        OR qbank_id IN (SELECT id FROM question_banks qb WHERE qb.parentid = #{qbankId})
+    </delete>
+    <!-- 插入图片 -->
+    <insert id="saveQuestionImg" parameterType="com.etalk.crm.pojo.QuestionBanksImg" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO question_banks_img (
+            qbank_id,
+            img_title,
+            img_url,
+            sort
+        )
+        VALUES (
+            #{qbankId,jdbcType=INTEGER},
+            #{imgTitle,jdbcType=VARCHAR},
+            #{imgUrl,jdbcType=VARCHAR},
+            #{sort,jdbcType=INTEGER}
+        )
+    </insert>
+    <!-- 批量插入图片 -->
+    <insert id="batchSaveQuestionImg" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO question_banks_img (
+        qbank_id,
+        img_title,
+        img_url,
+        sort
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.qbankId,jdbcType=INTEGER},
+            #{item.imgTitle,jdbcType=INTEGER},
+            #{item.imgUrl,jdbcType=INTEGER},
+            #{item.sort,jdbcType=INTEGER}
+            )
+        </foreach>
+    </insert>
+    <!-- 查询某个题目对应的所有选项 -->
+    <select id="selectQuestionOptionAnswerByQuestionId" parameterType="Integer" resultType="com.etalk.crm.pojo.QuestionOptionAnswer">
+        SELECT qoa.id as id,qoa.qbank_id as qbankId,qoa.option_type as optionType,qoa.answer as answer,qoa.img_url as imgUrl,qoa.sort as sort
+        FROM question_option_answer qoa WHERE qoa.qbank_id = #{qbankId}
+    </select>
+    <!--删除选项(需要删除所有文件及子问题对应的选项)-->
+    <delete id="deleteQuestionOptionAnswer" parameterType="Integer">
+        DELETE FROM question_option_answer WHERE qbank_id = #{qbankId}
+        OR qbank_id IN (SELECT id FROM question_banks qb WHERE qb.parentid = #{qbankId})
+    </delete>
+    <!-- 插入选项 -->
+    <insert id="saveQuestionOptionAnswer" parameterType="com.etalk.crm.pojo.QuestionOptionAnswer" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO question_option_answer (
+            qbank_id,
+            option_type,
+            answer,
+            img_url,
+            sort
+        )
+        VALUES (
+            #{qbankId,jdbcType=INTEGER},
+            #{optionType,jdbcType=INTEGER},
+            #{answer,jdbcType=VARCHAR},
+            #{imgUrl,jdbcType=VARCHAR},
+            #{sort,jdbcType=INTEGER}
+        )
+    </insert>
+    <!-- 批量插入选项 -->
+    <insert id="batchSaveQuestionOptionAnswer" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO question_option_answer (
+        qbank_id,
+        option_type,
+        answer,
+        img_url,
+        sort
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.qbankId,jdbcType=INTEGER},
+            #{item.optionType,jdbcType=INTEGER},
+            #{item.answer,jdbcType=VARCHAR},
+            #{item.imgUrl,jdbcType=VARCHAR},
+            #{item.sort,jdbcType=INTEGER}
+            )
+        </foreach>
+    </insert>
+    <!-- 查询某个题目对应的所有选项 -->
+    <select id="selectQuestionRightAnswerByQuestionId" parameterType="Integer" resultType="com.etalk.crm.pojo.QuestionRightAnswer">
+        SELECT qra.id as id,qra.qbank_id as qbankId,qra.answer1 as answer1,qra.answer2 as answer2,qra.answer3 as answer3,qra.answer4 as answer4
+        FROM question_right_answer qra WHERE qra.qbank_id = #{qbankId}
+    </select>
+    <!--删除答案(需要删除所有文件及子问题对应的答案)-->
+    <delete id="deleteQuestionRightAnswer" parameterType="Integer">
+        DELETE FROM question_right_answer WHERE qbank_id = #{qbankId}
+        OR qbank_id IN (SELECT id FROM question_banks qb WHERE qb.parentid = #{qbankId})
+    </delete>
+    <!-- 插入答案 -->
+    <insert id="saveQuestionRightAnswer" parameterType="com.etalk.crm.pojo.QuestionRightAnswer" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        insert into question_right_answer (
+            qbank_id,
+            answer1,
+            answer2,
+            answer3,
+            answer4
+        )
+        values (
+            #{qbankId,jdbcType=INTEGER},
+            #{answer1,jdbcType=VARCHAR},
+            #{answer2,jdbcType=VARCHAR},
+            #{answer3,jdbcType=VARCHAR},
+            #{answer4,jdbcType=VARCHAR}
+        )
+    </insert>
+    <!-- 批量插入答案 -->
+    <insert id="batchSaveQuestionRightAnswer" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO question_right_answer (
+        qbank_id,
+        answer1,
+        answer2,
+        answer3,
+        answer4
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.qbankId,jdbcType=INTEGER},
+            #{item.answer1,jdbcType=VARCHAR},
+            #{item.answer2,jdbcType=VARCHAR},
+            #{item.answer3,jdbcType=VARCHAR},
+            #{item.answer4,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+    <resultMap id="QuestionTitlesResultMap" type="java.util.HashMap">
+        <result column="id" property="id" jdbcType="INTEGER"/>
+        <result column="title" property="title" jdbcType="VARCHAR"/>
+    </resultMap>
+    <!-- 根据题目ID字符串查询题目列表 -->
+    <select id="selectQuestionsByIds" resultMap="QuestionTitlesResultMap">
+        SELECT qb.id, qb.title
+        FROM question_banks qb WHERE qb.id in(${questionIds})
+    </select>
+    <!-- 删除大题标题 -->
+    <delete id="deleteQuestionTitleByTestPaperId" parameterType="Integer">
+       DELETE FROM question_banks WHERE id in (select t.id from (SELECT qb.id
+       FROM test_paper tp,question_banks qb,test_paper_join_qbanks tpjq
+       WHERE tp.id = tpjq.test_paper_id AND qb.id = tpjq.qbank_id
+       AND tp.id = #{testPaperID} AND qb.parentid = -1 AND tpjq.qbank_parentid = 0) t)
+    </delete>
+    <!-- 查询第一级错题分类 -->
+    <select id="selectKnowlwdgePointMistakes" resultType="com.etalk.crm.pojo.KnowledgePointMistakes">
+        SELECT kpm.id, kpm.cn_name as cnName,kpm.parent_id as parentId
+        FROM knowledge_point_mistakes kpm
+        WHERE kpm.parent_id = 0
+    </select>
+    <!-- 查询子错题分类 -->
+    <select id="selectChildKnowledgePointMistakes" parameterType="java.lang.Integer" resultType="com.etalk.crm.pojo.KnowledgePointMistakes">
+        SELECT lpm.id, lpm.cn_name as cnName,lpm.parent_id as parentId
+        FROM knowledge_point_mistakes lpm
+        WHERE lpm.parent_id = #{parentId}
+    </select>
+    <!-- 查询父错题分类ID -->
+    <select id="selectParentKnowledgePointMistakes" parameterType="java.lang.Integer" resultType="java.util.Map">
+        SELECT lpm.id,lpm.parent_id as parentId
+        FROM knowledge_point_mistakes lpm
+        WHERE lpm.id = #{id}
+    </select>
+    <!-- 根据分数ID以及题目ID查询学生做的答案 -->
+    <select id="selectInputAnswerByScoreIdAndQbankId" parameterType="java.util.Map" resultType="com.etalk.crm.pojo.QuestionInputAnswer">
+        SELECT tpia.tpaper_score_id as tpaperScoreId,tpia.qbank_id as qbankId,tpia.istrue,tpia.score,  tpia.input_answer as inputAnswer,tpia.sort
+        FROM test_paper_input_answer tpia
+        WHERE tpia.tpaper_score_id = #{scoreId} AND tpia.qbank_id = #{qbankId}
+    </select>
+    <!-- 附带小题类型查询所有题目的ID集合 -->
+    <select id="selectIdsByParentId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        SELECT qb.id
+        FROM question_banks qb
+        WHERE qb.parentid = #{parentId}
+    </select>
+    <select id="selectQuestionTermByGradeId" parameterType="java.lang.Integer" resultType="com.etalk.crm.pojo.QuestionTerm">
+       SELECT qt.id,qt.parent_id as parentId,qt.cn_name as cnName,qt.en_name as enName,qt.sort,qt.recorder,qt.record_time as recordTime
+       FROM  question_term qt,question_grade_term qgt,question_grade qg
+       WHERE qt.id = qgt.term_id AND qg.id = qgt.qgrade_id
+	   AND qgt.qgrade_id = #{qgradeId};
+    </select>
+    <select id="selectQuestionTermByParentId" parameterType="java.lang.Integer" resultType="com.etalk.crm.pojo.QuestionTerm">
+       SELECT qt.id,qt.parent_id as parentId,qt.cn_name as cnName,qt.en_name as enName,qt.sort,qt.recorder,qt.record_time as recordTime
+       FROM  question_term qt
+       WHERE qt.parent_id = #{parentId};
+    </select>
+    <!--删除标签(需要删除所有文件及子问题对应的答案)-->
+    <delete id="deleteQuestionTag" parameterType="Integer">
+        DELETE FROM question_tag WHERE qbank_id = #{qbankId}
+    </delete>
+    <!-- 批量插入标签 -->
+    <insert id="batchSaveQuestionTag" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO question_tag (
+        qbank_id,
+        tag_name,
+        tag_title
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.qbankId,jdbcType=INTEGER},
+            #{item.tagName,jdbcType=VARCHAR},
+            #{item.tagTitle,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+    <!-- 查询某个题目对应的标签 -->
+    <select id="selectQuestionTagByQuestionId" parameterType="Integer" resultType="com.etalk.crm.pojo.QuestionTag">
+        SELECT qt.qbank_id as qbankId,qt.tag_title as tagTitle,qt.tag_name as tagName
+        FROM question_tag qt WHERE qt.qbank_id = #{qbankId}
+    </select>
+
+    <!-- 查询知识点关联的题目 -->
+    <select id="getKnowledgeListByQuestionId" parameterType="java.lang.Integer" resultType="java.util.Map">
+       SELECT qk.cn_name as cnName,qbk.recorder,qbk.record_time as recordTime
+       FROM question_knowledge qk,question_banks_knowledge qbk
+       WHERE qk.id = qbk.qknowledge_id
+       AND qbk.qbank_id = #{qbankId}
+    </select>
+    <!-- 根据题目ID集合查询知识点关联的题目 -->
+    <select id="getKnowledgeListByKnowledgeIdList" resultType="java.util.HashMap">
+        SELECT qk.id,qk.cn_name as cnName
+        FROM question_knowledge qk
+        <if test="null != knowledgeList and knowledgeList.size > 0">
+            <where>
+                qk.id IN
+                <foreach item="item" index="index" collection="knowledgeList" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </where>
+        </if>
+    </select>
+    <!-- 删除某个题目与知识点的关联 -->
+    <delete id="deleteRelatedKnowledgeByQuestionId" parameterType="java.lang.Integer">
+        DELETE FROM question_banks_knowledge WHERE qbank_id = #{qbankId}
+    </delete>
+
+
+    <!-- 删除某个知识点与错词本的关联 -->
+    <delete id="deleteRelatedMistakeByKnowledgeId" parameterType="java.lang.Integer">
+        DELETE FROM question_knowledge_mistake WHERE qknowledge_id = #{knowledgeId}
+    </delete>
+    <!-- 批量添加知识点与题目的关联 -->
+    <insert id="batchSaveQuestionKnowledgeMistake" parameterType="java.util.List">
+        INSERT INTO question_knowledge_mistake (
+        qknowledge_id,
+        mistake_id,
+        recorder,
+        record_time
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.qknowledgeId,jdbcType=INTEGER},
+            #{item.mistakeId,jdbcType=INTEGER},
+            'admin',
+            current_timestamp
+            )
+        </foreach>
+    </insert>
+    <!-- 根据错词本ID查询关联的知识点 -->
+    <select id="getKnowledgeListByMistakeId" parameterType="java.lang.Integer" resultType="java.util.HashMap">
+        SELECT qk.id,qk.cn_name as cnName
+        FROM question_knowledge qk,
+        question_knowledge_mistake qkm
+        WHERE qk.id = qkm.qknowledge_id
+        AND qkm.mistake_id = #{mistakeId}
+    </select>
+    <!--删除解析-->
+    <delete id="deleteQuestionExplain" parameterType="Integer">
+        DELETE FROM question_explain WHERE qbank_id = #{qbankId}
+    </delete>
+    <!-- 批量插入标签 -->
+    <insert id="batchSaveQuestionExplain" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO question_explain (
+            qbank_id, exp_type, exp_content
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.qbankId,jdbcType=INTEGER},
+            #{item.expType,jdbcType=INTEGER},
+            #{item.expContent,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+    <!-- 查询某个题目对应的解析 -->
+    <select id="selectQuestionExplainByQuestionId" parameterType="Integer" resultType="com.etalk.crm.pojo.QuestionExplain">
+        SELECT qe.qbank_id as qbankId,qe.exp_type as expType, qe.exp_content as expContent
+        FROM question_explain qe WHERE qe.qbank_id = #{qbankId}
+    </select>
+</mapper>

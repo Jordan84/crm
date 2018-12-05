@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--<head th:include="/include/head::commonHeaderList('')">-->
+<head th:include="/include/head::commonHeaderCustom('baseSalaryConfigure',~{::style})">
+<style type="text/css">
+	input,select,.chosen-container.chosen-container-single .chosen-single{margin-bottom:10px;}
+	select.form-control + .chosen-container .chosen-drop {margin: -8px 0 0;}
+</style>
+<style type="text/css">
+    .error {
+        color: red;
+        border-color: red;
+    }
+
+    .error:focus {
+        color: red;
+        border-color: red;
+    }
+
+    .red {
+        color: red;
+    }
+
+    .dataArea .title {
+        padding: 5px 10px 0 0;
+    }
+
+    .dataArea .item {
+        /*padding: 0 20px 10px 0;*/
+    }
+
+    .action {
+        text-align: center;
+    }
+
+    .action a {
+        width: 52%;
+    }
+     ul li{
+        list-style-type:none;
+     }
+
+    .ch-container{
+        margin-left: -9%;
+    }
+</style>
+
+</head>
+<body>
+    <div class="ch-container">
+        <div class="row">
+            <form class="form-horizontal">
+                <div class="box">
+                    <legend class="text-center" style="padding-bottom:15px;font-weight: bold;margin-left: 6%;" contenteditable="false">修改学员成绩</legend>
+                    <div class="dataArea">
+                        <ul>
+                            <li>
+                                <div class="form-group">
+                                    <div class="col-xs-3 text-right title">选择学员：</div>
+                                    <div class="col-xs-8 item">
+                                        <input id="loginName" th:value="${achievementManagement.studentLogin}"  readonly  class="form-control"  placeholder="请输入学员关键字" autocomplete="off" maxlength="30" aria-describedby="inputError2Status">
+                                        <input type="hidden"  th:value="${achievementManagement.id}" readonly id="aMId"/>
+                                        <input type="hidden"  th:value="${achievementManagement.personId}" readonly id="personId"/>
+                                        <input type="hidden"  th:value="${achievementManagement.levelScore}" readonly id="levelScore"/>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-group">
+                                    <div class="col-xs-3 text-right title">课程顾问：</div>
+                                    <div class="col-xs-8 item">
+                                        <input class="form-control" th:value="${achievementManagement.ccName}" id ="cc" type="text" placeholder=""  readonly/>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-group">
+                                    <div class="col-xs-3 text-right title">学习顾问：</div>
+                                    <div class="col-xs-8 item">
+                                        <input class="form-control"  th:value="${achievementManagement.sscName}" readonly id="ssc" type="text" placeholder="" />
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-group">
+                                    <div class="col-xs-3 text-right title">年度：</div>
+                                    <div class="col-xs-8 item">
+                                        <input class="form-control" id="year" th:value="${#dates.format(achievementManagement.year, 'yyyy')}"  onfocus="selectYear()" type="text" placeholder="请选择年度" autocomplete="off"/>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-group">
+                                    <div class="col-xs-3 text-right title">年级：</div>
+                                    <div class="col-xs-8 item">
+                                        <select  class="form-control" name="achievementManagement.gradeId" id="gradeId">
+                                            <option value="0">--请选择年级--</option>
+                                            <option th:value="${list.id}" th:selected="${achievementManagement.gradeId == list.id}"  th:each="list:${gradeList}" th:text="${list.cnName}"></option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-group">
+                                    <div class="col-xs-3 text-right title">学期：</div>
+                                    <div class="col-xs-8 item">
+                                        <select  class="form-control" name="achievementManagement.term" id="term">
+                                            <option value="0">--请选择--</option>
+                                            <option value="1" th:selected="${achievementManagement.term==1}" >上学期</option>
+                                            <option value="2" th:selected="${achievementManagement.term==2}">下学期</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-group">
+                                    <div class="col-xs-3 text-right title">考试：</div>
+                                    <div class="col-xs-8 item">
+                                        <select  class="form-control" id="testTime" name="achievementManagement.testTime" >
+                                            <option value="0">--请选择--</option>
+                                            <option value="1" th:selected="${achievementManagement.testTime==1}" >期中</option>
+                                            <option value="2" th:selected="${achievementManagement.testTime==2}" >期末</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </li>
+                             <li>
+                                <div class="form-group">
+                                    <div class="col-xs-3 text-right title">总分：</div>
+                                    <div class="col-xs-8 item">
+                                        <select  class="form-control" id="totalScore" name="achievementManagement.totalScore" onchange="selectTotalScore(this)">
+                                            <option value="0">--请选择分制--</option>
+                                            <option th:value="${list.id}" th:each="list:${gradeTypeList}" th:text="${list.levelName}" th:selected="${achievementManagement.totalScore==list.id}"></option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-group">
+                                    <div class="col-xs-3 text-right title">得分：</div>
+                                    <div class="col-xs-8 item" id="scoreDom">
+                                        <input class="form-control" th:value="${achievementManagement.score}" id="score" type="number" autocomplete="off" name="achievementManagement.score" placeholder="请输入得分" />
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-group action">
+                                    <span class="col-xs-6 text-right">
+                                        <a class="btn btn-default" onclick="layerClose();"><span>关 闭</span></a>
+                                    </span>
+                                    <span class="col-xs-6 text-left">
+                                        <a class="btn btn-primary" onclick="sub();"><span>提 交</span></a>
+                                    </span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div th:include="/include/onload_js::onloadJSCustomList(~{::script})">
+        <script type="text/javascript">
+            //日期插件格式化
+            function selectYear() {
+                    WdatePicker({ dateFmt: 'yyyy', isShowToday: false, isShowClear: false,minDate: '{%y+1}-M-%d' });
+            }
+            // 初始化
+            $(document).ready(function(){
+                console.info($("#levelScore").val());
+                if($("#totalScore").val()==5){
+                    $.ajax({
+                        type:'post',
+                        url:'/wechatStuAchievement/selectGradeLevelList',
+                        data :{
+                        },
+                        cache:false,
+                        dataType:'json',
+                        success:function(data){
+                            if(data.code >0){
+                                var html = '<select  class="form-control" name="achievementManagement.levelScore" id="levelScore">';
+                                html+=  '<option value="">--请选择--</option>';
+                                for(var i = 0;i<data.gradeLevelList.length;i++){
+                                    if($("#levelScore").val() == data.gradeLevelList[i].id){
+                                        html+=  '<option selected value="'+data.gradeLevelList[i].id+'">'+data.gradeLevelList[i].levelName+'</option>';
+                                    }else{
+                                       html+=  '<option value="'+data.gradeLevelList[i].id+'">'+data.gradeLevelList[i].levelName+'</option>';
+                                    }
+                                }
+                                html+='</select>';
+                                $("#scoreDom").html(html);
+                            }
+                        }
+                    });
+                }
+            });
+
+            function selectTotalScore(obj){
+                if($(obj).val() == 5){
+                    //异步请求成绩列表
+                    $.ajax({
+                        type:'post',
+                        url:'/wechatStuAchievement/selectGradeLevelList',
+                        data :{
+                        },
+                        cache:false,
+                        dataType:'json',
+                        success:function(data){
+                            console.info(data.gradeLevelList);
+                            if(data.code >0){
+                                console.info(data);
+                                var html = '<select  class="form-control" name="achievementManagement.levelScore" id="levelScore">';
+                                html+=  '<option value="">--请选择等级--</option>';
+                                for(var i = 0;i<data.gradeLevelList.length;i++){
+                                    html+=  '<option value="'+data.gradeLevelList[i].id+'">'+data.gradeLevelList[i].levelName+'</option>';
+                                }
+                                html+='</select>';
+                                $("#scoreDom").html(html);
+                            }
+                        }
+                    });
+                }else{
+                    $("#scoreDom").html('<input class="form-control" id="score" type="number"  name="achievementManagement.score" placeholder="请输入得分" />');
+                }
+            }
+
+            //修改 学员成绩
+            function sub(){
+                var levelScore = 0;
+                if($("#loginName").val() == null || $("#loginName").val() == "") {
+                    layer.tips('请输入选择学员', '#loginName', {
+                        tips: [1, '#0FA6D8'], //设置tips方向和颜色 类型：Number/Array，默认：2 tips层的私有参数。支持上右下左四个方向，通过1-4进行方向设定。如tips: 3则表示在元素的下面出现。有时你还可能会定义一些颜色，可以设定tips: [1, '#c00']
+                        tipsMore: false, //是否允许多个tips 类型：Boolean，默认：false 允许多个意味着不会销毁之前的tips层。通过tipsMore: true开启
+                        time: 3000  //3秒后销毁，还有其他的基础参数可以设置。。。。这里就不添加了
+                    });
+                    return;
+                }
+
+                if($("#year").val() == null || $("#year").val() == "") {
+                    layer.tips('请选择年份', '#year', {
+                        tips: [1, '#0FA6D8'],
+                        tipsMore: false,
+                        time: 3000
+                    });
+                    return;
+                }
+
+             if($("#gradeId").val() == null || $("#gradeId").val() == 0) {
+                    layer.tips('请选择年级', '#gradeId', {
+                        tips: [1, '#0FA6D8'],
+                        tipsMore: false,
+                        time: 3000
+                    });
+                    return;
+                }
+
+                if($("#term").val() == null || $("#term").val() == 0) {
+                    layer.tips('请选择学期', '#term', {
+                        tips: [1, '#0FA6D8'],
+                        tipsMore: false,
+                        time: 3000
+                    });
+                    return;
+                }
+
+                if($("#testTime").val() == null || $("#testTime").val() == 0) {
+                    layer.tips('请选择考试时间', '#testTime', {
+                        tips: [1, '#0FA6D8'],
+                        tipsMore: false,
+                        time: 3000
+                    });
+                    return;
+                }
+
+                if($("#totalScore").val() == null || $("#totalScore").val() == "") {
+                    layer.tips('请选择考试总分', '#totalScore', {
+                        tips: [1, '#0FA6D8'],
+                        tipsMore: false,
+                        time: 3000
+                    });
+                    return;
+                }
+
+               if($("#score").val() == null || $("#score").val() == "" ) {
+                   if(parseInt($("#totalScore").val()) <5){
+                       layer.tips('请输入考试得分', '#score', {
+                            tips: [1, '#0FA6D8'],
+                            tipsMore: false,
+                            time: 3000
+                        });
+                        return;
+                   }
+                }
+
+                if(parseInt($("#totalScore").val()) <5){
+                    if(Number($("#score").val()) > parseInt($("#totalScore option:selected").text())){
+                        layer.tips('输入的考试得分不能大于总分', '#score', {
+                            tips: [1, '#0FA6D8'],
+                            tipsMore: false,
+                            time: 3000
+                        });
+                        return;
+                    }
+
+                    var x = String($("#score").val()).indexOf('.') + 1;   //小数点的位置
+                    if(x != 0){
+                        var y = String($("#score").val()).length - x;  //小数的位数
+                        if(y > 1){
+                            layer.tips('填写的分数只允许一位小数', '#score', {
+                                tips: [1, '#0FA6D8'],
+                                tipsMore: false,
+                                time: 3000
+                            });
+                            return;
+                        }
+                    }
+                }
+
+                if(parseInt($("#totalScore").val()) ==5) {
+                    if (document.getElementsByName("achievementManagement.levelScore")[0].value == null || document.getElementsByName("achievementManagement.levelScore")[0].value == "") {
+                        layer.tips('请选择成绩等级', '#levelScore', {
+                            tips: [1, '#0FA6D8'],
+                            tipsMore: false,
+                            time: 3000
+                        });
+                        return;
+                    } else {
+                        levelScore = document.getElementsByName("achievementManagement.levelScore")[0].value
+                    }
+                }
+
+                var sscId = 0;
+                if($('#ssc').attr("data-sscId") != "undefined" && $('#ssc').attr("data-sscId") != null){
+                    sscId = $('#ssc').attr("data-sscId");
+                }
+                var ccId = 0;
+                if($('#cc').attr("data-ccId") != "undefined" && $('#cc').attr("data-ccId") != null){
+                    ccId = $('#cc').attr("data-ccId");
+                }
+
+                var json={
+                    'personId' : $('#personId').val(),
+                    "id" : $('#aMId').val(),
+                    'sscId' : sscId,
+                    'ccId' : ccId,
+                    'gradeId' : $("#gradeId").val(),
+                    'time' : $('#year').val(),
+                    'term' : $('#term').val(),
+                    'testTime' : $('#testTime').val(),
+                    'totalScore' : $('#totalScore').val(),
+                    'score' : $('#score').val()==null?0:$('#score').val(),
+                    'levelScore' : levelScore
+                }
+
+                //异步提交
+                $.ajax({
+                    type:'post',
+                    url:'/achievementCollectionManager/ajaxAchievementEdit',
+                    data :JSON.stringify(json),
+                    cache:false,
+                    contentType:"application/json;charset=utf-8",
+                    dataType:'json',
+                    success:function(data){
+                        if(data.code>0){
+                            layer.msg(data.msg,{
+                              offset:['50%'],
+                              time: 3000 //2秒关闭（如果不配置，默认是3秒）
+                            },function(){
+                                window.parent.location.reload();
+                            });
+                        }else{
+                            layer.msg(data.msg);
+                        }
+                    }
+                });
+            }
+
+            function layerClose(){
+                var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+                // parent.layer.close(index); //再执行关闭
+                parent.layer.close(index);
+            }
+
+        </script>
+    </div>
+</body>
+</html>

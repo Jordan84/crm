@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderCustomEdit((${knowledgeId>0?'修改知识点':'添加知识点'}),~{::style})">
+    <style type="text/css">
+        .error {
+            color: red !important;
+            border-color: red !important;
+        }
+
+        .error:focus {
+            color: red !important;
+            border-color: red !important;
+        }
+
+        .red {
+            color: red !important;
+        }
+
+        .dataArea .title {
+            padding: 5px 10px 0 0;
+        }
+
+        .dataArea .item {
+            padding: 0 20px 10px 0;
+        }
+
+        .action {
+            text-align: center;
+        }
+
+        .action button {
+            width: 52%;
+        }
+
+        .sp_input {
+            padding-left: 8px !important;
+        }
+
+        .tbList {
+            margin: 5px 0;
+            padding: 0;
+        }
+
+        .error-border {
+            border: solid red 1px !important;
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        .clear {
+            clear: both;
+        }
+    </style>
+</head>
+<body>
+<link rel="stylesheet" type="text/css" th:href="@{/static/lib/selectpage/selectpage.css}"/>
+<link rel="stylesheet" type="text/css" th:href="@{/static/lib/jQuery-Tag-This/tagthis.css?v=201810290002}"/>
+<div class="ch-container">
+    <div class="row">
+        <form class="form-horizontal" method="post" onsubmit="return false;">
+            <div class="box">
+                <legend class="text-center" style="padding-bottom:15px;font-weight: bold;" contenteditable="false" th:text="${knowledgeId>0?'修改知识点':'添加知识点'}">知识点</legend>
+                <div class="dataArea">
+                    <input type="hidden" name="id" th:value="${know.id}">
+                    <!--<input type="hidden" id="mistakeString" name="mistakeString" value="0"/>-->
+                    <input type="hidden" id="pageIds" th:value="${know.pageString}"/>
+                    <input type="hidden" id="pageNames" name="pageName" th:value="${know.pageNameString}"/>
+                    <ul>
+                        <li>
+                            <div class="form-group">
+                                <div class="col-xs-2 text-right title"><i class="red">*</i>知识点名称</div>
+                                <div class="col-xs-9 item">
+                                    <input class="form-control" id="cnName" name="cnName" th:value="${know.cnName}" type="text" placeholder="请输入知识点名称" required/>
+                                    <p class="message error hide">错误信息</p>
+                                </div>
+                            </div>
+                        </li>
+                        <!--<li>-->
+                            <!--<div class="form-group" id="mistakes" style="padding-bottom: 0;margin-bottom: 0;">-->
+                                <!--<div class="col-xs-2 text-right title"><i class="red">*</i>错词本分类</div>-->
+                                <!--<div class="col-xs-3 item">-->
+                                    <!--<div class="tbList">-->
+                                        <!--<select class="form-control" id="mistakeId" name="mistakeId" v-model="mistakeId" onchange="getChild(this)">-->
+                                            <!--<option v-for="option in listKnowledgePointMistakes" v-bind:value="option.id">{{option.cnName}}</option>-->
+                                        <!--</select>-->
+                                    <!--</div>-->
+                                <!--</div>-->
+                            <!--</div>-->
+                        <!--</li>-->
+                        <!--<li>-->
+                            <!--<div class="form-group">-->
+                                <!--<div class="col-xs-2 text-right title">已选分类</div>-->
+                                <!--<div class="col-xs-9 item">-->
+                                    <!--<div class="tag-this" id="noMistake">-->
+                                        <!--<span class="tag" style="color: red;background: none;">尚未选择</span>-->
+                                    <!--</div>-->
+                                    <!--<input id="mistake-tags"/>-->
+                                <!--</div>-->
+                                <!--<div class="clear"></div>-->
+                            <!--</div>-->
+                        <!--</li>-->
+                        <li>
+                            <div class="form-group">
+                                <div class="col-xs-2 text-right title"><i class="red">*</i>选择教材</div>
+                                <div class="col-xs-9 item">
+                                    <input class="form-control" type="text" placeholder="请选择关联教材" id="relatedTextbooks" name="relatedTextbooks" th:value="${know.relatedTextbooks}">
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-group">
+                                <div class="col-xs-2 text-right title"><i class="red">*</i>选择页码</div>
+                                <div class="col-xs-9 item">
+                                    <input class="form-control" id="page" name="page" type="text" placeholder="请选择教材页码，可多选"/>
+                                    <p class="message error hide">错误信息</p>
+                                </div>
+                            </div>
+                        </li>
+                        <!--<li>-->
+                            <!--<div class="form-group">-->
+                                <!--<div class="col-xs-2 text-right title">关联题目</div>-->
+                                <!--<div class="col-xs-9 item">-->
+                                    <!--<input class="form-control" type="text" placeholder="请选择关联题目，可多选，最多选5个" id="relateQuestion" name="relateQuestion" th:value="${know.relateQuestionString}">-->
+                                <!--</div>-->
+                            <!--</div>-->
+                        <!--</li>-->
+                        <li>
+                            <div class="form-group action">
+                                <span class="col-xs-4 text-right">
+                                    <button class="btn btn-default" onclick="cancel();"><span>取消</span></button>
+                                </span>
+                                <span th:class="${know.id>0?'col-xs-4 text-right hide':'col-xs-4 text-right'}">
+                                    <button class="btn btn-info" onclick="continueAdd(1);"><span>继续录入</span></button>
+                                </span>
+                                <span class="col-xs-4 text-left">
+                                    <button class="btn btn-primary" onclick="save(0);"><span>提交</span></button>
+                                </span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div th:include="/include/onload_js::onloadJSCustomEdit(~{::script})">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.16/vue.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-resource/1.5.0/vue-resource.min.js"></script>
+        <script type="text/javascript" th:src="@{/static/lib/selectpage/selectpage.js?v=201810240004}"></script>
+        <script type="text/javascript" th:src="@{/static/lib/jQuery-Tag-This/jquery.tagthis.js?v=201810240001}"></script>
+        <script th:inline="javascript">
+
+            /*<![CDATA[*/
+            var knowledgeId = /*[[${know.id}]]*/0;
+            // var mistakes = /*[[${know.mistakeString}]]*/0;
+            var mistakeNames = /*[[${know.mistakeNameString}]]*/0;
+
+            var isFromQuestion = /*[[${isFromQuestion}]]*/0;
+            /*]]>*/
+
+            var ADD = "add";
+            var EDIT = "edit";
+            var actionType = knowledgeId > 0 ? EDIT : ADD;
+
+            var template = null;
+            var templateHeader = '<div class="col-xs-3 item">' +
+                '<div class="tbList">\n' +
+                '    <select class="form-control" name="childMistakeId" onchange="getChild(this)">\n';
+            var templateOptions = null;
+            var templateFooter =
+                '    </select>\n' +
+                '</div>' +
+                '</div>';
+
+            var pagesData = {};
+            // var app = new Vue({
+            //     el: "#mistakes",
+            //     data: {
+            //         mistakeId: "",
+            //         listKnowledgePointMistakes: [{id: "", cnName: "-错词本分类-"}]
+            //     },
+            //     created: function () {
+            //     },
+            //     methods: {}
+            // });
+
+            $(document).ready(function () {
+                // 初始化第一级错词本分类
+                // $.post("/question/mistakes/0", {}, function (res) {
+                //     if (res != null && res.status == 1) {
+                //         app.listKnowledgePointMistakes = app.listKnowledgePointMistakes.concat(res.data);
+                //     } else {
+                //         layer.msg('操作失败', {icon: 2});
+                //     }
+                // });
+
+                // 初始化已选中分类
+                // $('#mistake-tags').tagThis({
+                //     interactive: false,
+                //     noDuplicates: true,
+                //     callbacks: {
+                //         // beforeAddTag : functionName,
+                //         // function(context, tags, addedInput) {
+                //         //     console.log(JSON.stringify("add:" + tags));
+                //         // },
+                //         // beforeRemoveTag : functionName,
+                //         // afterRemoveTag : functionName,
+                //         onChange: function (data) {
+                //             console.log("onchange data:" + JSON.stringify(data));
+                //             console.log("onchange:" + JSON.stringify(data.tags));
+                //             var mids = "";
+                //             if (data.tags.length > 0) {
+                //                 for (var idx in data.tags) {
+                //                     var item = data.tags[idx].id;
+                //                     if (idx == data.tags.length - 1) {
+                //                         mids += item;
+                //                     } else {
+                //                         mids += (item + ",");
+                //                     }
+                //                 }
+                //                 $("#noMistake").hide();
+                //             } else {
+                //                 $("#noMistake").find(".tag").html('尚未选择');
+                //                 $("#noMistake").show();
+                //             }
+                //             console.log("mids:" + mids);
+                //             $("#mistakeString").val(mids);
+                //         }
+                //         // errors : functionName
+                //     }
+                // });
+
+                // 初始化标签
+                // if (mistakes != null && mistakes != '') {
+                //     var mistakeArray = mistakes.split(",");
+                //     if (mistakeArray.length > 0) {
+                //         for (var idx in mistakeArray) {
+                //             var mistakeNamesArray = mistakeNames.split(",");
+                //             var tagData = {
+                //                 text: mistakeNamesArray[idx],
+                //                 id: mistakeArray[idx]
+                //             }
+                //             $('#mistake-tags').addTag(tagData);
+                //         }
+                //     }
+                // }
+            });
+
+            $(function () {
+                //表单验证
+                $('form').validate({
+                    focusInvalid: true,
+                    errorPlacement: function (error, element) {
+                        var errorMsg = error[0].innerHTML;
+                        var elem = element[0];
+                        $(elem).next('.message').removeClass("hide").addClass("error").html(errorMsg).show();
+                    },
+                    success: function (element) {
+                        var elem = $(element)[0].htmlFor;
+                        $(elem).next('.message').hide();
+                    }
+                });
+
+                //关联题目
+                // $('#relateQuestion').selectPage({
+                //     showField: 'title',
+                //     keyField: 'id',
+                //     data: '/questionKnowledge/allQuestion/list',
+                //     multiple: true,//打开多选
+                //     maxSelectLimit: 0,//无限制
+                //     pageSize: 5,
+                //     eAjaxSuccess: function (data) {
+                //         return data;
+                //     }
+                // });
+
+                // $("#relateQuestion_text").on('blur', function () {
+                //     if ($("#relateQuestion").val() == '') {
+                //         $("#relateQuestion").parent().addClass("error");
+                //     } else {
+                //         $("#relateQuestion").parent().removeClass("error");
+                //     }
+                // });
+
+                //关联教材
+                $('#relatedTextbooks').selectPage({
+                    showField: 'name',
+                    keyField: 'id',
+                    data: '/questionKnowledge/showTextbooks',
+                    multiple: false,//单选
+                    pageSize: 5,
+                    eAjaxSuccess: function (data) {
+                        console.log("data:" + JSON.stringify(data));
+                        var address = '';
+                        // 处理页码
+                        for (var idx in data.list) {
+                            var item = data.list[idx];
+                            if ($("#relatedTextbooks").val() == item.id) {
+                                address = item.address;
+                                break;
+                            }
+                        }
+                        var current = $("#pageIds").val();
+                        changeMaterial(address, current);
+                        return data;
+                    },
+                    eSelect: function (data) {
+                        changeMaterial(data.address, "");
+                    }
+                });
+
+                $("#relatedTextbooks_text").on('blur', function () {
+                    if ($("#relatedTextbooks").val() == '') {
+                        $("#relatedTextbooks").parent().addClass("error");
+                        $("#relatedTextbooks").parent().addClass("error-border");
+                    } else {
+                        $("#relatedTextbooks").parent().removeClass("error");
+                        $("#relatedTextbooks").parent().removeClass("error-border");
+                    }
+                });
+
+                // 教材页码
+                $('#page').selectPage({
+                    showField: 'name',
+                    keyField: 'id',
+                    data: {},
+                    multiple: true,//打开多选
+                    maxSelectLimit: 0,//无限制页码
+                    pageSize: 5,
+                    // eAjaxSuccess: function (data) {
+                    //     return data;
+                    // },
+                    eSelect: function (data) {
+                        console.log("page_text:" + $('#page').selectPageText());
+                        $('#pageNames').val($('#page').selectPageText());
+                    }
+                });
+
+                $("#page_text").on('blur', function () {
+                    if ($("#page").val() == '') {
+                        $("#page").parent().addClass("error");
+                    } else {
+                        $("#page").parent().removeClass("error");
+                    }
+                });
+            });
+
+            function changeMaterial(address, current) {
+                if (address != null && address != "") {
+                    // $("#viewcover").find("img").attr("src","//hkmaterials.etalk365.com/"+address+"/1.png");
+                    if (address.lastIndexOf("/") == address.length - 1) {
+                        address += "cfg.json";
+                    } else {
+                        address += "/cfg.json";
+                    }
+                    $.ajax({
+                        type: 'get',
+                        url: "/questionKnowledge/showTextbooksPages",
+                        data: {'strUrl': address},
+                        dataType: 'json',
+                        success: function (data) {
+                            // console.log(JSON.stringify(data));
+                            if (data.list != null && data.list != "") {
+                                // $("#viewcover").show();
+                                var pages = data.list;
+                                // console.log("pages:" + JSON.stringify(pages));
+                                // console.log("pageIds:" + $('#pageIds').val());
+                                $('#page').selectPageData(pages);
+
+                                // 当前页码
+                                $('#page').val(current);
+                                $('#page').selectPageRefresh();
+                            }
+                        }
+                    });
+                }
+                // else {
+                //     parent.layer.msg('找不到教材配置文件', {icon: 2});
+                // }
+            }
+
+            /*多级联动*/
+            // var getChild = function (obj) {
+            //     //console.log("第一级分类当前选中ID：" + $(obj).val());
+            //     $.post("/question/mistakes/" + $(obj).val(), {}, function (res) {
+            //         //console.log("url:" + "/question/mistakes/" + $(obj).val());
+            //         //console.log(JSON.stringify(res));
+            //         if (res != null && res.status == 1) {
+            //             //生成之前先清空
+            //             // var items = $("#mistakes .item");
+            //             //console.log(items.length)
+            //
+            //             var currentItem = $(obj).parents(".item").get(0);
+            //             //console.log("currentItem:\n" + $(currentItem));
+            //             //console.log("currentItemHtml:\n" + $(currentItem).html());
+            //             var next = $(currentItem).next();
+            //             //console.log("nextItem:" + $(next));
+            //             //console.log("nextItemHtml:" + $(next).html());
+            //
+            //             if (res.data.length > 0) {
+            //                 if (typeof next.get(0) == "undefined") {
+            //                     //console.log("初始化新的select");
+            //                     initOption(res);
+            //                     template = templateHeader + templateOptions + templateFooter;
+            //                     //console.log($(template).html());
+            //                     $("#mistakes").append(template);
+            //
+            //                     //console.log("重新生成template,此时需要更新next，因为生成之前还不存在")
+            //                     //更新next
+            //                     next = $(currentItem).next();
+            //                     //console.log("更新后的nextItem:" + $(next));
+            //                     //console.log("更新后的nextItemHtml:" + $(next).html());
+            //                 } else {
+            //                     //console.log("无需初始化");//需要更新
+            //                     initOption(res);
+            //                     //console.log("select:" + $(next).find("select"));
+            //                     //console.log("更新前：" + $(next).find("select").html());
+            //                     $(next).find("select").html(templateOptions);
+            //                     //console.log("更新后：" + $(next).find("select").html());
+            //                     //console.log("更新完整：" + $(next).html())
+            //                 }
+            //
+            //             } else {
+            //                 console.log("到最后一级了");
+            //                 chooseMistakeTag(obj);
+            //             }
+            //         } else {
+            //             layer.msg('操作失败', {icon: 2});
+            //         }
+            //     });
+            // };
+            //
+            // function initOption(res) {
+            //     templateOptions = '<option value="">-错词本分类-</option>\n';
+            //
+            //     for (var cIdx in res.data) {
+            //         var cItem = res.data[cIdx];
+            //         option = '<option value="' + cItem.id + '">' + cItem.cnName + '</option>\n';
+            //         templateOptions = templateOptions + option;
+            //     }
+            // }
+
+            // function chooseMistakeTag(obj) {
+            //     var id = $(obj).val();
+            //     var name = $(obj).find("option:selected").text();
+            //     if (id > 0) {
+            //         // 添加标签
+            //         var tagData = {
+            //             text: name,
+            //             id: id
+            //         }
+            //         $('#mistake-tags').addTag(tagData);
+            //     }
+            // }
+
+            function continueAdd() {
+                save(1);
+            }
+
+            function cancel() {
+                window.event.preventDefault();
+                var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+                parent.layer.close(index); //再执行关闭
+                return false;
+            }
+
+            function save(isContinueAdd) {
+                //
+                // if ($("#mistakeString").val() == '') {
+                //     $("#noMistake").find(".tag").html("必须选择一个错词本分类");
+                //     $("#noMistake").show();
+                //     return false;
+                // }
+
+                var status = $('form').valid();
+                if (!status) {
+                    //没有通过验证
+                    return false;
+                }
+
+                //单独校验关联教材和题目
+                if ($("#relatedTextbooks").val() == '') {
+                    $("#relatedTextbooks").parent().addClass("error");
+                    $("#relatedTextbooks").parent().addClass("error-border");
+                    $("#relatedTextbooks_text").focus();
+                    return false;
+                }
+
+                if ($("#page").val() == '') {
+                    $("#page").parent().addClass("error");
+                    $("#page_text").focus();
+                    return false;
+                }
+
+                // if ($("#relateQuestion").val() == '') {
+                //     $("#relateQuestion").parent().addClass("error");
+                //     // alert("必须选择关联题目");
+                //     $("#relateQuestion_text").focus();
+                //     return false;
+                // }
+
+                var formData = $('form').serialize();
+                console.log(JSON.stringify(formData));
+                $.post("/questionKnowledge/submit", formData, function (res) {
+                    //console.log(JSON.stringify(res));
+
+                    if (res != null && res.status == 1) {
+                        parent.layer.msg('操作成功', {icon: 1});
+                        if (actionType == ADD && isContinueAdd == 1) {
+                            $("#cnName").val("");
+                            // 题目页面，自动填充
+                            if(isFromQuestion == 1){
+                                var mistakeId = res.data.split(",")[0];
+                                console.log("mistakeId:",mistakeId)
+                                parent.getKnowledge(mistakeId);
+                            }
+                        } else {
+                            var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+                            parent.layer.close(index); //再执行关闭
+                            // 题目页面，自动填充
+                            if(isFromQuestion == 1){
+                                var mistakeId = res.data.split(",")[0];
+                                console.log("mistakeId:",mistakeId)
+                                parent.getKnowledge(mistakeId);
+                            }else{
+                                parent.window.location.reload();
+                            }
+                        }
+                    } else {
+                        parent.layer.msg('操作失败:' + res.msg, {icon: 2});
+                    }
+                });
+            }
+        </script>
+    </div>
+</div>
+</body>
+</html>

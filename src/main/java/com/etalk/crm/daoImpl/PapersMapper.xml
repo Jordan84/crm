@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.etalk.crm.dao.PapersMapper">
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.Papers">
+        <id column="paper_id" jdbcType="INTEGER" property="paperId"/>
+        <result column="add_user_id" property="addUserId" jdbcType="INTEGER"/>
+        <result column="create_date" property="createDate" jdbcType="TIMESTAMP"/>
+        <result column="paper_summary" property="paperSummary" jdbcType="INTEGER"/>
+        <result column="paper_status" property="paperStatus" jdbcType="INTEGER"/>
+        <result column="paper_count" property="paperCount" jdbcType="INTEGER"/>
+        <result column="paper_title" property="paperTitle" jdbcType="VARCHAR"/>
+        <result column="add_user_name" property="addUserName" jdbcType="VARCHAR"/>
+    </resultMap>
+    <select id="selectByState"  resultType="Papers">
+      select  paper_id as paperId,paper_title as paperTitle,paper_summary as paperSummary from papers where paper_status = 1
+    </select>
+
+    <select id="paperList"  resultMap="BaseResultMap">
+      select  paper_id ,paper_title ,add_user_name,paper_status,paper_summary from papers order by paper_status desc
+    </select>
+
+    <select id="selectById"  resultType="Papers">
+      select  paper_id as paperId,paper_title as paperTitle,paper_summary as paperSummary from papers
+       <if test="paperId != null" >
+          where paper_id = #{paperId,jdbcType=INTEGER}
+        </if>
+
+    </select>
+
+    <insert id="addPaper" parameterType="com.etalk.crm.pojo.Papers" useGeneratedKeys="true" keyProperty="paperId">
+        INSERT INTO papers (add_user_id,create_date,paper_status,paper_count,paper_title,add_user_name,paper_summary)
+        values(#{addUserId},#{createDate},#{paperStatus},#{paperCount},#{paperTitle},#{addUserName},#{paperSummary})
+    </insert>
+
+    <update id="updatePaper" parameterType="java.lang.Integer">
+        update papers set paper_status = 1 where paper_id = #{paperId,jdbcType=INTEGER}
+    </update>
+    <update id="updatePaper2" parameterType="java.lang.Integer">
+        update papers set paper_status = 0 where paper_id != #{paperId,jdbcType=INTEGER}
+    </update>
+
+</mapper>

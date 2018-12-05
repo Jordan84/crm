@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.etalk.crm.dao.TextbooksCategroyMapper">
+    <!-- 根据根级分类，父级分类及等级查询套餐分类id及名称 -->
+    <select id="searchTextbooksCategroyBySearch" parameterType="map" resultType="com.etalk.crm.pojo.TextbookesCategory">
+        select id,category_name as categoryName from textbookes_category
+        where
+        type = '1'
+        and classify_level = '${classifyLevel}'
+        <if test="rootId!=0 and rootId!=null">
+            and root_id = ${rootId}
+        </if>
+        <if test="parentId!=0 and parentId!=null">
+            and parent_id = ${parentId}
+        </if>
+        <if test="classifyLevel!=0 and classifyLevel!=null">
+            and classify_level = '${classifyLevel}'
+        </if>
+    </select>
+</mapper>

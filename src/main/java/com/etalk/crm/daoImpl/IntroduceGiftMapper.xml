@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.IntroduceGiftMapper">
+    <!-- 根据ID查询转介绍礼品 -->
+    <select id="selectIntroduceGiftById" resultType="com.etalk.crm.pojo.IntroduceGift">
+        SELECT ig.id,ig.name,n.node_info as node,ig.gift_type as giftType,kp.name as gift,ig.gift as gift_primary_key,ig.gift_desc as giftDesc,ig.package_type as packageType,ig.state,ig.student_type as studentType,ig.recorder,ig.record_time as recordTime
+        FROM introduce_gift ig
+            LEFT JOIN introduce_node n ON ig.node = n.last_day
+        LEFT JOIN kc_package kp ON ig.gift = kp.id AND kp.type_flag = 3
+        WHERE ig.id = #{id}
+    </select>
+    <!-- 获取转介绍配置列表 -->
+    <select id="getIntroduceGiftList" resultType="com.etalk.crm.pojo.IntroduceGift">
+        SELECT ig.id,ig.`name`,ig.node,ig.gift_type as giftType,kp.name as gift,ig.student_type as studentType,ig.state,ig.recorder,ig.record_time as recordTime
+        FROM introduce_gift ig
+        LEFT JOIN kc_package kp ON ig.gift = kp.id AND kp.type_flag = 3
+        <if test="search != null and search != ''">
+            WHERE `name` LIKE concat(concat('%',#{search}),'%')
+        </if>
+    </select>
+    <!-- 添加转介绍配置 -->
+    <insert id="insertIntroduceGift" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO introduce_gift(`name`, node, gift_type, gift, gift_desc, package_type, student_type, state, recorder, record_time)
+        VALUES (
+            #{name,jdbcType=VARCHAR},
+            #{node_primary_key,jdbcType=INTEGER},
+            #{giftType,jdbcType=INTEGER},
+            #{gift_primary_key,jdbcType=INTEGER},
+            #{giftDesc,jdbcType=VARCHAR},
+            #{packageType,jdbcType=INTEGER},
+            #{studentType,jdbcType=INTEGER},
+            0,
+            'admin',
+            current_timestamp
+        )
+    </insert>
+    <!-- 修改转介绍配置 -->
+    <update id="updateIntroduceGiftById" parameterType="com.etalk.crm.pojo.IntroduceGift">
+        UPDATE introduce_gift
+        <trim prefix="set" suffixOverrides=",">
+               id = #{id},
+            <if test="name != null">
+                `name` = #{name},
+            </if>
+            <if test="node != null">
+                node = #{node_primary_key,jdbcType=INTEGER},
+            </if>
+            <if test="giftType != null">
+                gift_type = #{giftType,jdbcType=INTEGER},
+            </if>
+            <if test="gift_primary_key != null">
+                gift = #{gift_primary_key,jdbcType=INTEGER},
+            </if>
+            <if test="giftDesc != null">
+                gift_desc = #{giftDesc},
+            </if>
+            <if test="packageType != null">
+                package_type = #{packageType,jdbcType=INTEGER},
+            </if>
+            <if test="studentType != null">
+                student_type = #{studentType,jdbcType=VARCHAR},
+            </if>
+            <if test="state != null">
+                state = #{state,jdbcType=VARCHAR},
+            </if>
+        </trim>
+        WHERE
+            id = #{id}
+    </update>
+    <update id="updateIntroduceGiftExludeId" parameterType="java.lang.Integer">
+        UPDATE introduce_gift SET state = 0 WHERE id <![CDATA[ <> ]]> #{introId}
+    </update>
+    <!-- 获取转介绍赠送记录列表 -->
+    <select id="getIntroduceGiftLogList" parameterType="java.lang.String" resultType="com.etalk.crm.pojo.IntroduceGiftLog">
+        SELECT igl.referrer_id as referrerId,u.login_name as referrerName,igl.login_name as loginName,igl.introduce_id as introduceId, igl.record_time as recordTime, ig.name as event
+        FROM introduce_gift_log igl
+        LEFT JOIN users u ON u.id = igl.referrer_id
+        LEFT JOIN introduce_gift ig ON ig.id = igl.introduce_id
+        <if test="search != null and search != ''">
+            WHERE (igl.login_name LIKE concat(concat('%',#{search}),'%')) OR
+            (ig.name LIKE concat(concat('%',#{search}),'%'))
+        </if>
+    </select>
+    <!-- 添加转介绍赠送记录 -->
+    <insert id="insertIntroduceGiftLog" parameterType="com.etalk.crm.pojo.IntroduceGiftLog">
+        INSERT INTO introduce_gift_log(introduce_id,referrer_id,login_name,recorder,record_time)
+        VALUES(
+            #{introduceId,jdbcType=INTEGER},
+            #{referrerId,jdbcType=INTEGER},
+            #{loginName,jdbcType=VARCHAR},
+            'admin',
+            current_timestamp
+        )
+    </insert>
+    <!-- 获取转介绍节点列表 -->
+    <select id="selectIntroduceNodeList" resultType="java.util.Map">
+        SELECT node.last_day as id,node.node_info as name FROM introduce_node node
+        <if test="search != null and search != ''">
+            WHERE node.node_info LIKE concat(concat('%',#{search}),'%')
+        </if>
+    </select>
+</mapper>

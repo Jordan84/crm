@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.LessonsMapper" >
+
+    <!--查询符合条件的老师，用户公告消息发送-->
+    <select id="selectTeacherListByMsgSend" parameterType="com.etalk.crm.pojo.Lessons" resultType="java.lang.String">
+        select DISTINCT l.teacher_login
+        from lessons l,person p
+        where l.teacher_login=p.login_name and p.testmark=0 and p.role_id=4
+        <if test="classStartTime!=null and classStartTime!=''">
+            and l.release_time>=#{classStartTime,jdbcType=TIMESTAMP}
+        </if>
+        <if test="classEndTime!=null and classEndTime!=''">
+            and #{classEndTime,jdbcType=TIMESTAMP}>l.release_time
+        </if>
+        <if test="classWayId!=null">
+            and l.class_way=#{classWayId,jdbcType=INTEGER}
+        </if>
+        <if test="state!=null">
+            and l.state=#{state,jdbcType=INTEGER}
+        </if>
+        <if test="teaSiteId!=null">
+            <foreach collection="teaSiteId" item="items" separator="," open=" and p.tea_site_id in(" close=")">
+                #{items,jdbcType=INTEGER}
+            </foreach>
+        </if>
+
+        order by l.teacher_login
+    </select>
+
+    <resultMap id="PersonResultMap" type="com.etalk.crm.pojo.Person" >
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="person_id" property="id" jdbcType="INTEGER" />
+        <result column="student_login" property="loginName" jdbcType="VARCHAR" />
+
+    </resultMap>
+    <!--查询符合条件的学生，用户公告消息发送-->
+    <select id="selectStudentListByMsgSend" parameterType="com.etalk.crm.pojo.Lessons" resultMap="PersonResultMap">
+        select DISTINCT l.person_id,p.login_name as student_login
+        from lessons l,person p,person tea,kc_orders ko
+        where l.person_id=p.id and p.testmark=0 and p.role_id=3 and tea.login_name=l.teacher_login and tea.role_id=4 and ko.id=l.order_id
+        <if test="classStartTime!=null and classStartTime!=''">
+            and l.release_time>=#{classStartTime,jdbcType=TIMESTAMP}
+        </if>
+        <if test="classEndTime!=null and classEndTime!=''">
+            and #{classEndTime,jdbcType=TIMESTAMP}>l.release_time
+        </if>
+        <if test="classWayId!=null">
+            and l.class_way=#{classWayId,jdbcType=INTEGER}
+        </if>
+        <if test="state!=null">
+            and l.state=#{state,jdbcType=INTEGER}
+        </if>
+        <if test="teaSiteId!=null">
+            <foreach collection="teaSiteId" item="items" separator="," open=" and tea.tea_site_id in(" close=")">
+                #{items,jdbcType=INTEGER}
+            </foreach>
+        </if>
+        <if test="excludeTeacher!=null and excludeTeacher.size()>0">
+            <foreach collection="excludeTeacher" item="items" separator="," open="and l.teacher_login not in(" close=")">
+                #{items,jdbcType=VARCHAR}
+            </foreach>
+        </if>
+        <if test="cancelClass==2">
+            and ko.package_type_flag !=1
+        </if>
+        <if test="cancelClass==3">
+            and ko.package_type_flag =1
+        </if>
+        order by p.login_name
+    </select>
+    <!--查询需要取消的课程id-->
+    <select id="selectLessonIdListByMsgSend" parameterType="com.etalk.crm.pojo.Lessons" resultType="java.lang.Integer">
+        select l.id
+        from (lessons l,person p)
+          left join kc_orders ko on ko.id=l.order_id
+        where l.teacher_login=p.login_name and p.testmark=0 and l.state=1
+        <if test="classStartTime!=null">
+            and l.release_time>=#{classStartTime,jdbcType=TIMESTAMP}
+        </if>
+        <if test="classEndTime!=null">
+            and #{classEndTime,jdbcType=TIMESTAMP}>l.release_time
+        </if>
+        <if test="classWayId!=null">
+            and l.class_way=#{classWayId,jdbcType=INTEGER}
+        </if>
+        <if test="teaSiteId!=null">
+            <foreach collection="teaSiteId" item="items" separator="," open=" and p.tea_site_id in(" close=")">
+                #{items,jdbcType=INTEGER}
+            </foreach>
+        </if>
+        <if test="excludeTeacher!=null and excludeTeacher.size()>0">
+            <foreach collection="excludeTeacher" item="items" separator="," open=" and l.teacher_login not in(" close=")">
+                #{items,jdbcType=VARCHAR}
+            </foreach>
+        </if>
+        <if test="cancelClass==2">
+            and ko.package_type_flag !=1
+        </if>
+        <if test="cancelClass==3">
+            and ko.package_type_flag =1
+        </if>
+    </select>
+    <!--取消课程返还课时-->
+    <update id="updateLearnedClassByMsgSend" parameterType="com.etalk.crm.pojo.Lessons">
+        update (
+            SELECT l.order_id,sum(if(ifnull(l.pay_money,0)>0,l.pay_money,1))pay_money
+            FROM (lessons l,person p)
+              left join kc_orders ko on ko.id=l.order_id
+            where l.teacher_login=p.login_name and p.testmark=0 and l.state=1
+            <if test="classStartTime!=null">
+                and l.release_time>=#{classStartTime,jdbcType=TIMESTAMP}
+            </if>
+            <if test="classEndTime!=null">
+                and #{classEndTime,jdbcType=TIMESTAMP}>l.release_time
+            </if>
+            <if test="classWayId!=null">
+                and l.class_way=#{classWayId,jdbcType=INTEGER}
+            </if>
+
+            <if test="teaSiteId!=null">
+                <foreach collection="teaSiteId" item="items" separator="," open=" and p.tea_site_id in(" close=")">
+                    #{items,jdbcType=INTEGER}
+                </foreach>
+            </if>
+            <if test="excludeTeacher!=null and excludeTeacher.size()>0">
+                <foreach collection="excludeTeacher" item="items" separator="," open=" and l.teacher_login not in(" close=")">
+                    #{items,jdbcType=VARCHAR}
+                </foreach>
+            </if>
+            <if test="cancelClass==2">
+                and ko.package_type_flag !=1
+            </if>
+            <if test="cancelClass==3">
+                and ko.package_type_flag =1
+            </if>
+            GROUP BY order_id
+        )l,kc_orders ko
+        set ko.learned_class=if(0>=(ko.learned_class-if(ko.classify_level>0,l.pay_money*100,1)),0,ko.learned_class-if(ko.classify_level>0,l.pay_money*100,1))
+        where l.order_id=ko.id
+
+    </update>
+    <!--取消课程-->
+    <update id="updateStateByMsgSend" parameterType="com.etalk.crm.pojo.Lessons">
+        update lessons l,person p,kc_orders ko
+        set l.state=4
+        where l.teacher_login=p.login_name and l.order_id=ko.id and p.testmark=0 and l.state=1
+        <if test="classStartTime!=null">
+            and l.release_time>=#{classStartTime,jdbcType=TIMESTAMP}
+        </if>
+        <if test="classEndTime!=null">
+            and #{classEndTime,jdbcType=TIMESTAMP}>l.release_time
+        </if>
+        <if test="classWayId!=null">
+            and l.class_way=#{classWayId,jdbcType=INTEGER}
+        </if>
+
+        <if test="teaSiteId!=null">
+            <foreach collection="teaSiteId" item="items" separator="," open=" and p.tea_site_id in(" close=")">
+                #{items,jdbcType=INTEGER}
+            </foreach>
+        </if>
+        <if test="excludeTeacher!=null and excludeTeacher.size()>0">
+            <foreach collection="excludeTeacher" item="items" separator="," open=" and l.teacher_login not in(" close=")">
+                #{items,jdbcType=VARCHAR}
+            </foreach>
+        </if>
+        <if test="cancelClass==2">
+            and ko.package_type_flag !=1
+        </if>
+        <if test="cancelClass==3">
+            and ko.package_type_flag =1
+        </if>
+    </update>
+
+    <delete id="deleteLessonByMsgSend" parameterType="com.etalk.crm.pojo.Lessons">
+        delete l.* from lessons l,person p
+        where l.teacher_login=p.login_name and p.testmark=0 and p.role_id=4 and l.state=0
+        <if test="courseStartTime!=null">
+            and l.release_time>=#{courseStartTime,jdbcType=TIMESTAMP}
+        </if>
+        <if test="courseEndTime!=null">
+            and #{courseEndTime,jdbcType=TIMESTAMP}>l.release_time
+        </if>
+
+        <if test="teaSiteId!=null">
+            <foreach collection="teaSiteId" item="items" separator="," open=" and p.tea_site_id in(" close=")">
+                #{items,jdbcType=INTEGER}
+            </foreach>
+        </if>
+
+        <if test="excludeTeacher!=null and excludeTeacher.size()>0">
+            <foreach collection="excludeTeacher" item="items" separator="," open=" and l.teacher_login not in(" close=")">
+                #{items,jdbcType=VARCHAR}
+            </foreach>
+        </if>
+    </delete>
+
+    <select id="selectWXOpenIdListByMsgSend" parameterType="com.etalk.crm.pojo.Lessons" resultType="java.lang.String">
+        select wu.open_id
+        from lessons l,person p,kc_orders ko,weixin_user wu
+        where l.teacher_login=p.login_name and ko.id=l.order_id and p.testmark=0 and wu.student_id=l.person_id
+        <if test="classStartTime!=null">
+            and l.release_time>=#{classStartTime,jdbcType=TIMESTAMP}
+        </if>
+        <if test="classEndTime!=null">
+            and #{classEndTime,jdbcType=TIMESTAMP}>l.release_time
+        </if>
+        <if test="classWayId!=null">
+            and l.class_way=#{classWayId,jdbcType=INTEGER}
+        </if>
+        <if test="state!=null">
+            and l.state=#{state,jdbcType=INTEGER}
+        </if>
+        <if test="teaSiteId!=null">
+            <foreach collection="teaSiteId" item="items" separator="," open=" and p.tea_site_id in(" close=")">
+                #{items,jdbcType=INTEGER}
+            </foreach>
+        </if>
+        <if test="excludeTeacher!=null and excludeTeacher.size()>0">
+            <foreach collection="excludeTeacher" item="items" separator="," open="and l.teacher_login not in(" close=")">
+                #{items,jdbcType=VARCHAR}
+            </foreach>
+        </if>
+        <if test="cancelClass==2">
+            and ko.package_type_flag !=1
+        </if>
+        <if test="cancelClass==3">
+            and ko.package_type_flag =1
+        </if>
+        group by wu.open_id
+    </select>
+
+    <select id="selectAppDeviceIdListByMsgSend" parameterType="com.etalk.crm.pojo.Lessons" resultType="java.lang.String">
+        select ap.app_id
+        from lessons l,person p,kc_orders ko,app_person ap
+        where l.teacher_login=p.login_name and ko.id=l.order_id and p.testmark=0 and ap.person_id=l.person_id
+        <if test="classStartTime!=null">
+            and l.release_time>=#{classStartTime,jdbcType=TIMESTAMP}
+        </if>
+        <if test="classEndTime!=null">
+            and #{classEndTime,jdbcType=TIMESTAMP}>l.release_time
+        </if>
+        <if test="classWayId!=null">
+            and l.class_way=#{classWayId,jdbcType=INTEGER}
+        </if>
+        <if test="state!=null">
+            and l.state=#{state,jdbcType=INTEGER}
+        </if>
+        <if test="teaSiteId!=null">
+            <foreach collection="teaSiteId" item="items" separator="," open=" and p.tea_site_id in(" close=")">
+                #{items,jdbcType=INTEGER}
+            </foreach>
+        </if>
+        <if test="excludeTeacher!=null and excludeTeacher.size()>0">
+            <foreach collection="excludeTeacher" item="items" separator="," open="and l.teacher_login not in(" close=")">
+                #{items,jdbcType=VARCHAR}
+            </foreach>
+        </if>
+        <if test="cancelClass==2">
+            and ko.package_type_flag !=1
+        </if>
+        <if test="cancelClass==3">
+            and ko.package_type_flag =1
+        </if>
+        group by l.person_id,ap.app_id
+    </select>
+
+</mapper>

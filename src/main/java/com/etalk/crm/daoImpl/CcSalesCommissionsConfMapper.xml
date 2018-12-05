@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.CcSalesCommissionsConfMapper" >
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.CcSalesCommissionsConf">
+         <id column="id" property="id" jdbcType="INTEGER" />
+         <result column="sort" property="sort" jdbcType="INTEGER" />
+         <result column="interval_min_value" property="intervalMinValue" jdbcType="INTEGER" />
+         <result column="interval_max_value" property="intervalMaxValue" jdbcType="INTEGER" />
+         <result column="interval_min_sign" property="intervalMinSign" jdbcType="INTEGER" />
+         <result column="interval_max_sign" property="intervalMaxSign" jdbcType="INTEGER" />
+         <result column="percentage" property="percentage" jdbcType="DECIMAL" />
+         <result column="sales_commission_id" property="salesCcommissionId" jdbcType="INTEGER" />
+    </resultMap>
+
+    <resultMap id="InfoMap" type="com.etalk.crm.pojo.SalesCommissionInfo">
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="add_user_id" property="addUserId" jdbcType="INTEGER" />
+        <result column="add_time" property="addTime" jdbcType="TIMESTAMP" />
+        <result column="sales_commission_name" property="salesCommissionName" jdbcType="VARCHAR" />
+         <result column="login_name" property="addUserName" jdbcType="VARCHAR" />
+        <result column="state" property="state" jdbcType="INTEGER" />
+    </resultMap>
+
+    <!--提成配置表信息-->
+   <select id="salesCcommissionInfoList" resultMap="InfoMap">
+       select sci.id,sci.add_user_id,sci.add_time,sci.sales_commission_name,sci.state,u.login_name  from sales_commission_info sci
+          left  join  users u on u.id = sci.add_user_id
+       where  u.state = 1  order by sci.add_time desc
+   </select>
+
+     <!--根据  id查询  提成配置表-->
+    <select id="selectSCIById" resultMap="InfoMap" parameterType="java.lang.Integer">
+        select sci.id,sci.add_user_id,sci.add_time,sci.sales_commission_name,sci.state from sales_commission_info sci
+         where  sci.id=#{salesCcommissionId}
+    </select>
+
+    <!--查询某个提成 配置表 信息是否存在-->
+    <select id="selectConfigureById" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select count(1) from  sales_commission_configure where  sales_commission_id = #{salesCcommissionId}
+    </select>
+
+    <!--提成配置列表-->
+    <select id="confgiureList" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select id, sort, interval_min_value,interval_max_value,interval_min_sign, interval_max_sign,percentage,sales_commission_id
+        from sales_commission_configure  where  sales_commission_id = #{salesCcommissionId}
+    </select>
+
+     <!--删除 配置列表-->
+    <delete id="delconfgiureList" parameterType="java.lang.Integer">
+        delete from sales_commission_configure where sales_commission_id = #{salesCcommissionId}
+    </delete>
+
+    <!--批量插入  各个区间底薪配置-->
+    <insert id="addConfgiureList" parameterType="java.util.List">
+        insert into sales_commission_configure (sort, interval_min_value,interval_max_value,interval_min_sign, interval_max_sign,percentage,sales_commission_id)
+        values
+        <foreach collection ="list" item="item" index= "index" separator =",">
+             (
+              #{item.sort,jdbcType=INTEGER},
+              #{item.intervalMinValue,jdbcType=INTEGER},
+              #{item.intervalMaxValue,jdbcType=INTEGER},
+              #{item.intervalMinSign,jdbcType=INTEGER},
+              #{item.intervalMaxSign,jdbcType=INTEGER},
+              #{item.percentage,jdbcType=INTEGER},
+              #{item.salesCcommissionId,jdbcType=INTEGER}
+             )
+        </foreach >
+    </insert>
+
+     <!--添加底薪配置表相关信息-->
+    <insert id="addCommissionInfo" parameterType="com.etalk.crm.pojo.SalesCommissionInfo" useGeneratedKeys="true" keyProperty="id">
+        insert into sales_commission_info(add_user_id,add_time,sales_commission_name,state)
+        values (#{addUserId},now(),#{salesCommissionName},1)
+    </insert>
+
+     <!--修改底薪配置表相关信息-->
+    <update id="eidtCommissionInfo" parameterType="com.etalk.crm.pojo.SalesCommissionInfo">
+        update sales_commission_info
+        <set>
+           <if test="salesCommissionName != null and salesCommissionName !='' ">
+               sales_commission_name = #{salesCommissionName},
+           </if>
+            <if test="state != null ">
+               state = #{state},
+           </if>
+        </set>
+        where id = #{id}
+    </update>
+
+      <!--提成配置信息表  表名是否重复-->
+    <select id="selectCommissionInfoByName" parameterType="com.etalk.crm.pojo.SalesCommissionInfo" resultType="java.lang.Integer">
+        select  count(1) from  sales_commission_info where sales_commission_name = #{salesCommissionName}
+         <if test="id >0">
+            and id != #{id}
+        </if>
+    </select>
+</mapper>

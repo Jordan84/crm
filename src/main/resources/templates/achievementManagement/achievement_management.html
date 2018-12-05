@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderList('CaseShareManage')">
+    <!--<body oncontextmenu="self.event.returnValue=false" onselectstart="return false">-->
+<!--<link rel="stylesheet"  th:href="@{/static/css/}" />-->
+<body>
+<div id="content" class="col-lg-12 col-sm-12">
+    <div class="row">
+        <div class="box col-md-12">
+            <div class="box-inner">
+                <div class="box-header well" data-original-title="">
+                    <h2>
+                        <i class="glyphicon glyphicon-user"></i> CaseShareManage
+                    </h2>
+                    <div class="box-icon">
+                        <!-- <a href="#" class="btn btn-setting btn-round btn-default"><i class="glyphicon glyphicon-cog"></i></a> -->
+                        <a href="javascript:void(0);" id="smaller" class="btn btn-minimize btn-round btn-default"><i class="glyphicon glyphicon-chevron-up"></i></a>
+                        <!-- <a href="#"	class="btn btn-close btn-round btn-default"><i class="glyphicon glyphicon-remove"></i></a> -->
+                    </div>
+                </div>
+                <div class="box-content">
+                    <form class="form-inline" style="margin-bottom:0.5%" id="searchForm" role="form" method="post"
+                          th:action="${#request.getRequestURI()}">
+                            <div class="form-group ">
+                                <select name="pageSize"  class="form-control input-sm" >
+                                    <option value="10" th:selected="${pageSize==10}">10条/页</option>
+                                    <option value="25" th:selected="${pageSize==25}">25条/页</option>
+                                    <option value="50" th:selected="${pageSize==50}">50条/页</option>
+                                </select>
+                            </div>
+
+                        <div class="form-group">
+                            <select name="ccId" id="sourceTypeId" class="input-sm">
+                                <option value="">--选择cc--</option>
+                                <!--/*@thymesVar id="teacher" type="java"*/-->
+                                <option  th:each="list:${ccList}"
+                                        th:value="${list.id}" th:text="${list.loginName}" th:selected="${list.id == achievementManagement.ccId}"></option>
+                            </select>
+                            <select name="sscId"  class="input-sm">
+                                <option value="">--选择ssc--</option>
+								<option  th:each="list:${sscList}" th:value="${list.id}" th:text="${list.loginName}" th:selected="${list.id == achievementManagement.sscId}"></option>
+                            </select>
+                            <input id="year" name="time" th:value="${achievementManagement.time}"  class="form-control input-sm" maxlength="10" style="width:100px;" placeholder="请选择年份" title="年份" onfocus="WdatePicker({dateFmt: 'yyyy', isShowToday: false, isShowClear: false })" autocomplete="off"/>
+							<input id="startDate" name="startDate" th:value='${achievementManagement.startDate}' class="form-control input-sm" maxlength="10" style="width:100px;" placeholder="Start Date" title="开始日期" onfocus="WdatePicker()" autocomplete="off"/>
+							<input  id="endDate" name="endDate" th:value='${achievementManagement.endDate}' class="form-control input-sm" maxlength="10" style="width:100px;"  placeholder="End Date" title="结束日期" onfocus="WdatePicker()" autocomplete="off"/>
+							<input type="searchKey" name="studentLogin" th:value="${achievementManagement.studentLogin}" id="search" class="form-control input-sm" style="width:200px;" placeholder="学员账号/学员姓名" autocomplete="off">
+							<button class="btn btn-info btn-sm" type="submit"> 查 询 </button>
+							<a id="add" href="javascript:void(0)" onclick="addAchievement()" class="btn btn-primary btn-sm ">
+							<span class="glyphicon glyphicon-plus-sign"></span> 录 入 </a>
+							<a href="javascript:void(0)" class="btn btn-primary btn-sm " onclick="wechatTemplate();">
+							<span class="glyphicon glyphicon-check"></span> 成绩收集管理 </a>
+                        </div>
+                        <div class="form-group" style="display: none">
+                                <div class="input-group input-group-sm">
+                                    <input type="hidden" th:value="${pageInfo.pageNum}" name="pageNum" id="pageNum">
+                                </div>
+						</div>
+
+                    </form>
+                    <table class="table table-striped table-bordered table-hover footable" data-show-toggle="false">
+                        <thead>
+							<tr>
+								<th style="text-align: center;" data-breakpoints="xs">学员</th>
+								<th style="text-align: center;white-space:nowrap;">学员姓名</th>
+								<th style="text-align: center;white-space:nowrap;">课程顾问</th>
+								<th style="text-align: center;white-space:nowrap;">学习顾问</th>
+								<th style="text-align: center;white-space:nowrap;">得分</th>
+								<th style="text-align: center;white-space:nowrap;">总分</th>
+								<th style="text-align: center;white-space:nowrap;">年度</th>
+								<th style="text-align: center;white-space:nowrap;">学期</th>
+								<th style="text-align: center;white-space:nowrap;">考试</th>
+								<th style="text-align: center;white-space:nowrap;">录入时间</th>
+								<th style="text-align: center;white-space:nowrap;" data-breakpoints="xs">操作</th>
+							</tr>
+                        </thead>
+                        <tbody>
+							 <tr th:each="list,listStat: ${pageInfo.list}">
+							    <td style="text-align: center;" th:text="${list.studentLogin}"></td>
+								<td style="text-align: center;" th:text="${list.cnName}"> </td>
+								<td style="text-align: center;" th:text="${list.ccName}"> </td>
+								<td style="text-align: center;" th:text="${list.sscName}"> </td>
+								<td style="text-align: center;" th:if="${list.levelScore >0}" th:text="${list.levelName}"> </td>
+                                 <td style="text-align: center;" th:if="${list.score != 0}" th:text="${list.score}"> </td>
+								<td style="text-align: center;" th:text="${list.totalScoreName}"> </td>
+								<td style="text-align: center;" th:text="${#dates.format(list.year, 'yyyy')}"></td>
+								<td style="text-align: center;" th:if="${list.term == 1}"> 上学期</td>
+								<td style="text-align: center;" th:if="${list.term == 2}"> 下学期</td>
+								<td style="text-align: center;" th:if="${list.testTime == 1}"> 期中</td>
+								<td style="text-align: center;" th:if="${list.testTime == 2}"> 期末</td>
+								<td style="text-align: center;" th:text="${#dates.format(list.addTime, 'yyyy-MM-dd HH:mm:ss')}"></td>
+								<td style="text-align: left;">
+									 <a  th:attr="data-id=${list.id}"  onclick="editeAchievement(this)"  class="btn btn-primary eidt"><span class="glyphicon glyphicon-edit"></span> 编 辑 </a>
+									 <a  th:attr="data-id=${list.id}"  onclick="delAchievement(this)"  class="btn btn-danger opblock-delete"><span class="glyphicon glyphicon-remove"></span> 删 除 </a>
+								</td>
+							 </tr>
+                        </tbody>
+                    </table>
+                    <div th:include="include/pageinfo::pager"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:include="/include/onload_js::onloadJSCustomList(~{::script})">
+    <script>
+		$(function(){
+		     //自适应表格
+            $('.footable').footable();
+		});
+	//layer  学员成绩相关信息 添加页面弹窗
+	function addAchievement(){
+		var url = "/achievementCollectionManager/addAchievement";
+		layer.open({
+			type: 2,
+			title: false,
+			closeBtn: 1, //显示关闭按钮
+			shade: [0],
+			area: ['550px', '650px'], //宽高
+			//offset: 'rb', //右下角弹出
+			// time: 2000, //2秒后自动关闭
+			anim: 2,
+			content: [url, 'no'], //iframe的url，no代表不显示滚动条
+			end: function () { //此处用于演示
+			}
+		});
+	}
+
+	//layer  学员成绩相关信息 编辑页面弹窗
+	function editeAchievement(obj){
+		var url = "/achievementCollectionManager/achievementEdit?id="+$(obj).attr("data-id");
+		layer.open({
+			type: 2,
+			title: false,
+			closeBtn: 1, //显示关闭按钮
+			shade: [0],
+			area: ['550px', '650px'], //宽高
+			//offset: 'rb', //右下角弹出
+			// time: 2000, //2秒后自动关闭
+			anim: 2,
+			content: [url, 'no'], //iframe的url，no代表不显示滚动条
+			end: function () { //此处用于演示
+			}
+		});
+	}
+
+	//成绩收集 微信 消息推送模板
+	function wechatTemplate(){
+		var url = "/achievementCollectionManager/wechatMsgManage";
+		layer.open({
+			type: 2,
+			title: false,
+			closeBtn: 1, //显示关闭按钮
+			shade: [0],
+			area: ['1000px', '800px'], //宽高
+			//offset: 'rb', //右下角弹出
+			// time: 2000, //2秒后自动关闭
+			anim: 2,
+			content: [url, 'no'], //iframe的url，no代表不显示滚动条
+			end: function () { //此处用于演示
+			}
+		});
+	}
+
+	function delAchievement (obj){
+	    var id = $(obj).attr("data-id")
+	    layer.confirm('是否确认删除？删除后数据不可恢复', {
+          btn: ['是','否'] //按钮
+          ,cancel: function(index, layero){
+            //取消操作，点击右上角的X
+          }
+        }, function(){
+            $.ajax({
+                type:'post',
+                url:'/achievementCollectionManager/delAchievement',
+                data:{'id' : id},
+                cache:false,
+                async: false,
+                dataType:'json',
+                success:function(data){
+                    if(data.code>0){
+                        layer.msg('删除成功',{
+                          offset:['50%'],
+                          time: 2000 //2秒关闭（如果不配置，默认是3秒）
+                    },function(){
+                      window.location.reload();
+                    });
+                    }else{
+                        layer.msg("删除失败");
+                    }
+                }
+            });
+        }, function(){
+        //否
+        });
+	}
+    </script>
+</div>
+</body>
+</html>

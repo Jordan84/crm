@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderCustom('CcSalesPerformanceCtl',~{::style})">
+
+<style type="text/css">
+    .containitem{
+        width: 450px;
+        overflow-y: auto;
+        display: inline-block;
+        background: #f3f4f6;
+        padding: 10px 20px;
+        border-radius: 4px;
+        color: #666;
+        margin-right: 15px;
+        margin-bottom: 15px;
+    }
+    .styleTable{
+        width: auto;
+        height: 400px;
+    }
+    .styleCalendar{
+        width: auto;
+        height: auto;
+    }
+    .styleMoney{
+        width: 450px;
+        height: auto;
+    }
+    .styleMoney div{
+        width: 100%;
+        height: 50%;
+        background: #10cfbd;
+        color: #ffffff;
+        padding: 35px 0;
+    }
+    .styleMoney div h3{
+        text-align: center;
+        font-size: 30px;
+    }
+    .styleMoney div p{
+        text-align: center;
+        font-size: 12px;
+    }
+    .styleMoney div i{
+        width: 15px;
+        height: 15px;
+        cursor: pointer;
+        background: rgba(0, 0, 0, 0.5);
+        -webkit-border-radius: 50%;
+        -moz-border-radius: 50%;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    .styleMoney ul{
+        width: 100%;
+        height: 160px;
+        background: #ffffff;
+        display: flex;
+        display: -webkit-flex;
+
+    }
+    .styleMoney ul li{
+        flex: 1;
+        -webkit-flex: 1;
+        margin: 15px 0;
+        border-right: 1px solid #ccc;
+    }
+    .styleMoney ul li:nth-last-of-type(1){
+        border:none;
+    }
+    .styleMoney ul li h4{
+           font-size: 20px;
+           color: #10cfbd;
+           text-align: center;
+           margin-top: 40px;
+    }
+    .styleMoney ul li p{
+        font-size: 12px;
+        color: #999;
+        text-align: center;
+    }
+    .containitem h4{
+        font-size: 14px;
+        padding: 10px 0;
+    }
+    .eCrmCalendar{
+        font-size: 14px;
+        background: #fff;
+    }
+    .eCrmCalendar ul{
+        list-style-type: none;
+        display: flex;
+        display: -webkit-flex;
+        flex-wrap: wrap;
+        -webkit-flex-wrap: wrap;
+        margin: 0;
+        padding: 0;
+    }
+    .eCrmCalendar ul li{
+        width: 12.2%;
+        text-align: center;
+        padding: 3px;
+        box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        margin: 1%;
+        cursor: pointer;
+    }
+    .datedemo{
+        width: 15px;
+        height: 15px;
+        display: inline-block;
+        margin-left: 25px;
+        margin-right: 5px;
+        margin-top: 15px;
+    }
+    .hasDemo{
+        border-radius: 50%;
+        border: 1px solid #45cbb6;
+    }
+    .hasOrder{
+        border-radius: 50%;
+        background: #45cbb6;
+        color: #fff;
+    }
+    .hasboth{
+        border-radius: 50%;
+        background: #b4b1ff;
+        color: #fff;
+    }
+    #test{
+        width:450px;
+    }
+
+</style>
+<body>
+<div id="content" class="col-lg-12 col-sm-12 " >
+    <div class="row">
+        <div class="box col-md-12">
+            <div class="box-inner">
+                <div class="box-header well" data-original-title="">
+                    <h2>
+                        <i class="glyphicon glyphicon-user"></i> 销售工作表
+                    </h2>
+                    <div class="box-icon">
+                        <a href="javascript:void(0);" id="smaller" class="btn btn-minimize btn-round btn-default"><i class="glyphicon glyphicon-chevron-up"></i></a>
+                    </div>
+                </div>
+                <div class="box-content">
+                    <div class="listitem">
+                        <div class="contain">
+                            <div class="containitem styleMoney">
+                                <div>
+                                    <h3 id="showBaseSalary">0</h3>
+                                    <p>底薪<i>?</i></p>
+                                </div>
+                                <ul id="ccMonthSalaryList">
+                                    <li>
+                                        <h4>0</h4>
+                                        <p>2018-07</p>
+                                    </li>
+                                    <li>
+                                        <h4>0</h4>
+                                        <p>2018-08</p>
+                                    </li>
+                                    <li>
+                                        <h4>0</h4>
+                                        <p>2018-9</p>
+                                    </li>
+                                </ul>
+                            </div>
+                            <!--薪资 详细 结构展示-->
+                            <div class="containitem styleMoney">
+                                <div>
+                                    <h3 id="showCcSalary">0</h3>
+                                    <p>本月薪资<i>?</i></p>
+                                </div>
+                                <ul id="CcSalaryDetail">
+                                    <li>
+                                        <h4 id="thisMonthBaseSalary"></h4>
+                                        <p>本月底薪</p>
+                                    </li>
+                                    <li>
+                                        <h4 id="ccthisMonthSalesVolume">0</h4>
+                                        <p>本月销售业绩</p>
+                                    </li>
+                                    <li>
+                                        <h4 id="salesCommission">0</h4>
+                                        <p>业绩提成</p>
+                                    </li>
+                                </ul>
+                            </div>
+                            <!--cc 所属销售俱乐部-->
+                            <div class="containitem styleMoney">
+                                <div>
+                                    <h3 id="ccThreeMonthSalesVolume">0.00</h3>
+                                    <p>近三月销售额<i>?</i></p>
+                                </div>
+                                <ul>
+                                    <li>
+                                         <p id="clubImg"><img style="width: 25%" src="../../static/img/ccSalesClub/gold_drill.png"></p>
+                                         <p id="club">金钻俱乐部</p>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="contain">
+                            <div class="containitem">
+                                <h4 style="font-size: 14px;">个人销售业绩</h4>
+                                <div class="left" id="ccSales" style="display: inline-block;width:190px;height:200px">
+
+                                </div>
+                                <div class="right" id="ccRecord" style="display: inline-block;width: calc(100% - 210px);vertical-align: top;padding: 50px 0;">
+
+                                </div>
+                            </div>
+                            <div class="containitem">
+                                <h4 style="font-size: 14px;">门店业绩目标</h4>
+                                <div class="left" id="storesSales" style="display: inline-block;width:190px;height:200px">
+
+                                </div>
+                                <div class="right" id="storesRecord" style="display: inline-block;width: calc(100% - 210px);vertical-align: top;padding: 50px 0;">
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="contain">
+                            <!--某cc leads(例子) demo（demo）  orders(订单) Ratio(demo/orders)-->
+                            <div class="containitem styleTable">
+                                <h4 style="font-size: 14px;">渠道资源表现表</h4>
+                                <div class="left" id="" style="display: inline-block;">
+                                     <table class="table table-striped table-bordered table-hover footable footable-1 breakpoint-lg" data-show-toggle="false" style="display: table;">
+                                        <thead>
+                                            <tr class="footable-header">
+                                                <th style="text-align: center;">渠道</th>
+                                                <th style="text-align: center;">Leads</th>
+                                                <th style="text-align: center;">Demo</th>
+                                                <th style="text-align: center;">Ctr(合同)</th>
+                                                <th style="text-align: center;">Ratio</th>
+                                                <th style="text-align: center;">目前对手已做到</th>
+                                            </tr>
+                                        </thead>
+                                         <tbody id="ldcList">
+
+                                         </tbody>
+                                     </table>
+                                </div>
+                            </div>
+
+                            <!--某cc 渠道资源分析表-->
+                            <div class="containitem styleTable">
+                                <h4 style="font-size: 14px;">渠道资源分析表</h4>
+                                <div class="left"  style="display: inline-block;">
+                                     <table class="table table-striped table-bordered table-hover footable footable-1 breakpoint-lg" data-show-toggle="false" style="display: table;">
+                                        <thead>
+                                            <tr class="footable-header">
+                                                <th style="text-align: center;">渠道</th>
+                                                <th style="text-align: center;">跟进量</th>
+                                                <th style="text-align: center;">打败etalk cc</th>
+                                                <th style="text-align: center;">目前最强对手已完成</th>
+                                            </tr>
+                                        </thead>
+                                         <tbody id="resourceAnalysis">
+
+                                         </tbody>
+                                     </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="contain">
+                            <div class="containitem styleCalendar">
+                                <h4>DSR表:<span  th:if="${ccStatistics.days>5}">
+                                    你已经<i style="color: red" th:text="${ccStatistics.days}"></i>天没合同了
+                                </span></h4>
+                                <div id="test"></div>
+                                <div>
+                                    说明：
+                                    <span class="datedemo hasDemo"></span>有Demo
+                                    <span class="datedemo hasOrder"></span>有合同
+                                    <span class="datedemo hasboth"></span>有Demo与合同
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+<div th:include="/include/onload_js::onloadJSCustomList(~{::script})">
+    <script src="../../static/js/calendar.js?id=5" th:src="@{/static/js/calendar.js}"></script>
+    <script>
+       $(document).ready(function() {
+           // 基于准备好的dom，初始化echarts cc个人 环形图展示
+            ccSales();
+           //店铺  环形图  数据展示
+           storesSales();
+           //作为销售总监，希望CC可以看到渠道跟进数据，以便CC了解自己的资源情况
+           publdorStatisticsList();
+           //日历 模板  数据展示
+           eCrmCalendar.init({
+                id: 'test',
+                year: "",
+                month: "",
+                success: function () {
+                    drsList();
+                }
+           });
+           // 销售底薪展示
+           showBaseSalary();
+
+           //cc 详细 薪资展示
+           showCCSalary();
+
+           //cc 销售 属于  哪个销售俱乐部
+           showCcSalesClub();
+
+           //渠道资源分析表
+           resourceAnalysis();
+       });
+
+       //cc 个人 销售相关数据   环形图
+       function ccSales(){
+            var myChart = echarts.init(document.getElementById('ccSales'));
+             myChart.showLoading();    //数据加载完之前先显示一段简单的loading动画
+            $.ajax({
+			 type : "POST", //提交方式
+			 url : "/CcSalesPerformanceCtl/ccSalesPerformance",//路径
+			 data :{},
+			 //数据，这里使用的是Json格式进行传输JSON.stringify(data),
+			 dataType:"json",
+			 //contentType: "application/x-www-form-urlencoded",
+			 success: function (data) {
+				if(data.code > 0){
+				    // console.info(data.thisMonthtSalesTarget);
+				    myChart.hideLoading();
+                    var html ="";
+                    html+='<p>个人销售目标：'+data.thisMonthtSalesTarget+'</p>';
+                    html+='<p>个人实际达成：'+data.thisMonthtSales+'</p>' ;
+                    if(accSubtr(data.thisMonthtSalesTarget,data.thisMonthtSales)>0){
+                        html+='<p>个人距离目标：'+accSubtr(data.thisMonthtSalesTarget,data.thisMonthtSales)+'</p>';
+                    }else{
+                        html+='<p>个人距离目标：0</p>';
+                    }
+                    html+='<p>达成率：'+data.percent+'</p>';
+                    $("#ccRecord").html(html);
+                    var color = ['#54b4eb','#666'];
+                    var dataList = [];
+                    var res = accSubtr(data.thisMonthtSalesTarget,data.thisMonthtSales);
+                    dataList.push({ value: data.thisMonthtSales, name: '个人已完成' });
+                    dataList.push({ value: res, name: '个人未完成' });
+                    pubChart(myChart,data.percent,color,dataList)
+				}
+			},
+			error: function (err) {
+				console.log(err);
+				layer.msg("数据请求异常");
+			}
+		})
+       }
+
+      //店铺销售  相关数据
+       function storesSales(){
+            var myChart = echarts.init(document.getElementById('storesSales'));
+             myChart.showLoading();    //数据加载完之前先显示一段简单的loading动画
+            $.ajax({
+			 type : "POST", //提交方式
+			 url : "/CcSalesPerformanceCtl/storesSalesPerformance",//路径
+			 data :{},
+			 //数据，这里使用的是Json格式进行传输JSON.stringify(data),
+			 dataType:"json",
+			 //contentType: "application/x-www-form-urlencoded",
+			 success: function (data) {
+				if(data.code > 0){
+				    myChart.hideLoading();
+                    var html ="";
+                    html+='<p>店面销售目标：'+data.thisMonthtSalesTarget+'</p>';
+                    html+='<p>店面实际达成：'+data.thisMonthtSales+'</p>' ;
+                    if(accSubtr(data.thisMonthtSalesTarget,data.thisMonthtSales)>0){
+                        html+='<p>店面距离目标：'+accSubtr(data.thisMonthtSalesTarget,data.thisMonthtSales)+'</p>';
+                    }else{
+                        html+='<p>店面距离目标：0</p>';
+                    }
+                    html+='<p>达成率：'+data.percent+'</p>';
+                    $("#storesRecord").html(html);
+                    var color = ['red','#666'];
+                    var dataList = [];
+                    var res = accSubtr(data.thisMonthtSalesTarget,data.thisMonthtSales);
+                    dataList.push({ value: data.thisMonthtSales, name: '店铺已完成' });
+                    dataList.push({ value: res, name: '店铺未完成' });
+                    pubChart(myChart,data.percent,color,dataList)
+				}
+			},
+			error: function (err) {
+				console.log(err);
+				layer.msg("数据请求异常");
+			}
+		})
+       }
+        /**
+         * 减法
+         * @param arg1
+         * @param arg2
+         * @returns
+         */
+         function accSubtr(arg1,arg2){
+            var r1,r2,m,n;
+            try{r1=arg1.toString().split(".")[1].length;}catch(e){r1=0;}
+            try{r2=arg2.toString().split(".")[1].length;}catch(e){r2=0;}
+            m=Math.pow(10,Math.max(r1,r2));
+            //动态控制精度长度
+            n=(r1>=r2)?r1:r2;
+            return ((arg1*m-arg2*m)/m).toFixed(n);
+        }
+
+        function toDecimal2(x) {
+            var f = parseFloat(x);
+            if (isNaN(f)) {
+             return false;
+            }
+            var f = Math.round(x*100)/100;
+            var s = f.toString();
+            var rs = s.indexOf('.');
+            if (rs < 0) {
+             rs = s.length;
+             s += '.';
+            }
+        while (s.length <= rs + 2) {
+         s += '0';
+        }
+        return s;
+    }
+
+       //图标公共方法
+        function pubChart(myChart,percent,color,dataList){
+           option = {
+                tooltip: {//提示框，可以在全局也可以在
+                    trigger: 'item',
+                    // formatter: "{a} <br/>{b}: {c} ({d}%)",
+                    formatter: function(param){
+                        var jsonData = JSON.stringify(param.data.name);
+                        var str = '<style>td{padding:5px;}</style><table>';
+                        var c = eval(param.percent);
+                        c = toDecimal2(c);
+                        str  = jsonData.substring(1, jsonData.length-1)+":"+eval(param.value)+"("+str + c + "%)";
+                        return str
+                    },
+                    legend: {
+                        orient: 'vertical',
+                        x: 'right',
+                        data:['已完成','未完成']
+                    },
+                    //触发类型：坐标轴触发
+                    backgroundColor:'rgba(255,255,255,0.8)',//通过设置rgba调节背景颜色与透明度
+                    color:'black',
+                    borderWidth:'1',
+                    borderColor:'gray',
+                    textStyle:{
+                        color:'black',
+                        textAlign:'center'
+                    },
+                    position:function(p){ //其中p为当前鼠标的位置
+                        return [p[0] + 10, p[1] - 10];
+                    }
+                },
+               graphic:{
+                    type:'text',
+                    left:'center',
+                    top:'center',
+                    style:{
+                        text:percent,//环形图中间文字说明
+                        textAlign:'center',
+                        fill:'#000',
+                        width:30,
+                        height:30,
+                        fontSize:18,
+                        fontWeight: 'bold'
+                    }
+                },
+                series: [
+                    {
+                        name:'',
+                        type:'pie', //环形图的type和饼图相同
+                        radius: ['65%', '70%'],//饼图的半径，第一个为内半径，第二个为外半径
+                        avoidLabelOverlap: false,
+                        color:color,
+                        label: {
+                                normal: {
+                                    show: false,
+                                    position: 'left'
+                                },
+                                emphasis: {
+                                    show: false,
+                                    textStyle: {
+                                        fontSize: '20',
+                                        fontWeight: 'bold'
+                                    }
+                                }
+                            },
+                        // label: {
+                        //     normal: {  //正常的样式
+                        //         show: true,
+                        //         position: 'left'
+                        //     },
+                        //     emphasis: { //选中时候的样式
+                        //         show: true,
+                        //         textStyle: {
+                        //             fontSize: '20',
+                        //             fontWeight: 'bold'
+                        //         }
+                        //     }
+                        // },  //提示文字
+                        labelLine: {
+                            normal: {
+                                show: false
+                            }
+                        },
+                        data:
+                           dataList
+                    }
+                ]
+            };
+            myChart.setOption(option);
+        }
+
+
+       //作为销售总监，希望CC可以看到渠道跟进数据，以便CC了解自己的资源情
+      function  publdorStatisticsList(){
+          var loading ='<i class="layui-icon layui-icon-loading-1" style="font-size: 30px; color: #1E9FFF;"></i>  ' ;
+          $("#ldcList").html(loading);
+          $.ajax({
+			 type : "POST", //提交方式
+			 url : "/CcStatistics/ldorStatistics",//路径
+			 data :{},
+			 //数据，这里使用的是Json格式进行传输JSON.stringify(data),
+			 dataType:"json",
+			 //contentType: "application/x-www-form-urlencoded",
+			 success: function (data) {
+				if(data.code > 0){
+                    var html ="";
+                    if(data.ldorStatisticsList.length>0){
+                        var result = data.ldorStatisticsList;
+                        for(var i = 0;i<result.length;i++){
+                            if(result[i].id != 6 && result[i].id != 7 && result[i].id != 8 && result[i].id != 9 && result[i].id != 10){
+                                html+="<tr>";
+                                html+="<td style='text-align: center'>"+result[i].chinnelName+"</td>";
+                                html+="<td style='text-align: center'>"+result[i].leadsCounter+"</td>";
+                                html+="<td style='text-align: center'>"+result[i].demoCounter+"</td>";
+                                html+="<td style='text-align: center'>"+result[i].orderCounter+"</td>";
+                                if(result[i].demoCounter != 0 && result[i].orderCounter != 0){
+                                     html+="<td style='text-align: center'>"+(result[i].demoCounter/result[i].orderCounter).toFixed(2)+"</td>";
+                                 }else{
+                                     html+="<td style='text-align: center'>0</td>";
+                                 }
+                                html+="<td style='text-align: center'>"+result[i].maxRatio+"</td>";
+                                html+="</tr>";
+                            }
+                        }
+                        $("#ldcList").html(html);
+                    }
+				}
+			},
+			error: function (err) {
+				console.log(err);
+				layer.msg("数据请求异常");
+			}
+		})
+      }
+
+      //drs  面板 相关 数据展示
+      function drsList(){
+         $.ajax({
+			 type : "POST", //提交方式
+			 url : "/CcStatistics/drsList",//路径
+			 data :{},
+			 //数据，这里使用的是Json格式进行传输JSON.stringify(data),
+			 dataType:"json",
+			 //contentType: "application/x-www-form-urlencoded",
+			 success: function (data) {
+				if(data.code > 0){
+                    var html ="";
+                    var dom = $(".dateitem").find("li");
+                    if(data.drsList.length>0){
+                        var result = data.drsList;
+                        for(var i = 0;i<result.length;i++){
+                            for(var j = 0;j<dom.length;j++){
+                                if($(dom[j]).text() != ""){
+                                    if(result[i].days == $(dom[j]).text()){
+                                        if(result[i].demoCounter >0 && result[i].orderCounter ==0){
+                                             $(dom[j]).addClass("hasDemo").attr("onmouseover","ccDSRDetailedData(this,"+result[i].leadsCounter+","+result[i].demoCounter+",0,"+result[i].totalAmount+","+result[i].deposit+")");
+                                        }
+                                        if(result[i].orderCounter >0 && result[i].demoCounter==0){
+                                            $(dom[j]).addClass("hasOrder").attr("onmouseover","ccDSRDetailedData(this,"+result[i].leadsCounter+",0,"+result[i].orderCounter+","+result[i].totalAmount+","+result[i].deposit+")");
+                                        }
+                                        if(result[i].demoCounter >0 && result[i].orderCounter >0){
+                                            $(dom[j]).addClass("hasboth").attr("onmouseover","ccDSRDetailedData(this,"+result[i].leadsCounter+","+result[i].demoCounter+","+result[i].orderCounter+","+result[i].totalAmount+","+result[i].deposit+")");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        $("#ldcList").html(html);
+                    }
+				}
+			},
+			error: function (err) {
+				console.log(err);
+				layer.msg("数据请求异常");
+			}
+		})
+      }
+
+        //drs 鼠标经过事件 数据展示
+        function ccDSRDetailedData(obj,leadsCounter,demoCounter,orderCounter,totalAmount,deposit){
+            var html = "<p>Leads:"+leadsCounter+"</p>";
+            html+="<p>Ctr:"+orderCounter+"</p>";
+            html+="<p>DEMO:"+demoCounter+"</p>";
+            html+="<p>Depo:"+deposit+"</p>";
+            html+="<p>Rec:"+totalAmount+"</p>";
+            layer.tips(html, obj, {
+                tips: [1, '#0FA6D8'], //设置tips方向和颜色 类型：Number/Array，默认：2 tips层的私有参数。支持上右下左四个方向，通过1-4进行方向设定。如tips: 3则表示在元素的下面出现。有时你还可能会定义一些颜色，可以设定tips: [1, '#c00']
+                tipsMore: false, //是否允许多个tips 类型：Boolean，默认：false 允许多个意味着不会销毁之前的tips层。通过tipsMore: true开启
+                time: 5000  //3秒后销毁，还有其他的基础参数可以设置。。。。这里就不添加了
+            });
+        }
+
+        /**************************************时间格式化处理************************************/
+        var dateFormat = function (timestamp, formats) {
+            // formats格式包括
+            // 1. Y-m-d
+            // 2. Y-m-d H:i:s
+            // 3. Y年m月d日
+            // 4. Y年m月d日 H时i分
+            formats = formats || 'Y-m';
+
+            var zero = function (value) {
+                if (value < 10) {
+                    return '0' + value;
+                }
+                return value;
+            };
+
+            var myDate = timestamp? new Date(timestamp): new Date();
+
+            var year = myDate.getFullYear();
+            var month = zero(myDate.getMonth() + 1);
+            var day = zero(myDate.getDate());
+
+            var hour = zero(myDate.getHours());
+            var minite = zero(myDate.getMinutes());
+            var second = zero(myDate.getSeconds());
+
+            return formats.replace(/Y|m|d|H|i|s/ig, function (matches) {
+                return ({
+                    Y: year,
+                    m: month,
+                    d: day,
+                    H: hour,
+                    i: minite,
+                    s: second
+                })[matches];
+            });
+        };
+
+        //计算底薪
+        function showBaseSalary(){
+          $.ajax({
+			 type : "POST", //提交方式
+			 url : "/CcStatistics/showBaseSalary",//路径
+			 data :{},
+			 //数据，这里使用的是Json格式进行传输JSON.stringify(data),
+			 dataType:"json",
+			 //contentType: "application/x-www-form-urlencoded",
+			 success: function (data) {
+				if(data.code > 0){
+                    if(data.baseSalary > 0){
+                        $("#showBaseSalary").text(data.baseSalary);
+                    }else{
+                        layer.tips("您的底薪配置表暂未设置，请联系管理员设置",'#showBaseSalary', {
+                            tips: [1, '#0FA6D8'],
+                            tipsMore: false,
+                            time: 5000
+                        });
+                        $("#showBaseSalary").text("0");
+                    }
+                    if(data.ccMonthSalaryList.length>0){
+                        var result = data.ccMonthSalaryList;
+                        var html = "";
+                        for(var i = 0;i<result.length;i++){
+                            html+= " <li>" ;
+                            html+=    "<h4>"+result[i].totalAmount+"</h4>" ;
+                            html+=    "<p>"+dateFormat(result[i].date)+"</p>" ;
+                            html+=   "</li>";
+                        }
+                    }
+                    $("#ccMonthSalaryList").html(html);
+				}
+			},
+			error: function (err) {
+				console.log(err);
+				layer.msg("数据请求异常");
+			}
+		})
+     }
+
+   //薪资计算  后  展示
+    function showCCSalary(){
+          $.ajax({
+			 type : "POST", //提交方式
+			 url : "/CcStatistics/showCcSalary",//路径
+			 data :{},
+			 //数据，这里使用的是Json格式进行传输JSON.stringify(data),
+			 dataType:"json",
+			 //contentType: "application/x-www-form-urlencoded",
+			 success: function (data) {
+			     // console.info(data);
+				if(data.code > 0){
+                    $("#showCcSalary").text(data.ccSalary);
+                    $("#ccthisMonthSalesVolume").text(data.bCcthisMonthSalesVolume);
+                    $("#thisMonthBaseSalary").text(data.baseSalary);
+                    $("#salesCommission").text(data.salesCommission);
+				}
+			},
+			error: function (err) {
+				console.log(err);
+				layer.msg("数据请求异常");
+			}
+		})
+     }
+
+     //cc 销售 属于  哪个销售俱乐部
+     function showCcSalesClub(){
+        $.ajax({
+			 type : "POST", //提交方式
+			 url : "/CcStatistics/calculationCcSalesClub",//路径
+			 data :{},
+			 //数据，这里使用的是Json格式进行传输JSON.stringify(data),
+			 dataType:"json",
+			 //contentType: "application/x-www-form-urlencoded",
+			 success: function (data) {
+				if(data.code > 0){
+                    $("#ccThreeMonthSalesVolume").text(data.ccThreeMonthSalesVolume);
+                    $("#club").text(data.ccSalesClubInfo.levelName);
+                    var img = "";
+                    if(data.ccSalesClubInfo.id == 1){
+                        img = "person.png"
+                    }else if(data.ccSalesClubInfo.id == 2){
+                        img = "sopper_drill.png"
+                    }else if(data.ccSalesClubInfo.id == 3){
+                        img = "silver_drill.png"
+                    }else{
+                        img = "gold_drill.png"
+                    }
+                    var html = '<img style="width: 25%" src="../../static/img/ccSalesClub/'+img+'">';
+                    $("#clubImg").html(html);
+				}
+			},
+			error: function (err) {
+				console.log(err);
+				layer.msg("数据请求异常");
+			}
+		})
+     }
+
+     //渠道资源分析表resourceAnalysis()
+     function resourceAnalysis(){
+        $.ajax({
+			 type : "POST", //提交方式
+			 url : "/CcStatistics/PersonalResourceAnalysisList",//路径
+			 data :{},
+			 //数据，这里使用的是Json格式进行传输JSON.stringify(data),
+			 dataType:"json",
+			 //contentType: "application/x-www-form-urlencoded",
+			 success: function (data) {
+				if(data.code > 0){
+                    var html = "";
+                    var result = data.resourceAnalysisList;
+                    for(var i = 0 ;i<result.length;i++){
+                        html+="<tr>";
+                        html+="<td style='text-align: center'>"+result[i].chinnelName+"</td>";
+                        if(result[i].dataType==1){
+                            html+="<td style='text-align: center'>"+result[i].demoCounter+"</td>";
+                        }else{
+                            html+="<td style='text-align: center'>"+result[i].closeLeadsDays+"</td>";
+                        }
+                        html+="<td style='text-align: center'>"+result[i].percentage+"%</td>";
+                        if(result[i].dataType==1){
+                             html+="<td style='text-align: center'>"+result[i].totalAmount+"</td>";
+                        }else{
+                             html+="<td style='text-align: center'>"+result[i].maxDemoCounter+"</td>";
+                        }
+                        html+="</tr>";
+                    }
+                    $("#resourceAnalysis").html(html);
+				}
+			},
+			error: function (err) {
+				console.log(err);
+				layer.msg("数据请求异常");
+			}
+		})
+     }
+    </script>
+</div>
+</body>
+</html>

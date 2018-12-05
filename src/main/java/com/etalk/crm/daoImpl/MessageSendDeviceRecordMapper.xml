@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.MessageSendDeviceRecordMapper" >
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.MessageSendDeviceRecord" >
+        <result column="msg_send_id" property="msgSendId" jdbcType="INTEGER" />
+        <result column="receiving_platform_id" property="receivingPlatformId" jdbcType="INTEGER" />
+        <result column="device_id" property="deviceId" jdbcType="VARCHAR" />
+        <result column="person_id" property="personId" jdbcType="INTEGER" />
+    </resultMap>
+
+
+    <!--复制APP发送人员设备信息到平台记录-->
+    <insert id="insertMessageSendPlatformRecordByApp" parameterType="com.etalk.crm.pojo.Lessons">
+        insert into message_send_device_record(person_id,device_id,receiving_platform_id,msg_send_id)
+        select l.person_id,ap.app_id,2,${msgSendId}
+        from lessons l,person p,person tea,app_person ap
+        where l.person_id=p.id and p.testmark=0 and p.role_id=3 and ap.person_id=l.person_id and tea.login_name=l.teacher_login and tea.role_id=4
+        <if test="classStartTime!=null">
+            and l.release_time>=#{classStartTime,jdbcType=TIMESTAMP}
+        </if>
+        <if test="classEndTime!=null">
+            and #{classEndTime,jdbcType=TIMESTAMP}>l.release_time
+        </if>
+        <if test="classWayId!=null">
+            and l.class_way=#{classWayId,jdbcType=INTEGER}
+        </if>
+        <if test="state!=null">
+            and l.state=#{state,jdbcType=INTEGER}
+        </if>
+        <if test="teaSiteId!=null">
+            <foreach collection="teaSiteId" item="items" separator="," open=" and tea.tea_site_id in(" close=")">
+                #{items,jdbcType=INTEGER}
+            </foreach>
+        </if>
+        <if test="excludeTeacher!=null and excludeTeacher.size()>1">
+            <foreach collection="excludeTeacher" item="items" separator="," open="and l.teacher_login not in(" close=")">
+                #{items,jdbcType=VARCHAR}
+            </foreach>
+        </if>
+        group by l.person_id,ap.app_id
+    </insert>
+    <!--复制微信发送人员设备信息到平台记录-->
+    <insert id="insertMessageSendPlatformRecordByWeixin" parameterType="com.etalk.crm.pojo.Lessons">
+        insert into message_send_device_record(person_id,device_id,receiving_platform_id,msg_send_id)
+        select l.person_id,wu.open_id,1,${msgSendId}
+        from lessons l,person p,person tea,weixin_user wu
+        where l.person_id=p.id and p.testmark=0 and p.role_id=3 and wu.student_id=l.person_id and tea.login_name=l.teacher_login and tea.role_id=4
+        <if test="classStartTime!=null">
+            and l.release_time>=#{classStartTime,jdbcType=TIMESTAMP}
+        </if>
+        <if test="classEndTime!=null">
+            and #{classEndTime,jdbcType=TIMESTAMP}>l.release_time
+        </if>
+        <if test="classWayId!=null">
+            and l.class_way=#{classWayId,jdbcType=INTEGER}
+        </if>
+        <if test="state!=null">
+            and l.state=#{state,jdbcType=INTEGER}
+        </if>
+        <if test="teaSiteId!=null">
+            <foreach collection="teaSiteId" item="items" separator="," open=" and tea.tea_site_id in(" close=")">
+                #{items,jdbcType=INTEGER}
+            </foreach>
+        </if>
+        <if test="excludeTeacher!=null and excludeTeacher.size()>1">
+            <foreach collection="excludeTeacher" item="items" separator="," open="and l.teacher_login not in(" close=")">
+                #{items,jdbcType=VARCHAR}
+            </foreach>
+        </if>
+        group by l.person_id,wu.open_id
+    </insert>
+
+</mapper>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderCustomEdit('oc课课后回访问卷录入',~{::style})">
+    <style>
+        body{overflow: hidden;}
+        .main input {padding: 0.02rem 0.08rem;}
+        .main{width: 100%;height: 100%;overflow-y: auto;}
+        .main .head{border:1px solid #cdcdcd;}
+        .main .head h3{width: 100%;background:#fff;text-align: center;padding: 0.15rem 0;}
+        .main .contain{background: #fff;padding: 0.2rem;}
+        .main .contain .quitem{margin-top: 0.2rem;background: #eee;padding: 0.3rem 0.2rem;}
+        .main .contain .formItem{}
+        .main .contain .formItem ul{width: 100%;height:auto;}
+        .main .contain .formItem ul li{padding: 0.05rem 0;color: #333;}
+        .main .contain .formItem ul li .optionItem{padding: 0.05rem 0;}
+        .main .contain .formItem ul .addOption,.main .contain .formItem ul .deleteOption{width: 2.5rem;margin-left: 1.1rem;background:#fff;color:#ccc;border: 1px solid #e5e5e5;}
+        .main .contain .formItem ul .addOption:hover{background: #2dcc6f;color: #fff;}
+        .main .contain .formItem ul .deleteOption:hover{background: #ee0a51;color: #fff;}
+        .main .contain .formItem ul li .labelstyle{margin-right: 0.1rem;text-align: right;display: inline-block;width: 1rem;}
+        .main .contain .formItem ul .radioDiv{padding: 0.05rem 0;}
+        .main .contain .formItem .errortext{font-size:0.12rem;color: red;display: none;}
+        .main .contain .itemModel{display:none;}
+        .main .contain .itemModel h3{font-size:0.14rem;margin-bottom: 0.3rem;}
+        .main .contain .itemModel p{font-size:0.14rem;color:#999;}
+        .main .contain .itemModel div{font-size:0.14rem;padding: 0 0.1rem;}
+        .main .contain .itemModel div label{margin-right:0.5rem;color: #666;font-weight: normal;padding: 0.1rem 0;}
+        .main .contain .itemModel textarea{width: 100%;height: 1rem;background: #fff;padding: 0.1rem;resize: none;margin-top: 0.1rem;border: 1px solid #cdcdcd;}
+        .main .contain .itemModel .controlbtn{text-align:right;}
+        .main .contain .itemModel .controlbtn a{color: #0b8ad5;text-decoration: underline;cursor:pointer;padding: 0 0.1rem;}
+    </style>
+<body>
+    <div class="main">
+        <!--<div class="head">-->
+            <!--<h3></h3>-->
+        <!--</div>-->
+        <div class="contain" style="">
+            <p><span class="labelstyle" >问卷标题：</span><input class="title" id="paperTitle" style="width: 5.5rem;" type="text"/></p>
+            <p style="margin-top: 0.5%"><span class="labelstyle" >问卷说明：</span><input class="title" id="paperSummary" style="width: 5.5rem;" type="text"/></p>
+            <div class="quitem" qid="1">
+                <div class="formItem">
+                    <ul>
+                        <li>
+                            <span class="labelstyle" >题目：</span><input class="title" style="width: calc(100% - 1.5rem);" type="text"/>
+                        </li>
+                        <li>
+                            <span class="labelstyle">题注：</span><input class="note" style="width: calc(100% - 1.5rem);" type="text"/>
+                        </li>
+                        <li>
+                            <p class="optionItem">
+                                <span class="labelstyle">选项：</span><input class="optiontext" style="width: 2.5rem;" type="text"/>
+                                <span class="labelstyle">分值：</span><input class="optionval" type="number" value="0"/>
+                            </p>
+                        </li>
+                        <li>
+                            <button class="addOption" onclick="addOption(this)">新增选项</button>
+                            <button class="deleteOption" onclick="deleteOption(this)">删除最后一条</button>
+                        </li>
+                        <li>
+                            <span class="labelstyle">尾注：</span><input class="endnote" style="width: calc(100% - 1.5rem);" type="text"/>
+                        </li>
+                        <li class="radioDiv openNote">
+                            <span class="labelstyle">开启备注：</span><label><input type="radio" name="openNote1" value="1"/>是</label><label><input style="margin-left: 0.3rem;" type="radio" name="openNote1" value="0" checked/>否</label>
+                        </li>
+                        <li class="radioDiv notNull">
+                            <span class="labelstyle">本题必填：</span><label><input type="radio" name="notNull1" value="1"/>是</label><label><input style="margin-left: 0.3rem;" type="radio" name="notNull1" value="0" checked/>否</label>
+                        </li>
+                         <li class="radioDiv notNull">
+                                <p th:class="col-sm-12" class="labelstyle" style="color: red">PS：题目、题注、尾注中出现的学生名、上课老师、ssc请分别以{学员名}、{teacher}、{ssc}替换，否则程序无法识别并替换</p>
+                        </li>
+                        <li style="text-align: center;">
+                            <p class="errortext">错误信息</p>
+                            <button onclick="confirmItem(this)" class="btn btn-primary">确定</button>
+                            <!--<button onclick="cancelItem(this)" class="btn btn-default">取消</button>-->
+                        </li>
+                    </ul>
+                </div>
+                <div class="itemModel">
+                    <h3 class="titletext"><!--1、{学院中文名}宝贝的小E萌宠妈妈帮她点亮了吗？--></h3>
+                    <p class="notetext"><!--这个是题注哦哦哦哦哦哦哦--></p>
+                    <div class="optionContent">
+                        <!--<label><input type="radio" name="qu1"/>点亮了</label>
+                        <label><input type="radio" name="qu1"/>有点不清楚</label>
+                        <label><input type="radio" name="qu1"/>完全不知道</label>-->
+                    </div>
+                    <p class="endnotetext">这个是尾注哦哦哦哦哦哦哦</p>
+                    <textarea placeholder="备注" disabled="disabled"></textarea>
+                    <p class="controlbtn"><a onclick="showFormItem(this)">修改</a><a>删除</a></p>
+                </div>
+            </div>
+        </div>
+        <div style="padding-left: 0.2rem;">
+            <button onclick="addQuitem()" class="btn btn-primary" type="button">+添加题目</button>
+            <button class="btn btn-primary" type="button" onclick="submitMode()">提交问卷模板</button>
+            <a class="btn btn-primary" href="javascript:myclose();"> 关 闭 </a>
+        </div>
+    </div>
+    <div th:include="/include/onload_js::onloadJSCustom(~{::script})">
+        <script>
+            var dataList = {}
+            dataList.questionAndOption = [];
+            function myclose(){
+                parent.$.fancybox.close();
+             }
+            function addOption (_this) {
+                // 添加小题选项
+                $(_this).parent('li').prev().append($(_this).parents('.formItem').find('.optionItem').last().clone())
+                $(_this).parents('.formItem').find('.optionItem').last().find('input').val('')
+            }
+            function deleteOption (_this) {
+                // 删除小题选项
+                if ($(_this).parents('.formItem').find('.optionItem').length > 1) {
+                    $(_this).parents('.formItem').find('.optionItem').last().remove()
+                }
+            }
+            function  confirmItem (_this) {
+                // 点击确定提交小题
+                var quitem = $(_this).parents('.quitem')
+                // console.log(quitem.attr('qid'))
+                var formitem = quitem.find('.formItem')
+                var itemModel = quitem.find('.itemModel')
+                if (formitem.find('.title').val() !== '') {
+                    $('.errortext').text('')
+                    $('.errortext').hide('fast')
+                    // 绑定标题，题注，尾注
+                    itemModel.find('.titletext').text(formitem.find('.title').val())
+                    itemModel.find('.notetext').text(formitem.find('.note').val())
+                    itemModel.find('.endnotetext').text(formitem.find('.endnote').val())
+                    // 添加选项
+                    itemModel.find('.optionContent').empty()
+                    for (var i = 0; i < formitem.find('.optionItem').length; i++) {
+                        if (formitem.find('.optionItem').eq(i).find('.optionval').val() !== '') {
+                            var htmlstr = '<label><input disabled="disabled" type="radio" name="qu1" score="' + formitem.find('.optionItem').eq(i).find('.optionval').val() + '" value="' + formitem.find('.optionItem').eq(i).find('.optiontext').val() + '"/>' + formitem.find('.optionItem').eq(i).find('.optiontext').val() + '</label>'
+                            itemModel.find('.optionContent').append(htmlstr)
+                        }
+                    }
+                    // 显示备注
+                    if (formitem.find('.openNote input[type="radio"]:checked').val() === '1') {
+                        itemModel.find('textarea').show()
+                    } else {
+                        itemModel.find('textarea').hide()
+                    }
+                    formitem.hide()
+                    itemModel.show()
+                } else {
+                    $('.errortext').text('标题不能为空!')
+                    $('.errortext').show('fast')
+                    return;
+                }
+            }
+            function  cancelItem (_this) {
+                var quitem = $(_this).parents('.quitem')
+                var formitem = quitem.find('.formItem')
+                var itemModel = quitem.find('.itemModel')
+                formitem.hide()
+                itemModel.show()
+            }
+            function  showFormItem (_this) {
+                // 显示小题表单
+                var quitem = $(_this).parents('.quitem')
+                var formitem = quitem.find('.formItem')
+                var itemModel = quitem.find('.itemModel')
+                formitem.show()
+                itemModel.hide()
+            }
+            function addQuitem () {
+                // 增加小题
+                var openNoteradioval = $('.quitem').eq(0).find('input[name="openNote1"]:checked').val()
+                var openNoteradiovaldom = 'input[name="openNote1"][value="' + openNoteradioval + '"]'
+                var notNullradioval = $('.quitem').eq(0).find('input[name="notNull1"]:checked').val()
+                var notNullradiovaldom = 'input[name="notNull1"][value="' + notNullradioval + '"]'
+                // 克隆第一个
+                $('.contain').append($('.quitem').eq(0).clone())
+                $('.quitem').last().find('input[type="text"]').val('')
+                $('.quitem').last().find('input[name="openNote1"]').attr('name', 'openNote' + $('.quitem').length)
+                $('.quitem').last().find('input[name="notNull1"]').attr('name', 'notNull' + $('.quitem').length)
+                $('.quitem').last().find('.optionItem').eq(0).nextAll().remove()
+                // 解决克隆影响第一个radio问题
+                $('.quitem').eq(0).find(openNoteradiovaldom).click()
+                $('.quitem').eq(0).find(notNullradiovaldom).click()
+                // 显示隐藏
+                $('.quitem').last().find('.formItem').show()
+                $('.quitem').last().find('.itemModel').hide()
+            }
+            function submitMode () {
+                // 提交模板
+                var dataobj = {};
+                var paperTitle = $("#paperTitle").val();
+                var summary = $("#paperSummary").val();
+                if(paperTitle == null || paperTitle ==""){
+                    $('.errortext').text('标题不能为空!')
+                    $('.errortext').show('fast')
+                    return;
+                }
+                if(summary==null || summary==""){
+                    $('.errortext').text('问卷说明不能为空!')
+                    $('.errortext').show('fast')
+                    return;
+                }
+                dataobj.questionAndOption = [];
+                dataobj.paperTitle = paperTitle
+                dataobj.paperSummary = summary;
+                for (var i = 0; i < $('.quitem').length; i ++) {
+                    var dataitem = {}
+                    dataitem.questionName = $('.quitem').eq(i).find('.formItem .title').val()
+                    dataitem.caption = $('.quitem').eq(i).find('.formItem .note').val()
+                    dataitem.endnotes = $('.quitem').eq(i).find('.formItem .endnote').val()
+                    var statedom = '.formItem input[name="openNote' + (i + 1) + '"]:checked'
+                    dataitem.state = $('.quitem').eq(i).find(statedom).val()
+                    var option = []
+                    for (var j = 0; j < $('.quitem').eq(i).find('.optionItem').length; j++) {
+                        var optionitem = {}
+                        optionitem.optionName = $('.quitem').eq(i).find('.optionItem').eq(j).find('.optiontext').val()
+                        optionitem.sort = j + 1
+                        optionitem.value = $('.quitem').eq(i).find('.optionItem').eq(j).find('.optionval').val()
+                        option.push(optionitem)
+                    }
+                    dataitem.option = option
+                    dataobj.questionAndOption.push(dataitem)
+                }
+
+                $.ajax({
+                     type : "POST", //提交方式
+                     url : "/questionnaireOc/createPaper",//路径
+                     data : JSON.stringify(dataobj),//数据，这里使用的是Json格式进行传输JSON.stringify(data),
+                     dataType:"json",
+                     contentType: "application/json;charset=utf-8",
+                    success: function (data) {
+                        if(data.code == 1){
+                            layer.open({
+                              content: data.msg,
+                              yes: function(index, layero){
+                                layer.close(index); //如果设定了yes回调，需进行手工关闭
+                                window.parent.layer.closeAll()
+                                window.parent.location.href = "/questionnaireOc/toPapersdList"
+                              }
+                            });
+                        }else{
+                            layer.alert(data.msg);
+                        }
+                    },
+                    error: function (err) {
+                        console.log(err)
+                    }
+                })
+            }
+        </script>
+</body>
+</html>

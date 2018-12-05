@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.etalk.crm.dao.QuestionnaireMapper">
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.QuestionnaireOc">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="add_user_name" property="addUserName" jdbcType="VARCHAR"/>
+        <result column="person_id" property="personId" jdbcType="INTEGER"/>
+        <result column="paper_id" property="paperId" jdbcType="INTEGER"/>
+        <result column="add_user_id" property="addUserId" jdbcType="INTEGER"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="grade" property="grade" jdbcType="DECIMAL"/>
+        <result column="lesson_id" property="lessonId" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="release_time" property="releaseTime" jdbcType="TIMESTAMP"/>
+        <result column="teacher" property="teacher" jdbcType="VARCHAR"/>
+        <result column="student_login" property="studentLogin" jdbcType="VARCHAR"/>
+        <result column="ssc_name" property="sscName" jdbcType="VARCHAR"/>
+        <result column="person_name" property="personName" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="questionnaireOcList" resultMap="BaseResultMap">
+        select id,person_id,add_user_id,add_user_name,state,grade,paper_id,lesson_id,create_time,release_time,teacher,student_login,ssc_name from questionnaire_oc
+        where 1 = 1
+        <if test="startTime != null and startTime !=''">
+            <![CDATA[  and DATE_FORMAT(release_time, '%Y-%m-%d %H:%T:%s') >=
+            DATE_FORMAT(#{startTime,jdbcType=VARCHAR}, '%Y-%m-%d %H:%T:%s')   ]]>
+        </if>
+        <if test="endTime!=null and endTime !='' ">
+            <![CDATA[  and DATE_FORMAT(release_time, '%Y-%m-%d %H:%T:%s') <=
+            DATE_FORMAT(#{endTime,jdbcType=VARCHAR} , '%Y-%m-%d %H:%T:%s') ]]>
+        </if>
+        <if test="teacher != null and teacher !=''" >
+             AND teacher like CONCAT('%',#{teacher,jdbcType=VARCHAR},'%')
+        </if>
+        order by release_time desc
+    </select>
+
+    <!--根据id查询-->
+    <select id="selectQcByIds" resultMap="BaseResultMap">
+         select id,person_id,add_user_id,add_user_name,state,grade,paper_id,lesson_id,create_time,release_time,teacher,student_login,ssc_name
+         from questionnaire_oc where id in
+         <foreach item="ids" index="index" collection="array" open="(" separator="," close=")">
+          #{ids}
+         </foreach>
+    </select>
+    <select id="selectByPersonId" resultType="java.lang.Integer" parameterType="java.lang.Integer">
+        select count(1) from questionnaire_oc where person_id = #{personId,jdbcType=INTEGER};
+    </select>
+
+    <select id="selectByQCId" resultType="com.etalk.crm.pojo.QuestionnaireOc">
+        select id,person_id as personId,add_user_id as addUserId,add_user_name as addUserName,state,grade,paper_id as paperId,lesson_id lessonId,
+        create_time as createTime,release_time as releaseTime,teacher,student_login as studentLogin,ssc_name as sscName,person_name as personName from questionnaire_oc
+          where  1 = 1
+        <if test="questionnaireId != null" >
+             AND id = #{questionnaireId,jdbcType=INTEGER};
+        </if>
+    </select>
+    <insert id="addQoc" parameterType="com.etalk.crm.pojo.QuestionnaireOc" useGeneratedKeys="true" keyProperty="id" >
+        INSERT INTO questionnaire_oc (person_id,add_user_id,add_user_name,state,grade,paper_id,lesson_id,create_time,release_time,teacher,student_login,ssc_name,person_name)
+        values(#{personId}, #{addUserId},#{addUserName},#{state},#{grade},#{paperId},#{lessonId},#{createTime},#{releaseTime},#{teacher},#{studentLogin},#{sscName},#{personName})
+    </insert>
+</mapper>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.UserMapper" >
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.User" >
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="login_name" property="loginName" jdbcType="VARCHAR" />
+        <result column="cn_name" property="cnName" jdbcType="VARCHAR" />
+        <result column="en_name" property="enName" jdbcType="VARCHAR" />
+        <result column="role_id" property="roleId" jdbcType="INTEGER" />
+        <result column="rob_case" property="robCase" jdbcType="INTEGER" />
+        <result column="account_id" property="accountId" jdbcType="VARCHAR" />
+        <result column="stores_id" property="storesId" jdbcType="INTEGER" />
+    </resultMap>
+    <!--用户登录查询数据-->
+    <select id="selectLoginInfoByLoginNamePwdToken" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select id,login_name,cn_name,en_name,role_id,rob_case,account_id,stores_id
+        from users
+        where state=1 and MD5(CONCAT(upper(login_name),password))=#{loginNamePwdToken,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectSSc" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select id,login_name
+        from users
+        where state=1 and role_id in (8,9)
+    </select>
+    <!--修改用户密码-->
+    <update id="updatePassword" parameterType="java.util.Map">
+        update users set password=#{newPwd,jdbcType=VARCHAR} where id=#{userId,jdbcType=INTEGER} and binary password=#{oldPwd,jdbcType=VARCHAR}
+    </update>
+
+    <select id="ccSscList" parameterType="java.util.List" resultMap="BaseResultMap">
+        select id, login_name, role_id, cn_name, en_name from users where state = 1
+        and role_id in
+        <foreach collection="roleList" item="item" separator="," open="(" close=")">
+             #{item}
+        </foreach>
+    </select>
+</mapper>

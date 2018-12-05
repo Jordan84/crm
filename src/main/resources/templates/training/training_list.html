@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderList('培训资料')">
+<body oncontextmenu="self.event.returnValue=false" onselectstart="return false">
+	<div class="ch-container">
+		<div class="row">
+			<div id="content" class="col-md-12 col-sm-12" style="padding:2px;">
+				<div class="row">
+					<div class="box col-md-12" style="margin-top:5px;">
+						<div class="box-inner">
+							<!--<div class="box-header well" data-original-title="">
+								<h2>
+									<i class="glyphicon glyphicon-th"></i> 培训视频列表
+								</h2>
+								&lt;!&ndash;<div class="box-icon">
+									<a href="#" class="btn btn-setting btn-round btn-default" ><i class="glyphicon glyphicon-cog"></i></a> 
+									<a href="#" class="btn btn-minimize btn-round btn-default"><i class="glyphicon glyphicon-chevron-up"></i></a>
+									&lt;!&ndash; <a href="#"	class="btn btn-close btn-round btn-default"><i class="glyphicon glyphicon-remove"></i></a> &ndash;&gt;
+								</div>&ndash;&gt;
+							</div>-->
+							<div class="box-content">
+								<div class="row">
+									<div class="col-sm-3 col-md-2" th:each="file,iterStat:${listFiles}">
+										<!--<a th:if="${file.type=='mp4'}" href="path" th:href="@{'play?videoPath='+${file.path}}" data-fancybox class="thumbnail">-->
+                                        <a th:if="${file.type=='mp4'}" href="path" th:href="@{'https://hnres.etalk365.com/'+${file.path}}" data-fancybox class="thumbnail">
+											<img src="../../static/img/thumbnail/video.png" th:src="@{/static/img/thumbnail/video.png}" th:alt="${file.name}" class="img-rounded" alt="文件名" style="height: 100%; width: 100%; display: block;">
+											<p class="text-center" th:text="${file.name}">文件或文件夹名称</p>
+										</a>
+
+										<a th:if="${file.type=='folder'}" href="train/etalk?path=path" th:href="@{'/train/etalk?path='+${file.path}}" class="thumbnail" target="_self">
+											<img src="../../static/img/thumbnail/folder.png" th:src="@{'/static/img/thumbnail/'+${file.type}+'.png'}" style="height: 100%; width: 100%; display: block;">
+											<p class="text-center" th:text="${file.name}">文件夹名称</p>
+										</a>
+										<a th:if="${file.type=='goback'}" href="train/etalk?path=path" th:href="@{'/train/etalk?path='+${file.path}}" class="thumbnail" target="_self">
+											<img src="../../static/img/thumbnail/goback.png" th:src="@{'/static/img/thumbnail/'+${file.type}+'.png'}" style="height: 100%; width: 100%; display: block;">
+											<p class="text-center" th:text="${file.name}">返回上一级</p>
+										</a>
+										<a th:if="${file.type!='mp4' && file.type!='folder' && file.type!='goback'}" th:href="@{'https://hnres.etalk365.com/'+${file.path}}" class="thumbnail" target="_blank">
+											<img src="../../static/img/thumbnail/pdf.png" th:src="@{'/static/img/thumbnail/'+${file.type}+'.png'}" style="height: 100%; width: 100%; display: block;">
+											<p class="text-center" th:text="${file.name}">文档名称</p>
+										</a>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div th:include="/include/onload_js::onloadJSList"></div>
+</body>
+</html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderCustomEdit((${id>0?'修改赠礼配置':'添加赠礼配置'}),~{::style})">
+    <style type="text/css">
+        .error {
+            color: red;
+            border-color: red;
+        }
+
+        .error:focus {
+            color: red;
+            border-color: red;
+        }
+
+        .red {
+            color: red;
+        }
+
+        .dataArea .title {
+            padding: 5px 10px 0 0;
+        }
+
+        .dataArea .item {
+            padding: 0 20px 10px 0;
+        }
+
+        .action {
+            text-align: center;
+        }
+
+        .action button {
+            width: 52%;
+        }
+
+        .ac_container {
+            width: 372px !important;
+        }
+
+        .ac_input {
+            width: 340px !important;
+        }
+
+        a {
+            color: #337ab7 !important;
+            text-decoration: none !important;
+        }
+
+        .ac_navi .current {
+            color: #337ab7 !important;
+        }
+    </style>
+</head>
+<body>
+<link rel="stylesheet" th:href="@{/static/lib/jquery.ajax-combobox/css/jquery.ajax-combobox.css?v=2018101015490004}">
+<div class="ch-container">
+    <div class="row">
+        <form class="form-horizontal" method="post" onsubmit="return false;">
+            <div class="box">
+                <legend class="text-center" style="padding-bottom:15px;font-weight: bold;" contenteditable="false" th:text="${id>0?'修改赠礼配置':'添加赠礼配置'}">赠礼配置</legend>
+                <div class="dataArea">
+                    <input type="hidden" id="id" th:value="${id}">
+                    <ul>
+                        <li>
+                            <div class="form-group">
+                                <div class="col-xs-3 text-right title">配置名称</div>
+                                <div class="col-xs-8 item">
+                                    <input class="form-control" id="name" name="name" th:value="${intro.name}" type="text" placeholder="请输入名称" required/>
+                                    <p class="message error hide">错误信息</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-group">
+                                <div class="col-xs-3 text-right title">选择节点</div>
+                                <div class="col-xs-8 item">
+                                    <input type="text" id="node" name="node" th:value="${intro.node}" required>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-group">
+                                <div class="col-xs-3 text-right title">赠礼类型</div>
+                                <div class="col-xs-8 item">
+                                    <select th:field="*{intro.giftType}" class="form-control" id="giftType" name="giftType" onchange="giftTypeChange($(this).val());" required>
+                                        <option value="">请选择</option>
+                                        <option value="1">课时</option>
+                                        <option value="2">礼品</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-group">
+                                <div class="col-xs-3 text-right title">选择赠礼</div>
+                                <div class="col-xs-8 item">
+                                    <input type="text" id="gift" name="gift" th:value="${intro.gift}" required>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-group">
+                                <div class="col-xs-3 text-right title">礼品备注</div>
+                                <div class="col-xs-8 item">
+                                    <textarea class="form-control" type="text" id="giftDesc" name="giftDesc" required th:text="${intro.giftDesc}"></textarea>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-group">
+                                <div class="col-xs-3 text-right title">课程生效</div>
+                                <div class="col-xs-8 item">
+                                    <input name="packageType" type="checkbox" class="packageTypeCheckbox" value="1" th:checked="${intro.packageType==1}"/> 即时生效 <span class="message"></span><br/>
+                                    <input name="packageType" type="checkbox" class="packageTypeCheckbox" value="2" th:checked="${intro.packageType==2}"/> 正式套餐或促销后生效 <span class="message"></span>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-group">
+                                <div class="col-xs-3 text-right title">学员类型</div>
+                                <div class="col-xs-8 item">
+                                    <input name="studentType" type="checkbox" class="studentTypeCheckbox" value="0" th:checked="${intro.studentType==0}"/> 常规 <span class="message"></span><br/>
+                                    <input name="studentType" type="checkbox" class="studentTypeCheckbox" value="1" th:checked="${intro.studentType==1}"/> 测试 <span class="message"></span>
+                                    <input name="studentType" type="checkbox" class="studentTypeCheckbox" value="2" th:checked="${intro.studentType==2}"/> 市场 <span class="message"></span>
+                                    <input name="studentType" type="checkbox" class="studentTypeCheckbox" value="3" th:checked="${intro.studentType==3}"/> 员工 <span class="message"></span>
+                                    <input name="studentType" type="checkbox" class="studentTypeCheckbox" value="4" th:checked="${intro.studentType==4}"/> 个人代理 <span class="message"></span>
+                                    <input name="studentType" type="checkbox" class="studentTypeCheckbox" value="5" th:checked="${intro.studentType==5}"/> 学生代理 <span class="message"></span>
+                                    <input name="studentType" type="checkbox" class="studentTypeCheckbox" value="6" th:checked="${intro.studentType==6}"/> JP <span class="message"></span>
+                                    <br/>
+                                    <input name="studentType" type="checkbox" class="studentTypeCheckbox" value="7" th:checked="${intro.studentType==7}"/> 市场组长 <span class="message"></span>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-group action">
+                                <span class="col-xs-6 text-right">
+                                    <button class="btn btn-default" onclick="cancel();"><span>取消</span></button>
+                                </span>
+                                <span class="col-xs-6 text-left">
+                                    <button class="btn btn-primary" onclick="save();"><span>提交</span></button>
+                                </span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div th:include="/include/onload_js::onloadJSCustomEdit(~{::script})">
+        <script type="text/javascript" th:src="@{/static/lib/jquery.ajax-combobox/js/jquery.ajax-combobox.7.3.1.js?v=2018101015490007}"></script>
+        <script type="text/javascript">
+
+            $(function () {
+                $('.packageTypeCheckbox').on('click', function () {
+                    var checkedState = $(this).is(':checked');
+                    $(this).siblings().each(function () {
+                        $(this).attr('checked', false);
+                    });
+                    $(this).attr('checked', checkedState);
+                });
+
+                $('.studentTypeCheckbox').on('click', function () {
+                    var checkedState = $(this).is(':checked');
+                    $(this).siblings().each(function () {
+                        $(this).attr('checked', false);
+                    });
+                    $(this).attr('checked', checkedState);
+                });
+
+                // 初始化节点
+                $('#node').ajaxComboBox('/introduce/set/selectNode', {
+                        lang: 'zh',
+                        primary_key: "id",
+                        search_field: 'name'
+                    }
+                );
+                // 初始化促销课程列表
+                $('#gift').ajaxComboBox('/introduce/set/selectKcPackege', {
+                        lang: 'zh',
+                        search_field: 'name'
+                    }
+                );
+
+                giftTypeChange($("#giftType").val());
+
+                //表单验证
+                $('form').validate({
+                    rules: {
+                        studentType: {
+                            required: true
+                        },
+                        packageType: {
+                            required: true
+                        }
+                    },
+                    messages: {
+                        studentType: {
+                            required: "必须选择一个学员类型"
+                        },
+                        packageType: {
+                            required: "必须选择生效类型"
+                        }
+                    },
+                    focusInvalid: true,
+                    errorPlacement: function (error, element) {
+                        var errorMsg = error[0].innerHTML;
+                        var elem = element[0];
+                        // console.log(elem);
+                        $(elem).next('.message').removeClass("hide").addClass("error").html(errorMsg).show();
+                    },
+                    success: function (element) {
+                        var elem = $(element)[0].htmlFor;
+                        $(elem).next('.message').hide();
+                    }
+                });
+            });
+
+            function giftTypeChange(type) {
+                if (type == 2) {
+                    $("#gift").parent().parent().parent().hide();
+                    $("#giftDesc").parent().parent().show();
+                } else {
+                    $("#gift").parent().parent().parent().show();
+                    $("#giftDesc").parent().parent().hide();
+                }
+            }
+
+            /*
+             * 表单校验
+             *
+             */
+            function checkForm(obj) {
+                var status = $(obj).valid();
+                if (!status) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+
+            function cancel() {
+                window.event.preventDefault();
+                var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+                parent.layer.close(index); //再执行关闭
+
+                parent.window.location.reload();
+                return false;
+            }
+
+            function save() {
+                var form = $("form");
+                //表单校验
+                if (!checkForm($(form))) {
+                    return false;
+                }
+
+                var parms = $(form).serialize();
+                var url = "/introduce/set/submit/" + $("#id").val();
+                console.log("url:" + JSON.stringify(url));
+                console.log("parms:" + JSON.stringify(parms));
+                $.post(url, parms, function (res) {
+                    if (res != null && res.status == 1) {
+                        console.log(res.data.newId);
+
+                        parent.layer.msg('操作成功：' + res.msg, {icon: 1});
+
+                        var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+                        parent.layer.close(index); //再执行关闭
+                        parent.window.location.reload();
+                    } else {
+                        parent.layer.msg('操作失败：' + res.msg, {icon: 2});
+
+                        //当你在iframe页面关闭自身时
+                        var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+                        parent.layer.close(index); //再执行关闭
+                    }
+                });
+            }
+        </script>
+    </div>
+</div>
+</body>
+</html>

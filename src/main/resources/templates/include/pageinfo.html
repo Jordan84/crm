@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="pager">
+    <!-- 表单分页信息和选页按钮 -->
+    <div class="row" style="margin-top: 10px;padding:0 20px;">
+        <div class="col-md-6" style="margin-right:0;padding-right: 0">
+            <div class="info">显示第
+                <span th:text="${pageInfo.pageNum}>0?(${pageInfo.pageSize}*(${pageInfo.pageNum}-1)+1):0">pageNum</span>
+                 至
+                <span th:text="${pageInfo.pageSize}*${pageInfo.pageNum}>${pageInfo.total}?${pageInfo.total}:(${pageInfo.pageSize}*${pageInfo.pageNum})"></span>
+                项记录，共<span th:text="${pageInfo.total}">total</span> 项
+            </div>
+        </div>
+
+        <div class="col-md-6" style="margin-left:0;padding-left: 0 ">
+            <div class="info" style="float: right;">
+                当前第<span th:text="${pageInfo.pageNum}">pageNum</span>页，共<span th:text="${pageInfo.pages}">pages</span>页，
+                每页显示<span th:text="${pageInfo.pageSize}">pageSize</span>条记录
+            </div>
+        </div>
+
+        <div class="col-md-12" style="margin:0;padding-right: 10px">
+            <ul class="pager pager-sm" style="float: right;">
+                <li th:class="${pageInfo.pageNum}<=1?'disabled':'active'">
+                    <a href="javascript:void(0);" th:onclick="|goToPage(this,1)|">首页</a>
+                </li>
+                <li th:class="${pageInfo.pageNum}<2?'disabled':''">
+                    <a href="javascript:void(0);" th:onclick="|goToPage(this,${pageInfo.pageNum-1})|">上一页</a>
+                </li>
+                <li th:class="${pageInfo.pageNum}>=${pageInfo.pages}?'disabled':''">
+                    <a href="javascript:" th:onclick="|goToPage(this,${pageInfo.pageNum+1})|">下一页</a>
+                </li>
+                <li th:class="${pageInfo.pageNum}>=${pageInfo.pages}?'disabled':((${pageInfo.pages}<=1?'disabled':'active'))">
+                    <a href="javascript:void(0);" th:onclick="|goToPage(this,${pageInfo.pages})|">最后一页</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <script>
+        function goToPage(obj, pageNum) {
+            if(!$(obj).parent().hasClass('disabled')){
+                if($("#pageNum").length == 0){
+                    $('form').append("<input type=\"hidden\" value=\"" + pageNum + "\" name=\"pageNum\" id=\"pageNum\">");
+                }else{
+                    $("#pageNum").val(pageNum);
+                }
+                $('form').submit();
+            }
+        }
+    </script>
+</div>
+</body>
+</html>

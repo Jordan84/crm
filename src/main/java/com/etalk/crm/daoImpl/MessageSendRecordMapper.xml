@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.MessageSendRecordMapper" >
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.MessageSendRecord" >
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="template_id" property="templateId" jdbcType="VARCHAR" />
+        <result column="msg_title" property="msgTitle" jdbcType="VARCHAR" />
+        <result column="first_data" property="firstData" jdbcType="VARCHAR" />
+        <result column="keyword1" property="keyword1" jdbcType="VARCHAR" />
+        <result column="keyword2" property="keyword2" jdbcType="VARCHAR" />
+        <result column="keyword3" property="keyword3" jdbcType="VARCHAR" />
+        <result column="keyword4" property="keyword4" jdbcType="VARCHAR" />
+        <result column="remark" property="remark" jdbcType="VARCHAR" />
+        <result column="link_url" property="linkUrl" jdbcType="VARCHAR" />
+        <result column="state" property="state" jdbcType="INTEGER" />
+        <result column="receive_type" property="receiveType" jdbcType="INTEGER" />
+        <result column="remind_type" property="remindType" jdbcType="INTEGER" />
+        <result column="cancel_class" property="cancelClass" jdbcType="INTEGER" />
+        <result column="close_class" property="closeClass" jdbcType="INTEGER" />
+        <result column="show_start_time" property="showStartTime" jdbcType="TIMESTAMP" />
+        <result column="show_end_time" property="remindEndTime" jdbcType="TIMESTAMP" />
+        <result column="platform_name" property="platformName" jdbcType="VARCHAR" />
+        <result column="message_info" property="messageInfo" jdbcType="VARCHAR" />
+        <result column="creator" property="creator" jdbcType="VARCHAR" />
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    </resultMap>
+    <!--查询消息记录-->
+    <select id="selectMessageSendRecordList" parameterType="com.etalk.crm.pojo.MessageSendRecord" resultMap="BaseResultMap">
+        select msr.id,msr.template_id,msr.msg_title,msr.first_data,msr.keyword1,msr.keyword2,msr.keyword3,msr.keyword4,msr.remark,msr.link_url,msr.state,msr.receive_type,msr.remind_type
+          ,msr.cancel_class,msr.close_class,msr.show_end_time,msr.creator,msr.create_time
+          ,ifnull(mspr.platform_name,'')platform_name,wm.message_info
+        from message_send_record msr
+          left join (
+            select mspr.msg_send_id, group_concat(mrp.name)platform_name from message_send_platform_record mspr,message_receiving_platform mrp where mspr.receiving_platform_id=mrp.id group by msg_send_id
+          )mspr on mspr.msg_send_id=msr.id
+          left join weixin_message wm on wm.id=msr.template_id
+        <where>
+            <if test="msgTitle!=null">
+                and msr.msg_title like CONCAT('%',#{msgTitle,jdbcType=VARCHAR},'%')
+            </if>
+        </where>
+        order by msr.create_time desc
+    </select>
+
+    <!--插入消息发送记录-->
+    <insert id="insertMessageSendRecord" parameterType="com.etalk.crm.pojo.MessageSendRecord" useGeneratedKeys="true" keyProperty="id">
+        insert into message_send_record
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            template_id,msg_title,first_data,keyword1,keyword2,keyword3,keyword4,remark,link_url,state,msg_type,receive_type,remind_type,show_start_time,show_end_time,cancel_class,
+            close_class,creator,close_start_time,close_end_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            #{templateId,jdbcType=VARCHAR},  #{msgTitle,jdbcType=VARCHAR},  #{firstData,jdbcType=VARCHAR}, #{keyword1,jdbcType=VARCHAR}, #{keyword2,jdbcType=VARCHAR}, #{keyword3,jdbcType=VARCHAR},
+            #{keyword4,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{linkUrl,jdbcType=VARCHAR}, #{state,jdbcType=INTEGER}, #{isUrgentNotice,jdbcType=INTEGER},#{receiveType,jdbcType=INTEGER},
+            #{remindType,jdbcType=INTEGER}, #{showStartTime,jdbcType=TIMESTAMP}, #{showEndTime,jdbcType=TIMESTAMP}, #{cancelClass,jdbcType=INTEGER}, #{closeClass,jdbcType=INTEGER}, #{creator,jdbcType=VARCHAR},
+            #{closeStartTime,jdbcType=TIMESTAMP},#{closeEndTime,jdbcType=TIMESTAMP}
+        </trim>
+    </insert>
+    <!--修改消息提醒为不显示-->
+    <update id="updateMessageStateById" parameterType="java.lang.Integer">
+        update message_send_record set state=0 where id=#{id,jdbcType=INTEGER}
+    </update>
+
+</mapper>

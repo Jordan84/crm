@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.CcSalesTargetMapper" >
+      <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.CcSalesPerformance" >
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="sales_target" property="salesTarget" jdbcType="INTEGER" />
+        <result column="add_user_id" property="addUserId" jdbcType="INTEGER" />
+        <result column="add_time" property="addTime" jdbcType="TIMESTAMP" />
+        <result column="cc_id" property="ccId" jdbcType="INTEGER" />
+        <result column="total" property="total" jdbcType="INTEGER" />
+        <result column="target_time" property="targetTime" jdbcType="TIMESTAMP" />
+      </resultMap>
+
+    <!--cc  当前月份销售目标-->
+    <select id="thisMonthtSalesTarget" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        SELECT ifnull(sales_target,0) from cc_sales_target
+        where  DATE_FORMAT(target_time,'%Y-%m') =DATE_FORMAT(now(),'%Y-%m') and cc_id = #{ccId}
+    </select>
+     <!--cc 当前月份 销售总额-->
+    <select id="thisMonthtSales" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        SELECT
+       IFNULL( SUM( kc.pay_money ), 0 ) total
+    FROM
+        kc_orders kc
+    WHERE
+        kc.person_id IN ( SELECT p.id FROM person p WHERE p.state = 1 AND testmark IN ( 0, 5 ) AND p.user_id = #{ccId})
+        AND kc.state = 1
+        AND kc.package_type_flag IN ( 0, 2 )
+        AND DATE_FORMAT( kc.buy_time, '%Y-%m' ) = DATE_FORMAT(now(),'%Y-%m')
+    GROUP BY MONTH ( buy_time )
+    </select>
+
+    <!--某店铺本月销售额-->
+    <select id="thisMonthStoresSales" parameterType="java.util.List" resultType="java.lang.Integer">
+        SELECT
+		IFNULL( SUM( kc.pay_money ), 0 ) total,
+		kc.buy_time,
+		p.user_id
+	FROM
+		kc_orders kc
+		LEFT JOIN person p ON kc.person_id = p.id
+	WHERE
+		kc.state = 1
+		AND ifnull( p.user_id, 0 ) IN
+        <foreach collection="ccIdList" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+		AND kc.package_type_flag IN ( 0, 2 ) and p.testmark in (0,5)
+		AND DATE_FORMAT( kc.buy_time, '%Y-%m' ) = DATE_FORMAT( now( ), '%Y-%m')
+    </select>
+    <!--某店铺本月 销售目标-->
+    <select id="thisMonthStoresSalesTarget" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        SELECT ifnull(sales_target,0) from stores_sales_target
+        where  DATE_FORMAT(target_time,'%Y-%m') =DATE_FORMAT(now(),'%Y-%m') and stores_id = #{storesId}
+    </select>
+
+      <!--查询 该店铺下 的 cc -->
+    <select id="selectCcByStoresId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select id from users where state = 1 and role_id in (2,12) and  stores_id = #{storesId}
+    </select>
+    <!--查询 当前登录账号  所属店铺-->
+     <select id="selectStoresByUserId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select stores_id from users where state = 1 and role_id in (2,12) and  id = #{userId}
+    </select>
+</mapper>

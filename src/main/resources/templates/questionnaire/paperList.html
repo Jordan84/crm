@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeader('设置oc课调查问卷')">
+    <!--<body oncontextmenu="self.event.returnValue=false" onselectstart="return false">-->
+<!--<link rel="stylesheet"  th:href="@{/static/css/}" />-->
+<body style="overflow-x:hidden;overflow-y: auto">
+<div id="content" class="col-lg-12 col-sm-12">
+    <div class="row">
+        <div class="box col-md-12">
+            <div class="box-inner">
+                <div class="box-header well" data-original-title="">
+                    <h2>
+                        <i class="glyphicon glyphicon-user"></i>设置oc课调查问卷
+                    </h2>
+                    <div class="box-icon">
+                        <!-- <a href="#" class="btn btn-setting btn-round btn-default"><i class="glyphicon glyphicon-cog"></i></a> -->
+                        <a href="javascript:void(0);" id="smaller" class="btn btn-minimize btn-round btn-default"><i class="glyphicon glyphicon-chevron-up"></i></a>
+                        <!-- <a href="#"	class="btn btn-close btn-round btn-default"><i class="glyphicon glyphicon-remove"></i></a> -->
+                    </div>
+                </div>
+                <div class="box-content">
+                    <form class="form-inline" style="margin-bottom:0.5%" id="searchForm" role="form" method="post"
+                          th:action="${#request.getRequestURI()}"
+                          onsubmit="return checkForm();">
+                        <div class="form-group ">
+                            <input type="hidden" th:value="${pageInfo.pageSize}" name="pageSize" id="pageSize" class="form-control "></input>
+                            <select th:field="*{pageInfo.pageSize}" class="form-control" onchange="$('#pageSize').val($(this).val()); $('form').submit();" required>
+                                <option value="10">10条/页</option>
+                                <option value="25">25条/页</option>
+                                <option value="50">50条/页</option>
+                            </select>
+                        </div>
+                            <a  class="btn btn-primary model" role="button"><span class="glyphicon glyphicon-pencil-sign"></span> 添加模板 </a>
+                            <!--<a  th:href="|/questionnaireOc/toQuestionnaireOc/|" class="btn btn-success" role="button"><span class="glyphicon glyphicon-pencil-sign"></span> 返 回 </a>-->
+                            <div class="col-md-0">
+                                <div class="input-group input-group-sm">
+                                    <input type="hidden" th:value="${pageInfo.pageNum}" name="pageNum" id="pageNum">
+                                </div>
+                            </div>
+                    </form>
+                    <table class="table table-striped table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th style="text-align: center;">问卷名称</th>
+                            <th style="text-align: center;">创建人</th>
+                            <th style="text-align: center;">是否有效</th>
+                            <th style="text-align: center;">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="paperList : ${pageInfo.list}">
+                            <td style="text-align: center;" th:text="${paperList.paperTitle}">paperTitle</td>
+                            <td style="text-align: center;" th:text="${paperList.addUserName}">addUserName</td>
+                            <td style="text-align: center;" >
+                                <input th:type="checkbox"  th:disabled="${paperList.paperStatus==1}"  th:value="${paperList.paperId}" name="check" th:checked="${paperList.paperStatus==1}"/>
+                            </td>
+
+                            <td style="text-align: center;"><!--th:href="@{/questionnaireOc/questinnaireInfo(paperId=${paperList.paperId})}"-->
+                                <a  th:attr="paperId = ${paperList.paperId}"  class="btn btn-success detail" role="button"><span class="glyphicon glyphicon-pencil-sign"></span> 查看模板</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div th:include="include/pageinfo::pager"></div>
+                </div>
+            </div>
+        </div>
+        <!--/span-->
+    </div>
+    <!--/row-->
+    <!-- content ends -->
+</div>
+<!--/#content.col-md-0-->
+<div th:include="/include/onload_js::onloadJSCustomList(~{::script})">
+    <script>
+        $(function () {
+            $(".detail").click(function(){
+                var url = "/questionnaireOc/questinnaireInfo?paperId="+$(this).attr("paperId");
+                layer.open({
+                type: 2,
+                title: false,
+                closeBtn: 1, //显示关闭按钮
+                shade: [0],
+                area: ['60%', '95%'],
+                //offset: 'rb', //右下角弹出
+                // time: 2000, //2秒后自动关闭
+                anim: 2,
+                content: [url, 'yes'], //iframe的url，no代表不显示滚动条
+                end: function () { //此处用于演示
+                }
+            });
+        });
+
+         $(".model").click(function(){
+                var url = "/questionnaireOc/toaddPapers/";
+                layer.open({
+                type: 2,
+                title: false,
+                closeBtn: 1, //显示关闭按钮
+                shade: [0],
+                area: ['60%', '95%'],
+                //offset: 'rb', //右下角弹出
+                // time: 2000, //2秒后自动关闭
+                anim: 2,
+                content: [url, 'yes'], //iframe的url，no代表不显示滚动条
+                end: function () { //此处用于演示
+                }
+            });
+        });
+
+            $("#smaller").click(function () {
+                var box = $(this).parent().parent().next(".box-content");
+                //$(box).toggle('fast');
+                if($(box).css('display')=='none'){
+                    $("#smaller").html("<i class=\"glyphicon glyphicon-chevron-up\"></i>");
+                    $(box).show('fast');
+                }else{
+                    $("#smaller").html("<i class=\"glyphicon glyphicon-chevron-down\"></i>");
+                    $(box).hide('fast');
+                }
+            });
+        });
+
+
+        var check = $("input[name='check']");
+            $(check).click(function(){
+                if(this.checked==true){
+                    var paperId = this.value;
+                    console.info($(this).index());
+                    var th  = $(this);
+                    layer.confirm('确认要更换调查问卷模板吗？', {
+                        btn : [ '确定', '取消' ]//按钮
+                    }, function() {
+                        $.ajax({
+                         type : "POST", //提交方式
+                         url : "/questionnaireOc/updataPaperById",//路径
+                         data :JSON.stringify(paperId),//数据，这里使用的是Json格式进行传输JSON.stringify(data),
+                         dataType:"json",
+                         contentType: "application/json;charset=utf-8",
+                         success : function(result) {//返回数据根据结果进行相应的处理
+                            if(result.status==1){
+                                layer.alert(result.msg);
+                                th.attr("disabled",true);
+                                var checked = $("input[name='check']:checked");
+                                checked.each(function(i){
+                                    if(this.value != paperId){
+                                        this.checked = false;
+                                        $(this).attr("disabled",false);
+                                    }
+                                });
+                            }
+                         }
+                    });
+                    });
+                }
+             });
+        //});
+
+        function checkForm() {
+            var bl = true;
+            // $(":submit").attr("disabled", bl);
+            return bl;
+        }
+
+        function goToPage(obj, pageNum) {
+            if(!$(obj).parent().hasClass('disabled')){
+                $("#pageNum").val(pageNum);
+                $('form').submit();
+            }
+        }
+var data = {
+    "paperTitle":"oc课调查问卷",
+    "questionAndOption":[
+        {
+            "questionName":"ssaasdasasfafafaas",
+            "endnotes":"dsdsdsad",
+            "option":[
+                {
+                    "optionName":"xxxxxxxxxx",
+                    "sort":1,
+                    "value":5
+                },
+                {
+                    "optionName":"xxxxxxxxxx",
+                    "sort":2,
+                    "value":5
+                },
+                {
+                    "optionName":"xxxxxxxxxx",
+                    "sort":3,
+                    "value":5
+                }
+            ]
+        },
+        {
+            "questionName":"ssaasdasasfafafaas",
+            "endnotes":"dsdsdsad",
+            "option":[
+                {
+                    "optionName":"xxxxxxxxxx",
+                    "sort":1,
+                    "value":5
+                },
+                {
+                    "optionName":"xxxxxxxxxx",
+                    "sort":2,
+                    "value":5
+                },
+                {
+                    "optionName":"xxxxxxxxxx",
+                    "sort":3,
+                    "value":5
+                }
+            ]
+        },
+        {
+            "questionName":"ssaasdasasfafafaas",
+            "endnotes":"dsdsdsad",
+            "option":[
+                {
+                    "optionName":"xxxxxxxxxx",
+                    "sort":1,
+                    "value":5
+                },
+                {
+                    "optionName":"xxxxxxxxxx",
+                    "sort":2,
+                    "value":5
+                },
+                {
+                    "optionName":"xxxxxxxxxx",
+                    "sort":3,
+                    "value":5
+                }
+            ]
+        }
+    ]
+}
+
+    </script>
+</div>
+</body>
+</html>

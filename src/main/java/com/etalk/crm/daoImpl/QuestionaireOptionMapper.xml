@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.etalk.crm.dao.QuestionaireOptionMapper">
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.QuestionaireOption">
+        <id column="option_id" jdbcType="INTEGER" property="optionId"/>
+        <result column="question_id" property="questionId" jdbcType="INTEGER"/>
+        <result column="paper_id" property="paperId" jdbcType="INTEGER"/>
+        <result column="option_name" property="optionName" jdbcType="VARCHAR"/>
+        <result column="option_value" property="optionValue" jdbcType="INTEGER"/>
+         <result column="sort" property="sort" jdbcType="INTEGER"/>
+
+    </resultMap>
+    <select id="selectByQuestionId" resultMap="BaseResultMap">
+        select option_id ,paper_id ,question_id ,
+         option_name ,option_value ,sort
+        from questionnaire_oc_option
+        <if test="questionId != null" >
+          where question_id = #{questionId,jdbcType=INTEGER}
+        </if>
+        order by sort
+    </select>
+
+    <insert id="addOption" parameterType="com.etalk.crm.pojo.QuestionaireOption" useGeneratedKeys="true" keyProperty="id" >
+        INSERT INTO questionnaire_oc_option (question_id,paper_id,option_name,option_value,sort)
+        values(#{questionId},#{paperId}, #{optionName},#{optionValue},#{sort})
+    </insert>
+</mapper>

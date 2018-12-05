@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.etalk.crm.dao.TestPaperMapper">
+    <!-- 根据试卷标题查询试卷列表 -->
+    <select id="selectByTestPaperName" parameterType="java.util.Map" resultType="com.etalk.crm.pojo.TestPaper">
+        SELECT tp.id,tp.cn_name as cnName, tp.tpaper_type_id as tpaperTypeId,tpt.cn_name as typeCnName,tp.qddegree_id as qddegreeId,qdd.cn_name as degreeCnName,qg.id as gradeId,qg.cn_name as gradeCnName,tp.record_time as recordTime
+        FROM test_paper tp,test_paper_type tpt,question_difficulty_degree qdd,question_grade qg
+        WHERE tp.tpaper_type_id = tpt.id AND tp.qddegree_id = qdd.id AND tp.grade_id = qg.id
+        <if test="testPaperName != null and testPaperName != ''">
+            AND tp.cn_name LIKE concat(concat('%',#{testPaperName}),'%')
+        </if>
+        ORDER BY tp.record_time DESC
+    </select>
+    <!-- 根据id查询试卷 -->
+    <select id="selectByTestPaperId" parameterType="java.util.Map" resultType="com.etalk.crm.pojo.TestPaper">
+        SELECT tp.id,tp.cn_name as cnName, tp.tpaper_type_id as tpaperTypeId,tpt.cn_name as typeCnName,tp.qddegree_id as qddegreeId,qdd.cn_name as degreeCnName,qg.id gradeId,qg.cn_name as gradeCnName
+        FROM test_paper tp,test_paper_type tpt,question_difficulty_degree qdd,question_grade qg
+        WHERE tp.tpaper_type_id = tpt.id AND tp.qddegree_id = qdd.id AND tp.grade_id = qg.id
+        AND tp.id = #{testPaperId,jdbcType=INTEGER}
+    </select>
+    <!--查询试卷信息-->
+    <select id="selectPaperTypeList" resultType="com.etalk.crm.pojo.TestPaperType">
+        SELECT tpt.id as id,tpt.cn_name as cnName
+        FROM test_paper_type tpt
+    </select>
+    <!--插入试卷-->
+    <insert id="saveTestPaper" parameterType="com.etalk.crm.pojo.TestPaper" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO test_paper(
+          tpaper_type_id,
+          qddegree_id,
+          grade_id,
+          cn_name,
+          recorder,
+          record_time
+          )
+        VALUES (
+          #{tpaperTypeId},
+          #{qddegreeId},
+          #{gradeId},
+          #{cnName},
+          'admin',
+          current_timestamp
+        )
+    </insert>
+    <!-- 修改试卷信息 -->
+    <update id="updateTestPaper" parameterType="com.etalk.crm.pojo.TestPaper">
+        UPDATE test_paper
+        <trim prefix="set" suffixOverrides=",">
+            id = #{id},
+            <if test="cnName != null">
+                cn_name = #{cnName},
+            </if>
+            <if test="tpaperTypeId != null">
+                tpaper_type_id = #{tpaperTypeId},
+            </if>
+            <if test="qddegreeId != null">
+                qddegree_id = #{qddegreeId},
+            </if>
+            <if test="gradeId != null">
+                grade_id = #{gradeId},
+            </if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+    <!--插入关联信息-->
+    <insert id="batchSavePaperQBankRelation" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO test_paper_join_qbanks(
+        test_paper_id,
+        qbank_id,
+        qbank_parentid
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.testPaperId},
+            #{item.qbankId},
+            #{item.qbankParentid}
+            )
+        </foreach>
+    </insert>
+    <!-- 查询大题标题 -->
+    <select id="selectQuestionTitleList" resultType="java.util.Map">
+        SELECT qb.id,qb.title
+        FROM test_paper tp,question_banks qb,test_paper_join_qbanks tpjq
+        WHERE tp.id = tpjq.test_paper_id AND qb.id = tpjq.qbank_id
+        AND tp.id = #{testPaperId} AND qb.parentid = -1 AND tpjq.qbank_parentid = 0
+    </select>
+    <!-- 查询小题 -->
+    <select id="selectQuestionBanksList" resultType="com.etalk.crm.pojo.QuestionBanks">
+        SELECT qb.id as id,qb.input_type as inputType,qg.id as qgradeId,qg.cn_name as qgradeName,qt.id as qtypeId,qt.cn_name as qtypeName,qm.id as qmodeId,qm.cn_name as qmodeName,qdd.id as
+        qddegreeId,qdd.cn_name as qddegreeName,qb.title,qb.qtitle,qb.content,qb.audio_title as audioTitle,qb.audio_url as audioUrl,qb.content_title as contentTitle,qb.fraction,qb.state,qb.sort,qb.record_time as recordTime
+        FROM question_banks qb,question_grade qg,question_types qt,question_mode
+        qm,question_difficulty_degree qdd,test_paper tp,test_paper_join_qbanks tpjq
+        WHERE (qb.qgrade_id = qg.id AND qb.qtype_id = qt.id AND qb.qmode_id = qm.id AND
+        qb.qddegree_id = qdd.id) AND (tp.id = tpjq.test_paper_id AND qb.id = tpjq.qbank_id)
+        AND tp.id = #{testPaperId} AND tpjq.qbank_parentid = #{qbankParentid}
+    </select>
+    <!-- 删除试卷信息 -->
+    <delete id="deleteTestPaperByTestPaperId" parameterType="java.lang.Integer">
+        DELETE FROM test_paper WHERE id = #{testPaperId};
+    </delete>
+    <!-- 删除题目关联 -->
+    <delete id="deleteQBankRelation" parameterType="java.lang.Integer">
+        DELETE FROM test_paper_join_qbanks WHERE test_paper_id = #{testPaperId}
+    </delete>
+    <!-- 删除分数关联 -->
+    <delete id="deletePaperScore" parameterType="java.lang.Integer">
+        DELETE FROM test_paper_scores WHERE tpaper_id = #{testPaperId}
+    </delete>
+    <!-- 删除做题记录关联 -->
+    <delete id="deleteInputAnswer" parameterType="java.lang.Integer">
+        DELETE FROM test_paper_input_answer WHERE tpaper_score_id IN (SELECT id FROM test_paper_scores WHERE tpaper_id = #{testPaperId})
+    </delete>
+    <!-- 获取学生以及对应的试卷信息 -->
+    <select id="selectStudentAndPaper" parameterType="java.util.Map" resultType="com.etalk.crm.pojo.StudentPaper">
+        SELECT p.id as studentId,p.cn_name as studentName,tp.id as paperId,tp.cn_name as paperName,tps.id as scoreId,tps.state,tps.score
+        FROM test_paper tp,person p,test_paper_scores tps
+        WHERE tp.id = tps.tpaper_id AND p.id = tps.person_id
+        <if test="search != null and search != ''">
+            AND ((p.cn_name LIKE concat(concat('%',#{search}),'%')) OR (tp.cn_name LIKE concat(concat('%',#{search}),'%')))
+        </if>
+    </select>
+    <!-- 检查是否可以做试卷 -->
+    <select id="checkTestState" parameterType="java.util.Map" resultType="java.lang.Integer">
+        SELECT IFNULL(tps.state,0) as state
+        FROM test_paper_scores tps
+        WHERE tps.tpaper_id = #{paperId} AND tps.person_id = #{personId}
+        ORDER BY tps.record_time DESC
+        LIMIT 0,1
+    </select>
+    <!--  插入试卷学生关联信息 -->
+    <insert id="saveTestPaperScores" parameterType="java.util.Map" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        <selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="scoreId">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO test_paper_scores(
+        person_id,
+        tpaper_id,
+        record_time,
+        score,
+        state
+        )
+        VALUES (
+        #{personId},
+        #{paperId},
+        current_timestamp,
+        0,
+        0
+        )
+    </insert>
+    <!-- 修改总分数 -->
+    <update id="changeCountPaperScore" parameterType="java.util.Map">
+        UPDATE test_paper_scores
+        SET score = #{score}
+        WHERE id = #{scoreId}
+    </update>
+    <!-- 修改试卷状态 -->
+    <update id="changePaperState" parameterType="java.util.Map">
+        UPDATE test_paper_scores
+        SET state = #{state}
+        WHERE id = #{scoreId}
+    </update>
+    <!-- 批量插入做题记录 -->
+    <insert id="batchSaveInputAnswer" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO test_paper_input_answer(
+        tpaper_score_id,
+        qbank_id,
+        istrue,
+        score,
+        input_answer,
+        sort
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.tpaperScoreId},
+            #{item.qbankId},
+            #{item.istrue},
+            #{item.score},
+            #{item.inputAnswer},
+            #{item.sort}
+            )
+        </foreach>
+    </insert>
+    <!-- 查询试卷状态 -->
+    <select id="selectPaperStateByScoreId" resultType="java.lang.Integer">
+        SELECT tps.state
+        FROM test_paper_scores tps
+        WHERE tps.id = #{scoreId}
+    </select>
+    <!-- 修改当前正在做的题目的分数 -->
+    <update id="updateQuestionScore">
+        UPDATE test_paper_input_answer
+        SET score = #{score}
+        WHERE tpaper_score_id = #{scoreId} AND qbank_id = #{qbankId}
+    </update>
+</mapper>

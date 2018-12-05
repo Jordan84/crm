@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.StudentDynamicsMapper" >
+  <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.StudentDynamics" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="content" property="content" jdbcType="VARCHAR" />
+    <result column="student_login" property="studentLogin" jdbcType="VARCHAR" />
+    <result column="add_time" property="addTime" jdbcType="TIMESTAMP" />
+    <result column="add_user" property="addUser" jdbcType="VARCHAR" />
+    <result column="add_user_id" property="addUserId" jdbcType="INTEGER" />
+    <result column="person_id" property="personId" jdbcType="INTEGER" />
+
+    <result column="remind_time" property="remindTime" jdbcType="TIMESTAMP" />
+    <result column="state" property="state" jdbcType="INTEGER" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+      <result column="questionnaire_id" property="questionnaireId" jdbcType="INTEGER" />
+  </resultMap>
+  <!-- 添加学生动态信息 -->
+	<insert id="addStuDynamic" parameterType="com.etalk.crm.pojo.StudentDynamics" useGeneratedKeys="true" keyProperty="id" >
+		insert into student_dynamics(
+			content,student_login,add_time,add_user,add_user_id,person_id,questionnaire_id
+		) values (
+			#{content,jdbcType=VARCHAR},#{studentLogin,jdbcType=VARCHAR},
+			#{addTime,jdbcType=TIMESTAMP},
+			#{addUser,jdbcType=VARCHAR},
+			#{addUserId,jdbcType=INTEGER},
+			#{personId,jdbcType=INTEGER},
+            #{questionnaireId,jdbcType=INTEGER}
+		)
+	</insert>
+	<!-- 根据学生id查询学生的动态信息 -->
+	<!--<select id="searchInfoByStudentId" parameterType="int" resultMap="BaseResultMap">-->
+		<!--&lt;!&ndash; select * from student_dynamics where person_id = ${_parameter}-->
+		<!--order by add_time desc &ndash;&gt;		-->
+		<!--select content,sd.add_time,tr.user_id as add_user_id,sd.add_user,tr.id,tr.remind_time,tr.state,srs.`name`-->
+		<!--from student_dynamics sd-->
+			<!--LEFT JOIN person p ON p.id=sd.person_id-->
+			<!--LEFT JOIN track_remind tr ON tr.dynamics_id=sd.id-->
+			<!--LEFT JOIN student_revisit_status srs ON srs.id=tr.revisit_status_id-->
+		<!--where sd.person_id = #{personId,jdbcType=INTEGER}-->
+		<!--order by add_time desc-->
+	<!--</select>-->
+</mapper>

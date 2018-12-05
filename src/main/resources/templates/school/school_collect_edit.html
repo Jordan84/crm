@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:include="/include/head::commonHeaderCustomEdit((${collectId}?'修改学校采集信息':'添加学校采集信息'),~{::style})">
+    <style type="text/css">
+        .error {
+            color: red;
+            border-color: red;
+        }
+
+        .error:focus {
+            color: red;
+            border-color: red;
+        }
+
+        .red {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<!--<body oncontextmenu="self.event.returnValue=false" onselectstart="return false">-->
+<div class="ch-container">
+    <div class="row">
+        <form class="form-horizontal" method="post" onsubmit="return false;">
+            <div class="box col-md-12">
+                <legend style="padding-bottom:15px;" contenteditable="false">学校采集信息</legend>
+                <div id="dataArea">
+                    <ul>
+                        <li>
+                            <div class="form-group">
+                                <input type="hidden" id="cid" name="id" th:value="${collectInfo.id}">
+                                <input type="hidden" id="schoolId" name="schoolId" th:value="${collectInfo.schoolId}">
+                                <!-- 采集时间ID -->
+                                <input type="hidden" name="collectTime[0].id"
+                                       th:value="${collectInfo.collectTime.size()>=1?(collectInfo.collectTime.get(0).id):''}">
+                                <input type="hidden" name="collectTime[1].id"
+                                       th:value="${collectInfo.collectTime.size()>=2?(collectInfo.collectTime.get(1).id):''}">
+                                <input type="hidden" name="collectTime[2].id"
+                                       th:value="${collectInfo.collectTime.size()>=3?(collectInfo.collectTime.get(2).id):''}">
+                                <!-- 采集日期ID -->
+                                <input type="hidden" name="collectDate[0].id"
+                                       th:value="${collectInfo.collectDate.size()>=1?(collectInfo.collectDate.get(0).id):''}">
+                                <input type="hidden" name="collectDate[1].id"
+                                       th:value="${collectInfo.collectDate.size()>=2?(collectInfo.collectDate.get(1).id):''}">
+                                <input type="hidden" name="collectDate[2].id"
+                                       th:value="${collectInfo.collectDate.size()>=3?(collectInfo.collectDate.get(2).id):''}">
+                                <input type="hidden" name="collectDate[3].id"
+                                       th:value="${collectInfo.collectDate.size()>=4?(collectInfo.collectDate.get(3).id):''}">
+                                <input type="hidden" name="collectDate[4].id"
+                                       th:value="${collectInfo.collectDate.size()>=5?(collectInfo.collectDate.get(4).id):''}">
+                                <label class="control-label col-sm-2">
+                                    <i class="red">*</i>选择录入城市:
+                                </label>
+                                <div id="citys" class="form-inline col-sm-10">
+                                    <select class="form-control" name="provinceCode" required></select> 省
+                                    <select class="form-control" name="cityCode" required></select> 市
+                                    <select class="form-control" name="areaCode" required></select> 区
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-group">
+                                <label class="control-label col-sm-2"><i class="red">*</i>是否非学校:</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control" onchange="isSchoolChange()" id="isSchool"
+                                            name="schoolInfo.isSchool" required>
+                                        <option value="">请选择</option>
+                                        <option value="1" th:selected="${collectInfo.schoolInfo?.isSchool==1}">非学校</option>
+                                        <option value="0" th:selected="${collectInfo.schoolInfo?.isSchool==0}">学校</option>
+                                    </select>
+                                    <p class="message error hide">错误信息</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-group">
+                                <label class="control-label col-sm-2"><i class="red">*</i>地点/学校:</label>
+                                <div class="col-sm-10">
+                                    <input class="form-control" id="schoolName" name="schoolInfo.schoolName" type="text"
+                                           th:value="${collectInfo.schoolName}" data-toggle="tooltip"
+                                           data-placement="top" title="请输入地点/学校" placeholder="请输入地点/学校" required/>
+                                    <p class="message error hide">错误信息</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li id="liTime">
+                            <div class="form-group">
+                                <label class="control-label col-sm-2">采集时间:</label>
+                                <div th:each="time,timeStat:${collectInfo.collectTime}" th:remove="tag">
+                                    <div class="col-sm-2">
+                                        <input class="form-control"
+                                               th:name="'collectTime['+${timeStat.index}+'].collectTime'"
+                                               th:value="${#dates.format(time.collectTime,'HH:mm')}" type='text'
+                                               onFocus="WdatePicker({dateFmt:'HH:mm'})"
+                                               data-toggle="tooltip" data-placement="top"
+                                               th:title="'请输入采集时间'+${timeStat.index+1}"
+                                               th:placeholder="'请输入采集时间'+${timeStat.index+1}"/>
+                                        <p class="message error hide">错误信息</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li id="liSubway">
+                            <div class="form-group">
+                                <label class="control-label col-sm-2">最近地铁站:</label>
+                                <div class="col-sm-10">
+                                    <input class="form-control" id="subway" name="subway" type="text"
+                                           th:value="${collectInfo.subway}" data-toggle="tooltip" data-placement="top"
+                                           title="请输入地铁站" placeholder="请输入地铁站"/>
+                                    <p class="message error hide">错误信息</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-group">
+                                <label class="control-label col-sm-2">效果:</label>
+                                <div class="col-sm-10">
+                                    <input class="form-control" id="effect" name="effect" type="text"
+                                           th:value="${collectInfo.effect==1?'好':collectInfo.effect==2?'一般':'差'}"
+                                           disabled/>
+                                    <p class="message error hide">错误信息</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li id="liDesc">
+                            <div class="form-group">
+                                <label class="control-label col-sm-2">学校情况备注:</label>
+                                <div class="col-sm-10">
+                                    <textarea class="form-control" id="schoolDesc" name="schoolDesc"
+                                              th:utext="${collectInfo.schoolDesc}"></textarea>
+                                    <p class="message error hide">错误信息</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li id="liPolice">
+                            <div class="form-group">
+                                <label class="control-label col-sm-2">有无保安驱赶:</label>
+                                <div class="form-inline col-sm-10">
+                                    <input class="form-control" name="hasPolice" type="radio" value="1"
+                                           th:checked="${collectInfo.hasPolice==1}"/>有
+                                    <input class="form-control" name="hasPolice" type="radio" value="0"
+                                           th:checked="${collectInfo.hasPolice==0 || collectInfo.hasPolice==null}"/>无
+                                    <p class="message error hide">错误信息</p>
+                                </div>
+                            </div>
+                        </li>
+                        <div id="liDate">
+                        <div th:each="date,dateStat:${collectInfo.collectDate}" th:remove="tag">
+                            <li>
+                                <div class="form-group">
+                                    <label class="control-label col-sm-2" th:text="'采集日期'+${dateStat.index+1}+':'">采集日期1:</label>
+                                    <div class="col-sm-2">
+                                        <input class="form-control"
+                                               th:name="'collectDate['+${dateStat.index}+'].collectDate'"
+                                               th:value="${#dates.format(date.collectDate, 'yyyy-MM-dd')}"
+                                               onFocus="WdatePicker({dateFmt:'yyyy-MM-dd'})"
+                                               data-toggle="tooltip" data-placement="top"
+                                               th:title="'请输入采集日期'+${dateStat.index+1}"
+                                               th:placeholder="'请输入采集日期'+${dateStat.index+1}"/>
+                                        <p class="message error hide">错误信息</p>
+                                    </div>
+                                </div>
+                            </li>
+                        </div>
+                        </div>
+                    </ul>
+                </div>
+            </div>
+            <div class="box col-md-12">
+                <fieldset style="text-align: center;">
+                    <legend contenteditable="false"></legend>
+                    <button class="btn btn-danger" type="button" onclick="cancel();">取消</button>
+                    <button class="btn btn-success" type="submit" onclick="submitForm(this);" id="btnSubmit"
+                            data-loading-text="保存中..." style="margin:0 20px;">保存
+                    </button>
+                </fieldset>
+            </div>
+        </form>
+        <!--/form-->
+        <!--/row-->
+    </div>
+    <!--/#content.col-->
+</div>
+<!--/fluid-row-->
+<!-- content ends -->
+<div th:include="/include/onload_js::onloadJSCustomEdit(~{::script})">
+    <script th:src="@{/static/js/jquery-citys.js}"></script>
+    <script src="../../static/My97DatePicker/WdatePicker.js" th:src="@{/static/My97DatePicker/WdatePicker.js}"></script>
+    <script th:inline="javascript">
+
+        /*<![CDATA[*/
+        var currentProvinceCode = /*[[${collectInfo.provinceCode}]]*/0;//当前省
+        var currentCityCode = /*[[${collectInfo.cityCode}]]*/0;//当前市
+        var currentAreaCode = /*[[${collectInfo.areaCode}]]*/0;//当前区
+        /*]]>*/
+
+        // 初始化省市区
+        var options = {
+            url: '/school/city',
+            selProvince: 'provinceCode',
+            selCity: 'cityCode',
+            selArea: 'areaCode',
+            type: 'code',
+            province: currentProvinceCode,
+            city: currentCityCode,
+            area: currentAreaCode
+        };
+
+        $(function () {
+            //初始化省市区下拉
+            $('#citys').citys(options);
+
+            //表单验证
+            $('form').validate({
+                rules: {
+                    schoolName: {
+                        required: true,
+                        remote: {
+                            type: "POST",
+                            url: "/school/checkSchoolName",
+                            data: {
+                                schoolName: function () {
+                                    return $("#schoolName").val();
+                                }
+                            },
+                            dataFilter: function (data, type) {
+                                console.log("data:" + data + " type:" + type);
+                                var resultJson = eval("(" + data + ")");
+                                console.log("result:" + resultJson.data.result);
+                                if (resultJson.data.result == true) {
+                                    return true;
+                                }
+                                else {
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                },
+                messages: {
+                    schoolName: {
+                        remote: "该学校已存在"
+                    }
+                },
+                focusInvalid: true,
+                errorPlacement: function (error, element) {
+                    var errorMsg = error[0].innerHTML;
+                    var elem = element[0];
+                    $(elem).next('.message').removeClass("hide").addClass("error").html(errorMsg).show();
+                },
+                success: function (element) {
+                    var elem = $(element)[0].htmlFor;
+                    $(elem).next('.message').hide();
+                }
+            });
+        });
+
+        $(document).ready(function () {
+            isSchoolChange();
+        });
+
+        /*
+         * 表单校验
+         *
+         */
+        function checkForm(obj) {
+            var status = $(obj).valid();
+            if (!status) {
+                //没有通过验证
+                $("#btnSubmit").button('reset');
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        /**
+         * 初始化表单，用于后台接受数据
+         *
+         **/
+        function initForm(elemObj, index) {
+            var elems = $(elemObj);
+            for (var i = 0; i < elems.length; i++) {
+                var name = $(elems[i]).attr("name");
+                console.log("elems[" + (i + 1) + "].name:" + name);
+                //修改name值用于后台接收
+                //console.log(name);
+                //console.log(name.indexOf("models["));
+                if (name.indexOf("models[") > -1) {
+                    console.log("name值已经修改过了，防止重复初始化");
+                    continue;
+                } else {
+                    var newName = "models[" + index + "]." + name;
+                    $(elems[i]).attr("name", newName);
+                }
+                //console.log("elems[" + (i + 1) + "].newName:" + newName);
+            }
+            console.log("form init finished");
+        }
+
+        function submitForm(obj) {
+            $(obj).button('loading');
+
+            var form = $("form");
+
+            //表单校验
+            if (!checkForm($(form))) {
+                $(obj).button('reset');
+                return false;
+            }
+
+            initForm("#dataArea :input", 0);
+
+            //序列化表单
+            var formData = $(form).serialize();
+            var formDataArray = $(form).serializeArray();
+            console.log("post formData:" + JSON.stringify(formData));
+            console.log("post formDataArray:" + JSON.stringify(formDataArray));
+
+            $.post("/school/collect/submit", formData, function (res) {
+                $(obj).button('reset');
+                console.log(JSON.stringify(res));
+                if (res != null && res.status == 1) {
+                    cancel();
+                    parent.layer.msg('操作成功', {icon: 1});
+                    parent.window.location.reload();
+                } else {
+                    parent.layer.msg('操作失败：' + res.msg, {icon: 2});
+                }
+            });
+        }
+
+        function cancel() {
+            var fancyObj = parent.$.fancybox;
+            parent.$.fancybox.close();
+        }
+
+        function isSchoolChange() {
+            if ($("#isSchool").val() == "1") {
+                $("#liTime").hide();
+                $("#liSubway").hide();
+                $("#liDesc").hide();
+                $("#liPolice").hide();
+                $("#liDate").hide();
+            } else {
+                $("#liTime").show();
+                $("#liSubway").show();
+                $("#liDesc").show();
+                $("#liPolice").show();
+                $("#liDate").show();
+            }
+        }
+    </script>
+</div>
+</body>
+
+</html>

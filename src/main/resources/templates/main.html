@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderCustom('Etalk CRM',~{::style})">
+    <style>
+        body{
+            min-height: auto;
+            overflow: hidden;
+        }
+        .main{
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            font-size: 0.12rem;
+            overflow: hidden;
+        }
+        .main .mainNav{
+            width: 100%;
+            height: 0.5rem;
+            line-height: 0.5rem;
+            background: #1d9be5;
+            padding: 0 0.2rem;
+            display: flex;
+            display: -webkit-flex;
+            box-sizing: border-box;
+        }
+        .main .mainNav .logo{
+            width: 1.5rem;
+            color: #fff;
+            height: 0.6rem;
+            font-size: 0.2rem;
+            font-weight: bold;
+        }
+        .main .mainNav .menu{
+            flex:1;
+            -webkit-flex:1;
+        }
+        .main .mainNav .mobileMenu{
+            color: #fff;
+            display: none;
+            font-size: 0.22rem;
+            float: right;
+            margin-top: 0.15rem;
+        }
+        .main .mainNav .menu>ul{
+            width: 100%;
+            display: flex;
+            display: -webkit-flex;
+            padding: 0 0.2rem;
+            box-sizing:border-box;
+            -webkit-box-sizing:border-box;
+        }
+        .main .mainNav .menu>ul>li{
+            width: 1rem;
+            font-size: 0.14rem;
+            float: left;
+            color: #fff;
+            text-align: center;
+            cursor:pointer;
+            position: relative;
+        }
+        .main .mainNav .menu>ul>li .mobileSubmenu{
+            font-size: 0.12rem;
+            background: #f9fbfe;
+            border-radius: 0.04rem;
+        }
+        .main .mainNav .menu>ul>li .mobileSubmenu span{
+            color: #1c9be5;
+        }
+        .main .mainNav .menu>ul>li:hover{
+            background: #0b8ad5;
+        }
+        .main .mainNav .menu>ul>.active{
+            background: #3ba887;
+        }
+        .main .mainNav .submenu{
+            font-size:0.2rem;
+            color:#fff;
+        }
+        .main .mainNav .submenu i{
+            cursor:pointer;
+            padding: 0 0.05rem;
+        }
+        .main .mainContent{
+            width: 100%;
+            height: calc(100% - 0.5rem);
+            height: -webkit-calc(100% - 0.5rem);
+            position: relative;
+        }
+        .main .mainContent .subNav{
+            width: 1.8rem;
+            height: 100%;
+            border-right: 0.05rem solid #ddd;
+        }
+        .main .mainContent .subNav .title{
+            width: 100%;
+            height: 0.4rem;
+            line-height: 0.4rem;
+            background: #505050;
+            padding: 0 0.1rem;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+        .main .mainContent .subNav .title p{
+            color: #fff;
+            font-size: 0.16rem;
+            font-weight: normal;
+        }
+        .main .mainContent .subNav .title i{
+            float: right;
+            cursor: pointer;
+            margin-top: 0.13rem;
+            font-size: 0.14rem;
+        }
+        .main .mainContent .subNav .menucontent{
+            width: 100%;
+            height: calc(100% - 0.4rem);
+            height: -webkit-calc(100% - 0.4rem);
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .main .mainContent .subNav .menucontent>ul{
+            width: 100%;
+            height: auto;
+            overflow: hidden;
+        }
+        .main .mainContent .subNav .menucontent>ul>li{
+            width: 100%;
+            min-height: 0.4rem;
+            line-height: 0.4rem;
+            font-size: 0.14rem;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            cursor: pointer;
+            position: relative;
+        }
+        .main .mainContent .subNav .menucontent>ul>li>span{
+            width: 100%;
+            height: 0.4rem;
+            display: block;
+            padding: 0 0.1rem;
+            border-bottom: 1px solid #ececec;
+            color: #333;
+        }
+        .main .mainContent .subNav .menucontent>ul>li span:hover{
+            background: #f4f4f4;
+        }
+        .main .mainContent .subNav .menucontent>ul>li i{
+            position: absolute;
+            right: 0.1rem;
+            top: 0.15rem;
+        }
+        .main .mainContent .subNav .menucontent>ul>li>ul{
+            display: block;
+            font-size: 0.12rem;
+            background: #f7f8fa;
+            display: none;
+        }
+        .main .mainContent .subNav .menucontent>ul>li>ul>li{
+            padding: 0 0.25rem;
+            border-bottom:1px solid #e8e0ef;
+            color: #666;
+        }
+        .main .mainContent .subNav .menucontent>ul>li>ul>li:hover{
+            background: #f4f4f4;
+        }
+        .main .mainContent .showSubNav{
+            width: 0.3rem;
+            height: 100%;
+            cursor: pointer;
+            background: #505050;
+            color: #fff;
+            font-size: 0.14rem;
+            padding: 0.05rem;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            display: none;
+            border-right: 0.05rem solid #ddd;
+        }
+        .main .mainContent .contentdiv{
+            width: calc(100% - 1.85rem);
+            height: 100%;
+            position: absolute;
+            top: 0rem;
+            left: 1.85rem;
+            overflow: hidden;
+        }
+        .main .mainContent .contentdiv .tab{
+            width: 100%;
+            height: auto;
+            background: #efefef;
+            overflow-x: auto;
+        }
+        .main .mainContent .contentdiv .tab ul{
+            width: 100%;
+            height: 0.4rem;
+            overflow-x: auto;
+        }
+        .main .mainContent .contentdiv .tab ul li{
+            min-width: 0.5rem;
+            padding: 0 0.15rem;
+            height: 0.4rem;
+            line-height: 0.4rem;
+            font-size: 0.14rem;
+            text-align: center;
+            display: inline-block;
+            color: #999;
+            cursor: pointer;
+            position: relative;
+        }
+        .main .mainContent .contentdiv .tab ul li:hover{
+            color: #333;
+        }
+        .main .mainContent .contentdiv .tab ul .active{
+            background: #fff;
+            color: #333;
+        }
+        .main .mainContent .contentdiv .tab ul li .close{
+            position: absolute;
+            top: 0.02rem;
+            right: 0.02rem;
+            font-size: 0.12rem;
+        }
+        .main .mainContent .contentdiv .tab ul li .refresh{
+            position: absolute;
+            top: 0.02rem;
+            left: 0.03rem;
+            font-size: 0.12rem;
+            color: #ccc;
+        }
+        .main .mainContent .contentdiv .tab ul li .refreshanimation{
+            animation: refreshAnimation 1s linear 0s infinite normal;
+        }
+        .main .mainContent .contentdiv .tab ul li .refresh:hover{
+            color: #666;
+        }
+        .main .mainContent .contentdiv .content{
+            width: 100%;
+            height: calc(100% - 0.4rem);
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        .main .mainContent .contentdiv .content iframe{
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+        }
+        #mask{
+            display: none;
+            height: 100%;
+            width: 100%;
+            position: fixed;
+            *position: absolute;
+            *height: 1380px;
+            background: black;
+            top:0;
+            left: 0;
+            opacity:0.6;
+        }
+        .password{
+            font-size: 0.16rem;
+            padding: 0.1rem;
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            padding-bottom: 0;
+        }
+        .password li{
+            margin: 0.1rem;
+        }
+        .password li span{
+            margin-bottom: 0.04rem;
+            display: block;
+        }
+        .password li p{
+
+        }
+        .password li p input{
+            width: 100%;
+            padding-left: 0.1rem;
+            height: 0.28rem;
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+        }
+        @media all and (max-width: 950px) {
+            .submenu{
+                display: none;
+            }
+            .main .mainNav .mobileMenu{
+                display: block;
+            }
+            .main .mainNav .menu>ul{
+                position: absolute;
+                width: 1.4rem;
+                z-index: 2;
+                background: #1c9be5;
+                top: 0.5rem;
+                right: 0;
+                display: none;
+                max-height: calc(100% - 0.5rem);
+                overflow-y: auto;
+            }
+            .main .mainContent .subNav{
+                position: absolute;
+                z-index: 2;
+                background: #1c9be5;
+                display: none;
+                height: auto;
+                color: #fff;
+                right: 1.4rem;
+                border: none;
+            }
+            .main .mainNav .menu>ul>li:hover{
+                background: none;
+            }
+            .main .mainContent .subNav .title{
+                display:none;
+            }
+            .main .mainContent .subNav .menucontent>ul>li>span{
+                color:#fff;
+            }
+            .main .mainContent .showSubNav{
+                display:none;
+            }
+            .main .mainContent .contentdiv{
+                width: 100%;
+                left: 0;
+            }
+            .main .mainContent .contentdiv .content{
+                overflow: auto;
+                -webkit-overflow-scrolling:touch;
+                width:100%;
+                height:100%;
+            }
+            .main .mainContent .contentdiv .content iframe{
+                overflow: scroll;
+                -webkit-overflow-scrolling: touch;
+                min-width: 100%;
+                *width:100%;
+                width:1px;
+            }
+        }
+        @keyframes refreshAnimation{
+            form:{
+                transform: rotate(0deg);
+            }
+            to{
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <!-- 头部导航栏 -->
+        <div class="mainNav">
+            <a href="http://www.etalk365.com/" target="_blank" style="text-decoration: none;">
+            <span class="logo">
+               Etalk CRM
+            </span></a>
+            <span class="menu">
+                <i class="fa fa-align-justify mobileMenu" style="color: #fff"></i>
+                <ul th:remove="all-but-first">
+                    <li th:each="menu,iterStat:${mainMenu}" th:text="${menu.menuName}" th:onclick="'getChildMenu('+${menu.id}+','+${menu.jurisdictionId}+',this);'">
+                        首页
+                    </li>
+                    <li>
+                        学员管理
+                    </li>
+                    <li>
+                        教师管理
+                    </li>
+                     <li>
+                        课程管理
+                    </li>
+                    <li>
+                        营销管理
+                    </li>
+                    <li>
+                        报表管理
+                    </li>
+                    <li>
+                        后台管理
+                    </li>
+                </ul>
+            </span>
+            <span class="submenu">
+                <i class="dropdown">
+                    <span class="fa fa-question-circle dropdown-toggle" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"></span>
+                    <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenu1">
+                        <li><a class="ajax-link" href="https://shimo.im/docs/1MBmyqO9yi81pJ1w/" target="_blank">我是课程顾问</a></li>
+                        <li class="divider"></li>
+                        <li><a href="https://shimo.im/docs/bPHnQZ6ExhY9tkNl/" target="_blank">我是学习顾问</a></li>
+                        <li class="divider"></li>
+                        <li><a href="https://shimo.im/docs/1o1LgAmaNYI87YGJ/" target="_blank">我是加盟店长</a></li>
+                        <li class="divider"></li>
+                        <li><a href="https://shimo.im/docs/6CHefEmOoIoRlEtN/" target="_blank">产品客服手册V1.0</a></li>
+                        <li class="divider"></li>
+                        <li><a href="https://shimo.im/docs/QdeUf0hN6tkLmwiU/" target="_blank">ET&APP产品操作指引</a></li>
+                    </ul>
+                </i>
+                <i class="fa fa-bell-o"></i>
+                <i class="fa fa-stack-exchange"></i>
+                <i class="dropdown">
+                    <span class="fa fa-gear" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"></span>
+                    <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenu2">
+                        <li><a style="font-style: normal;" class="changepwd">修改密码</a></li>
+                        <li class="divider"></li>
+                        <li><a style="font-style: normal;" href="loginOut">退出登陆</a></li>
+                    </ul>
+                </i>
+            </span>
+        </div>
+        <div class="mainContent">
+            <!-- 左侧子导航栏 -->
+            <div class="subNav">
+                <h4 class="title">
+                    <p>
+                        首页<i class="fa fa-align-justify hideSubNav"></i>
+                    </p>
+                </h4>
+                <div class="menucontent">
+                    <ul th:remove="body">
+                        <li class="hasThird">
+                            <span>个人中心</span>
+                            <i class="fa fa-sort-down"></i>
+                            <ul>
+                                <li>
+                                    个人设置
+                                </li>
+                                <li>
+                                    提醒信息
+                                </li>
+                                <li>
+                                    个人资料
+                                </li>
+                            </ul>
+                        </li>
+                        <li><span>邮件</span></li>
+                        <li><span>通知公告</span></li>
+                        <li><span>日程</span></li>
+                        <li><span>会议</span></li>
+                        <li><span>我的考勤</span></li>
+                        <li><span>工作日报</span></li>
+                        <li><span>单据查看</span></li>
+                        <li><span>单据提醒</span></li>
+                        <li><span>我的下属日报</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="showSubNav">
+                <i class="fa fa-align-justify hideSubNav"></i>打开导航
+            </div>
+            <!-- 右侧内容 -->
+            <div class="contentdiv">
+                <!-- 标签页 -->
+                <div class="tab">
+                    <ul>
+                        <li class="active tabItem" id="1" th:attr="linkurl=${oldCrmUrl}+'admin/main.action?userToken='+${session.userToken}">
+                            <i class="fa fa-refresh refresh"></i>
+                            首页
+                        </li>
+                    </ul>
+                </div>
+                <!-- 内容 -->
+                <div class="content">
+                    <iframe src="http://www.etalk365.com" th:src="@{${oldCrmUrl}+'admin/main.action?userToken='+${session.userToken}}" frameborder="0" name="ifm" id="ifm"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- loading -->
+    <div id="loading"></div>
+    <div id="mask"></div>
+    <div th:include="/include/onload_js::onloadJSCustom(~{::script})">
+        <script src="//hnres.etalk365.com/public/lib/isMobile/isMobile.js"></script>
+        <script th:inline="javascript">
+            // 判断移动端
+            if (ismobile() > 0) {
+                // 开关菜单
+                $('.mobileMenu').click(function () {
+                    $('.main .mainNav .menu>ul').toggle('fast')
+                })
+            }
+            // 页面加载监控
+            window.paceOptions = {
+                ajax: true,
+                eventLag: false,
+                elements: false
+            }
+
+            /**
+             * ajax加载进度
+             **/
+            var spinner;
+            var opts = {
+                lines: 10, // 花瓣数目
+                length: 8, // 花瓣长度
+                width: 2, // 花瓣宽度
+                radius: 8, // 花瓣距中心半径
+                corners: 1, // 花瓣圆滑度 (0-1)
+                rotate: 0, // 花瓣旋转角度
+                direction: 1, // 花瓣旋转方向 1: 顺时针, -1: 逆时针
+                color: '#fff', // 花瓣颜色
+                speed: 1, // 花瓣旋转速度
+                trail: 60, // 花瓣旋转时的拖影(百分比)
+                shadow: true, // 花瓣是否显示阴影
+                hwaccel: false, //spinner 是否启用硬件加速及高速旋转
+                className: 'spinner', // spinner css 样式名称
+                zIndex: 2e9, // spinner的z轴 (默认是2000000000)
+                top: '50%', // spinner 相对父容器Top定位 单位 px
+                left: '50%'// spinner 相对父容器Left定位 单位 px
+            };
+
+            function showLoading(){
+                //显示遮罩层
+                $("#mask").css("display","block");
+                var target = document.getElementById('loading');
+                // 防止创建过多Spinner
+                if(spinner == null){
+                    spinner = new Spinner(opts);
+                }
+                spinner.spin(target);
+            }
+
+            function hideLoading(){
+                //隐藏遮罩层
+                $("#mask").css("display","none");
+                spinner.spin();
+            }
+
+            $(document).bind("ajaxSend", function () {
+                showLoading();
+            }).bind("ajaxComplete", function () {
+                hideLoading();
+            });
+
+            $(function () {
+                /*
+                * 关闭侧边导航栏
+                * */
+                $('.hideSubNav').click(function (e) {
+                    e.preventDefault()
+                    $('.subNav').hide()
+                    $('.showSubNav').show()
+                    $('.contentdiv').css({left: '0.3rem', width: 'calc(100% - 0.3rem)'})
+                })
+
+                /*
+                * 打开侧边导航栏
+                * */
+                $('.showSubNav').click(function (e) {
+                    e.preventDefault()
+                    $('.subNav').show()
+                    $('.showSubNav').hide()
+                    $('.contentdiv').css({left: '1.85rem', width: 'calc(100% - 1.85rem)'})
+                })
+
+            });
+            //自定义startsWith函数
+            String.prototype.startWith=function(str){
+                var reg=new RegExp("^"+str);
+                return reg.test(this);
+            }
+			// 首页刷新功能初始化
+            $('.refresh').unbind('click')
+            $('.refresh').click(function () {
+                var iconthis = $(this)
+                iconthis.addClass('refreshanimation')
+                var _this = $(this).parent();
+                var prevurl = _this.prev().attr("linkurl");
+                var iframArr = $('.content iframe');
+                for (var i = 0; i < iframArr.length; i++) {
+                    if (iframArr.eq(i).attr('src') === _this.attr("linkurl")) {
+                        iframArr.eq(i).attr('src', _this.attr("linkurl"))
+                        iframArr.eq(i).on('load', function() {
+                            iconthis.removeClass('refreshanimation')
+                        })
+                        break;
+                    }
+                }
+            })
+            function tabListInit (id,name,url) {
+                /*var oldUrl="http://www.etalk365.com/";*/
+                /*var oldUrl="http://testcrm.etalk365.com:882/";*/
+                /*var oldUrl="http://localhost/";*/
+                var oldUrl=[[${oldCrmUrl}]];
+                if (url.startWith("admin/") || url.startWith("weixin/")){
+                    url=oldUrl+url;
+                }
+                console.log(url);
+                if ($('.tab ul').find("#"+id).length==0){
+                    $('.tab ul').find('li').removeClass('active')
+                    var lihtml='<li class="tabItem active" id="' + id + '" linkurl="' + url + '">' + name + '<i class="fa fa-close close"></i><i class="fa fa-refresh refresh"></i></li>';
+                    $('.tab ul').append(lihtml);
+                    // $('.content iframe').attr('src', url);
+                    iframControl(url)
+                }else {
+                    $('.tab ul').find('li').removeClass('active')
+                    $('.tab ul').find("#"+id).addClass("active");
+                    var url = $('.tab ul').find("#"+id).attr("linkurl");
+                    iframControl(url)
+                }
+                $('.close').unbind('click')
+                $('.close').click(function () {
+                    var _this = $(this).parent();
+                    var prevurl = _this.prev().attr("linkurl");
+                    var iframArr = $('.content iframe');
+                    for (var i = 0; i < iframArr.length; i++) {
+                        if (iframArr.eq(i).attr('src') === _this.attr("linkurl")) {
+                            iframArr.eq(i).remove();
+                            break;
+                        }
+                    }
+                    if (_this.hasClass("active")) {
+                        _this.prev().addClass("active");
+                        if (prevurl !== undefined) {
+                            iframControl(prevurl)
+                        }
+                        /*var isOnLoad = true;
+                        showLoading();
+                        $('.content iframe').attr('src', _this.prev().attr("linkurl"));
+                        $('.content iframe').load(function() {
+                            isOnLoad = false;// 加载完成
+                            hideLoading();
+                        });*/
+                    }
+                    _this.remove();
+                })
+                $('.refresh').unbind('click')
+                $('.refresh').click(function () {
+                    var iconthis = $(this)
+                    iconthis.addClass('refreshanimation')
+                    var _this = $(this).parent();
+                    var prevurl = _this.prev().attr("linkurl");
+                    var iframArr = $('.content iframe');
+                    for (var i = 0; i < iframArr.length; i++) {
+                        if (iframArr.eq(i).attr('src') === _this.attr("linkurl")) {
+                            iframArr.eq(i).attr('src', _this.attr("linkurl"))
+                            iframArr.eq(i).on('load', function() {
+                                iconthis.removeClass('refreshanimation')
+                            })
+                            break;
+                        }
+                    }
+                })
+                $('.tabItem').click(function () {
+                    if (!$(this).hasClass("active")) {
+                        $('.tab ul').find('li').removeClass('active');
+                        $(this).addClass('active');
+                        var url = $(this).attr('linkurl');
+                        iframControl(url)
+                        /*var isOnLoad = true;
+                        showLoading();
+                        $('.content iframe').hide();
+                        var newiframe = "<iframe src='"+ $(this).attr('linkurl') +"' frameborder='0' name='ifm'></iframe>";
+                        $('.content').append(newiframe);*/
+                        // $('.content iframe').attr('src', $(this).attr('linkurl'));
+                        /*$('.content iframe').load(function() {
+                            isOnLoad = false;// 加载完成
+                            hideLoading();
+                        });*/
+                    }
+                })
+                function iframControl (url) {
+                    var isOnLoad = true;
+                    showLoading();
+                    if (ismobile() > 0) {
+                        // 开关菜单
+                        $('.main .mainNav .menu>ul').hide('fast');
+                    }
+                    var iframArr = $('.content iframe')
+                    var thisiframe = null
+                    var i = 0;
+                    for (i; i < iframArr.length; i++) {
+                        if (iframArr.eq(i).attr('src') === url) {
+                            iframArr.hide();
+                            iframArr.eq(i).show();
+                            thisiframe = iframArr.eq(i);
+                            isOnLoad = false;// 加载完成
+                            hideLoading();
+                            break;
+                        }
+                    }
+                    if (i >= iframArr.length) {
+                        var newiframe = "<iframe src='"+ url +"' frameborder='0' name='ifm'></iframe>";
+                        iframArr.hide();
+                        $('.content').append(newiframe);
+                        thisiframe = $('.content iframe').last();
+                    }
+                    thisiframe.on('load', function() {
+                        isOnLoad = false;// 加载完成
+                        hideLoading();
+                    });
+                }
+            }
+
+            function getChildMenu(id,jurisdictionId,_this) {
+				$('.title p').text($(_this).text())
+                $.post("menu/child/"+jurisdictionId+"/"+id,{},function(res){createLeftMenu(res);},"json");
+                function createLeftMenu(res) {
+                    console.log(res);
+                    if (res!=null && res.status==1){
+                        var childMenu=res.data;
+                        if (childMenu!=null && childMenu.length>0){
+                            var childTag="";
+                            for (var i=0;i<childMenu.length;i++) {
+                                if ($.trim(childMenu[i].menuUrl) != "" && $.trim(childMenu[i].menuUrl) != "javascript:"){
+                                    childTag += "<li onclick='tabListInit("+childMenu[i].id+",\""+childMenu[i].menuName+"\",\""+childMenu[i].menuUrl+"\")'><span>"+childMenu[i].menuName+"</span></li>";
+                                }else if ($.trim(childMenu[i].menuUrl) == "javascript:") {
+                                    childTag += "<li class=\"hasThird\" onclick='searchChildMenu("+childMenu[i].id+","+childMenu[i].jurisdictionId+",$(this))'><span>"+childMenu[i].menuName+"</span><i class=\"fa fa-sort-down\"></i></li>";
+                                }
+                            }
+                            // 判断移动端
+                            if (ismobile() > 0) {
+                                $('.main .mainNav .menu>ul>li').find('ul').remove()
+                                $(_this).append('<ul class="mobileSubmenu">'+ childTag +'</ul>');
+                            } else {
+                                $(".menucontent ul").html(childTag);
+                            }
+                        }
+                    }else {
+                        location.reload();
+                    }
+                }
+            }
+
+            /**
+             * 获取第三级子菜单
+             * @param id 第二级菜单id
+             * @param obj 点击的当前元素
+             */
+            function searchChildMenu(id,jurisdictionId,obj) {
+                $.post("menu/child/"+jurisdictionId+"/"+id,{},function(res){createLeftChildrenMenu(res);},'json');
+                function createLeftChildrenMenu(res) {
+                    if (res!=null && res.status==1){
+                        var childMenu=res.data;
+                        if (childMenu!=null && childMenu.length>0){
+                            var childTag="<ul>";
+                            for (var i=0;i<childMenu.length;i++) {
+                                if ($.trim(childMenu[i].menuUrl) != "" && $.trim(childMenu[i].menuUrl) != "javascript:"){
+                                    childTag += "<li onclick='tabListInit("+childMenu[i].id+",\""+childMenu[i].menuName+"\",\""+childMenu[i].menuUrl+"\")'><span>"+childMenu[i].menuName+"</span></li>";
+                                }else if ($.trim(childMenu[i].menuUrl) == "javascript:") {
+                                    childTag += "<li class=\"hasThird\" onclick=''><span>"+childMenu[i].menuName+"</span></li>";
+                                }
+                            }
+                            childTag+="</ul>";
+                            $(obj).children('ul').remove();
+                            $(obj).append(childTag);
+                            $(obj).removeAttr("onclick");
+
+                            /*
+                            * 打开关闭第三层菜单
+                            * */
+                            $(obj).click(function (e) {
+                                e.preventDefault()
+                                $(this).find('ul').toggle()
+                                $(this).find('i').toggleClass('fa-sort-up', 'fa-sort-down')
+                                $(this).find('i').toggleClass('fa-sort-down', 'fa-sort-up')
+                            })
+                            $(obj).find('ul').click(function (e) {
+                                e.preventDefault()
+                                e.stopPropagation()
+                            })
+                            //执行打开菜单方法
+                            $(obj).click();
+                        }
+                    }
+                }
+            }
+            $('.changepwd').click(function () {
+                layer.open({
+                    type: 2,
+                    skin: 'layui-layer-rim', //加上边框
+                    area: ['400px', '400px'], //宽高
+                    title: '修改密码',
+                    content: '/reset/password'
+                });
+            })
+			$('.menu li').eq(0).click()
+        </script>
+    </div>
+</body>
+
+</html>

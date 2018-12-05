@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderCustomList('试卷管理',~{::style})">
+    <style type="text/css">
+        .error {
+            color: red;
+            border-color: red;
+        }
+
+        .error:focus {
+            color: red;
+            border-color: red;
+        }
+
+        .red {
+            color: red;
+        }
+    </style>
+    <!--<body oncontextmenu="self.event.returnValue=false" onselectstart="return false">-->
+<body>
+<div class="container">
+    <legend style="padding-bottom:15px;" contenteditable="false">选择题目</legend>
+
+    <form class="form-horizontal" method="post" onsubmit="return false;">
+        <!--<div id="toolbar">-->
+        <!--<select class="form-control">-->
+        <!--<option value="all">全部</option>-->
+        <!--<option value="selected">已选择</option>-->
+        <!--</select>-->
+        <!--</div>-->
+        <div>
+            <div class="form-group">
+                <label class="control-label col-sm-1" style="text-align: center;"><i class="red">*</i>大题标题:</label>
+                <div class="col-sm-10" style="text-align: left;">
+                    <input class="form-control" id="cnName" name="cnName" type="text" data-toggle="tooltip" data-placement="top" title="请输入大题标题" placeholder="请输入大题标题" required/>
+                    <p class="message error hide">错误信息</p>
+                </div>
+            </div>
+        </div>
+        <table id="table"></table>
+    </form>
+    <legend contenteditable="false"></legend>
+    <a id="add" role="button" class="btn btn-info" href="javascript:void(0);" data-loading-text="提交中..." onclick="submitForm(this);"><span class="glyphicon glyphicon-play-circle"></span>添加大题到试卷</a>
+    <input type="hidden" th:value="${testServerUrl}" id="testServerUrl">
+</div>
+
+<div th:include="/include/onload_js::onloadJSCustomList(~{::script})">
+    <!-- jquery-validate -->
+    <script type="text/javascript" th:src="@{/static/lib/jquery-validate/jquery.validate.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/lib/jquery-validate/additional-methods.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/lib/jquery-validate/messages_zh.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/lib/jquery-validate/jquery.validate.extend.js}"></script>
+    <script>
+        var $table;
+        var selectionIds = [];  //保存选中ids
+        $(document).ready(function () {
+            initTable("table");
+
+            $table.on('load-success.bs.table', function (data) {//table加载成功后的监听函数
+                console.log("load success");
+            });
+
+            //选中事件操作数组
+            var union = function (array, ids) {
+                $.each(ids, function (i, id) {
+                    if ($.inArray(id, array) == -1) {
+                        array[array.length] = id;
+                    }
+                });
+                return array;
+            };
+
+            //取消选中事件操作数组
+            var difference = function (array, ids) {
+                $.each(ids, function (i, id) {
+                    var index = $.inArray(id, array);
+                    if (index != -1) {
+                        array.splice(index, 1);
+                    }
+                });
+                return array;
+            };
+
+            var _ = {"union": union, "difference": difference};
+
+            //绑定选中事件、取消事件、全部选中、全部取消
+            $table.on('check.bs.table check-all.bs.table uncheck.bs.table uncheck-all.bs.table', function (e, rows) {
+                var ids = $.map(!$.isArray(rows) ? [rows] : rows, function (row) {
+                    return row.id;
+                });
+                func = $.inArray(e.type, ['check', 'check-all']) > -1 ? 'union' : 'difference';
+                selectionIds = _[func](selectionIds, ids);
+            });
+        });
+
+        //初始化
+        function initTable(tableId) {
+            $table = $("#" + tableId).bootstrapTable({
+                url: '/question/bank/list',
+                method: 'post',//请求方式（*）
+                contentType: "application/x-www-form-urlencoded",
+                dataType: "json",
+                idField: "id",//指定主键列
+                columns: [
+                    {
+                        field: 'checked',
+                        checkbox: true
+                    },
+                    {
+                        title: '标题',//表的列名
+                        field: 'title',//json数据中rows数组中的属性名
+                        align: 'center'//水平居中
+                    },
+                    {
+                        title: '操作',
+                        field: 'id',
+                        align: 'center',
+                        formatter: function (value, row, index) {
+                            var name = $("#testServerUrl").val();
+                            var url = name + 'testPaper/#/?tpid=0&qid=' + value + '&pid=0&sid=0';
+                            var pre = "preview('" + url + "')";
+                            var p = '<a style="cursor: pointer;" onclick="' + pre + '">预览</a> ';  //row.id为每行的id
+
+                            var ed = "edit('/question/bank/page/edit/" + value + "')";
+                            var e = '<a style="cursor: pointer;" onclick="' + ed + '">修改</a> ';  //row.id为每行的id
+                            return p + e;
+                        }
+                    }],
+                striped: true, //使表格带有条纹
+                search: true,//开启搜索文本框
+                //showToggle: false, //名片格式
+                //cardView: false,//设置为True时显示名片（card）布局
+                sidePagination: "server",//使用服务器端分页
+                pagination: true, //在表格底部显示分页工具栏
+                //showRefresh: true, //显示刷新按钮
+                //showFooter: false,//显示列脚
+                clickToSelect: true,//点击行即可选中单选/复选框
+                //sortable: false,//是否启用排序
+                //cache: false,
+                //strictSearch: true,
+                //detailView: false, //是否显示父子表
+                //maintainSelected: true,
+                queryParams: function (params) {//得到查询的参数
+                    //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+                    console.log("params:" + JSON.stringify(params));
+                    return {
+                        search: params.search,
+                        pageSize: params.limit,//页面大小
+                        pageNum: (params.offset / params.limit) + 1//页码
+                        //sort: params.sort,//排序列名
+                        //order: params.order
+                    };
+                },
+                responseHandler: responseHandler, //在渲染页面数据之前执行的方法，此配置很重要!!!!!!!
+                pageNumber: 1,
+                pageSize: 10,//每页大小
+                pageList: [10, 25, 50],//可以选择每页大小
+                paginationPreText: '上一页',
+                paginationNextText: '下一页',
+                //toolbar: "#toolbar", //设置工具栏的Id或者class
+                formatLoadingMessage: function () {
+                    return "正在努力加载数据中，请稍后...";
+                },
+                formatNoMatches: function () { //没有匹配的结果
+                    return '无符合条件的记录';
+                }
+                //,
+                // onClickRow: function (row) {//点击行事件
+                //     window.location.href = "/question/bank/preview/" + row.id;
+                // }
+            });
+        }
+
+        $(function () {
+            valiForm();
+
+            $(".preview").fancybox({
+                aspectRatio: false,
+                type: 'iframe',
+                width: '50%',
+                //height  : '70%',
+                padding: 2,
+                margin: 0,
+                ///  maxWidth	: 1040,
+                //minHeight : 500,
+                autoHeight: true,
+                autoSize: true,
+                fitToView: false
+            });
+        });
+
+        // function preview(url) {
+        //     top.tabListInit("preview_question_banks", "预览题目", url);
+        // }
+        //
+        // function edit(url) {
+        //     top.tabListInit("edit_question_banks", "修改题目", url);
+        // }
+
+        function preview(url) {
+            //iframe窗口
+            top.layer.open({
+                type: 2,
+                title: false,
+                closeBtn: 1, //显示关闭按钮
+                // shade: [0],
+                shade: 0.4,
+                area: ['880px', '50%'],
+                //offset: 'rb', //右下角弹出
+                // time: 2000, //2秒后自动关闭
+                // anim: 2,
+                content: [url, 'yes'], //iframe的url，no代表不显示滚动条
+                end: function () { //此处用于演示
+                }
+            });
+        }
+
+        function edit(url) {
+            //iframe窗口
+            layer.open({
+                type: 2,
+                title: false,
+                closeBtn: 1, //显示关闭按钮
+                // shade: [0],
+                shade: 0.4,
+                area: ['1200px', '600px'],
+                //offset: 'rb', //右下角弹出
+                // time: 2000, //2秒后自动关闭
+                // anim: 2,
+                content: [url, 'yes'], //iframe的url，no代表不显示滚动条
+                end: function () { //此处用于演示
+                }
+            });
+        }
+
+        //表格分页之前处理多选框数据
+        function responseHandler(res) {
+            $.each(res.rows, function (i, row) {
+                row.checked = $.inArray(row.id, selectionIds) != -1;  //判断当前行的数据id是否存在与选中的数组，存在则将多选框状态变为true
+            });
+            return res;
+        }
+
+        function valiForm() {
+            //表单验证
+            $('form').validate({
+                focusInvalid: true,
+                errorPlacement: function (error, element) {
+                    var errorMsg = error[0].innerHTML;
+                    var elem = element[0];
+                    $(elem).next('.message').removeClass("hide").addClass("error").html(errorMsg).show();
+                },
+                success: function (element) {
+                    var elem = $(element)[0].htmlFor;
+                    $(elem).next('.message').hide();
+                }
+            });
+        }
+
+        /*
+        * 表单校验
+        *
+        */
+        function checkForm(obj) {
+            var status = $(obj).valid();
+            if (!status) {
+                //没有通过验证
+                $("#add").button('reset');
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        /*
+        * 提交表单
+        *
+        */
+        function submitForm(obj) {
+            $(obj).button('loading');
+
+            var form = $("form");
+
+            //表单校验
+            if (!checkForm($(form))) {
+                $(obj).button('reset');
+                return false;
+            }
+
+            console.log("添加大题到试卷,id=" + JSON.stringify(selectionIds));
+            if (selectionIds.length == 0) {
+                $(obj).button('reset');
+                layer.msg('必须选择一个题目', {icon: 2});
+                return false;
+            }
+
+            parent.reloadQuestionDataForPaper($("#cnName").val().trim(), selectionIds);
+
+            $(obj).button('reset');
+            parent.$.fancybox.close();
+        }
+    </script>
+</div>
+</body>
+</html>

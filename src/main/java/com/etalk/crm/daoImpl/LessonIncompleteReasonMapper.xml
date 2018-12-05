@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.LessonIncompleteReasonMapper" >
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.LessonIncompleteReason" >
+        <result column="id" property="id" jdbcType="INTEGER" />
+        <result column="lesson_id" property="lessonId" jdbcType="INTEGER" />
+        <result column="state" property="state" jdbcType="INTEGER" />
+        <result column="reason_id" property="reasonId" jdbcType="INTEGER" />
+        <result column="creater" property="creator" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <!--插入课程取消原因-->
+    <insert id="insertLessonIncompleteReason" parameterType="com.etalk.crm.pojo.LessonIncompleteReason">
+        insert into lesson_incomplete_reason(lesson_id,reason_id,state,creater)
+        <foreach collection="list" item="items" separator="," open="values">
+            ( #{items.lessonId,jdbcType=INTEGER}, #{items.reasonId,jdbcType=INTEGER}, 1, #{items.creator,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+</mapper>

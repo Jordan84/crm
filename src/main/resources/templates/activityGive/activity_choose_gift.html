@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderCustomEdit('选择赠礼',~{::style})">
+    <style type="text/css">
+        .error {
+            color: red;
+            border-color: red;
+        }
+
+        .error:focus {
+            color: red;
+            border-color: red;
+        }
+
+        .red {
+            color: red;
+        }
+
+        .dataArea .title {
+            padding: 5px 10px 0 0;
+        }
+
+        .dataArea .item {
+            padding: 0 20px 10px 0;
+        }
+
+        .action {
+            text-align: center;
+        }
+
+        .action button {
+            width: 52%;
+        }
+
+        .ac_container {
+            width: 372px !important;
+        }
+
+        .ac_input {
+            width: 330px !important;
+        }
+
+        a {
+            color: #337ab7 !important;
+            text-decoration: none !important;
+        }
+
+        .ac_navi .current {
+            color: #337ab7 !important;
+        }
+    </style>
+</head>
+<body>
+<link rel="stylesheet" th:href="@{/static/lib/jquery.ajax-combobox/css/jquery.ajax-combobox.css?v=2018101015490004}">
+<div class="ch-container">
+    <div class="row">
+        <form class="form-horizontal" method="post" onsubmit="return false;">
+            <div class="box">
+                <legend class="text-center" style="padding-bottom:15px;font-weight: bold;" contenteditable="false">选择赠礼</legend>
+                <div class="dataArea">
+                    <ul>
+                        <li>
+                            <div class="form-group">
+                                <div class="col-xs-3 text-right title">选择活动</div>
+                                <div class="col-xs-8 item">
+                                    <input type="text" id="activity" name="activity" required>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-group">
+                                <div class="col-xs-3 text-right title">选择赠礼</div>
+                                <div class="col-xs-8 item">
+                                    <input type="text" id="gift" name="gift">
+                                </div>
+                                <div class="col-xs-3 text-right title"></div>
+                                <div class="col-xs-8 item">
+                                    <input type="checkbox" id="isGift" name="isGift" value="1" onclick="isGiftChange($(this).is(':checked'));"> 赠送礼品
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-group">
+                                <div class="col-xs-3 text-right title">礼品备注</div>
+                                <div class="col-xs-8 item">
+                                    <textarea class="form-control" type="text" id="giftDesc" name="giftDesc"></textarea>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-group">
+                                <div class="col-xs-3 text-right title">课程生效</div>
+                                <div class="col-xs-8 item">
+                                    <input name="packageType" type="checkbox" class="packageTypeCheckbox" value="1"/> 即时生效 <span class="message"></span><br/>
+                                    <input name="packageType" type="checkbox" class="packageTypeCheckbox" value="2" checked/> 正式套餐或促销后生效 <span class="message"></span>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-group action">
+                                <span class="col-xs-6 text-right">
+                                    <button class="btn btn-default" onclick="chooseStuStep();"><span>上一步</span></button>
+                                </span>
+                                <span class="col-xs-6 text-left">
+                                    <button id="btnPublish" class="btn btn-primary" onclick="publishActivityGive();" data-loading-text="处理中..."><span>发布赠送</span></button>
+                                </span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div th:include="/include/onload_js::onloadJSCustomEdit(~{::script})">
+    <script type="text/javascript" th:src="@{/static/lib/jquery.ajax-combobox/js/jquery.ajax-combobox.7.3.1.js?v=2018101015490007}"></script>
+    <script type="text/javascript">
+        $(function () {
+            $('.packageTypeCheckbox').on('click', function () {
+                var checkedState = $(this).is(':checked');
+                $(this).siblings().each(function () {
+                    $(this).attr('checked', false);
+                });
+                $(this).attr('checked', checkedState);
+            });
+
+            $('#activity').ajaxComboBox('/activity/give/selectActivity', {
+                    lang: 'zh',
+                    search_field: 'name'
+                }
+            );
+
+            $('#gift').ajaxComboBox('/activity/give/selectKcPackege', {
+                    lang: 'zh',
+                    search_field: 'name'
+                }
+            );
+
+            //表单验证
+            $('form').validate({
+                rules: {
+                    packageType: {
+                        required: true
+                    }
+                },
+                messages: {
+                    packageType: {
+                        required: "必须选择生效类型"
+                    }
+                },
+                focusInvalid: true,
+                errorPlacement: function (error, element) {
+                    var errorMsg = error[0].innerHTML;
+                    var elem = element[0];
+                    $(elem).next('.message').removeClass("hide").addClass("error").html(errorMsg).show();
+                },
+                success: function (element) {
+                    var elem = $(element)[0].htmlFor;
+                    $(elem).next('.message').hide();
+                }
+            });
+
+            isGiftChange($("#isGift").is(":checked"));
+        });
+
+        function isGiftChange(type) {
+            if (type) {
+                $("#giftDesc").parent().parent().show();
+            } else {
+                $("#giftDesc").parent().parent().hide();
+            }
+        }
+
+        function chooseStuStep() {
+            window.location.href = "/activity/give/page/student/import";
+        }
+
+        function publishActivityGive() {
+            var status = $('form').valid();
+
+            if ($("#gift").val() == "" && !$("#isGift").is(':checked')) {
+                parent.layer.msg('必须选择课时或者礼品', {icon: 2});
+                return false;
+            }
+
+            if (!status) {
+                //没有通过验证
+                return false;
+            }
+            $("#btnPublish").button("loading");
+            var parms = $('form').serialize();
+            var url = "/activity/give/submit";
+            console.log("url:" + JSON.stringify(url));
+            console.log("parms:" + JSON.stringify(parms));
+            $.post(url, parms, function (res) {
+                console.log(res);
+                if (res.status == 1) {
+                    parent.layer.msg('赠送成功', {icon: 1});
+                    var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+                    parent.layer.close(index); //再执行关闭
+
+                    parent.window.location.reload();
+                } else {
+                    parent.layer.msg('系统异常', {icon: 2});
+                }
+            });
+        }
+    </script>
+</div>
+</body>
+</html>

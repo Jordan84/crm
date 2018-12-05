@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderCustomList('试卷管理',~{::style})">
+    <style type="text/css">
+    </style>
+</head>
+
+<!--<div class="container">-->
+<div style="padding: 20px;">
+    <div id="shareResult">
+        <legend style="padding-bottom:15px;" contenteditable="false">发送试卷</legend>
+        <p id="shareMsg">成功为《》试卷创建分享链接，请通过QQ、微信或者ET发送给学生【】</p>
+        <div class="url" style="padding: 10px 0;">
+            <div class="share-url-border">
+                <!-- Target -->
+                <input id="shareUrl" value="" style="width: 500px;">
+                <!-- Trigger -->
+                <button class="copyBtn" data-clipboard-target="#shareUrl">复制链接</button>
+            </div>
+        </div>
+        <a href="javascript:void(0);" onclick="closeCopy();" class="btn btn-large btn-default right"><span class="text">关闭</span></a>
+    </div>
+</div>
+
+
+<div th:include="/include/onload_js::onloadJSCustomList(~{::script})">
+    <!-- 复制到剪贴板 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.1/clipboard.min.js"></script>
+    <script>
+        var clipboard = new ClipboardJS('.copyBtn');
+        clipboard.on('success', function (e) {
+            layer.msg("复制成功", {icon: 1});
+            e.clearSelection();
+        });
+        clipboard.on('error', function (e) {
+            layer.msg("复制失败", {icon: 1});
+        });
+
+        function initData(shareMsg, shareUrl) {
+            $("#shareMsg").html(shareMsg);
+            $("#shareUrl").val(shareUrl);
+            //layer.msg("试卷链接已生成，请复制链接并发送给学生");
+            layer.msg("链接已生成，请复制");
+        }
+
+        function closeCopy() {
+            //关闭父弹窗
+            parent.close();
+        }
+    </script>
+</div>

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.MobileQuestionMapper">
+    <!-- 查询正在上的课程 -->
+    <select id="getLearingLessonListByPersonId" parameterType="java.lang.Integer" resultType="com.etalk.crm.pojo.LessonItem">
+        SELECT DISTINCT le.id as lessonId, tk.qknowledge_id as qknowledgeId, 0 as unitId, le.release_time as classTime
+        FROM lessons le,
+             lesson_material_info lmi,
+             textbooks_knowledge tk,
+             question_banks_knowledge qbk,
+             question_banks qb
+        WHERE le.id = lmi.lesson_id
+          AND lmi.lesson_id = le.id
+          AND lmi.textbook_id = tk.textbooks_id
+          AND lmi.end_page = tk.textbooks_page_name
+          AND tk.qknowledge_id = qbk.qknowledge_id
+          AND qbk.qbank_id = qb.id
+          AND le.person_id = #{personId}
+        LIMIT 0,10;
+    </select>
+    <!-- 查询版本号以及所有级别的题目数目 -->
+    <select id="getQuestionInfo" resultType="com.etalk.crm.pojo.QuestionInfo">
+        SELECT max(ifnull(qrr.version, 0)) as version, qb.qddegree_id as qlevel, count(qb.qddegree_id) as qcount
+        FROM lessons le,
+             lesson_material_info lmi,
+             textbooks_knowledge tk,
+             question_banks_knowledge qbk,
+             question_banks qb
+                 LEFT JOIN question_result_record qrr ON qrr.person_id = #{personId} AND qrr.lesson_id = #{lessonId} AND qrr.qknowledge_id = #{qknowledgeId} AND qrr.qbank_id = qb.id
+        WHERE le.id = lmi.lesson_id
+          AND lmi.lesson_id = le.id
+          AND lmi.textbook_id = tk.textbooks_id
+          AND lmi.end_page = tk.textbooks_page_name
+          AND tk.qknowledge_id = qbk.qknowledge_id
+          AND qbk.qbank_id = qb.id
+          AND le.person_id = #{personId}
+          AND lmi.lesson_id = #{lessonId}
+          AND tk.qknowledge_id = #{qknowledgeId}
+          AND qb.parentid = 0
+          AND qb.qmode_id IN (1,5)
+        GROUP BY qb.qddegree_id;
+    </select>
+    <!-- 查询当前题目 -->
+    <select id="getCurrentQuestionList" resultType="com.etalk.crm.pojo.MobileQuestion">
+        SELECT le.person_id as personId, qb.id as qrId, qb.qmode_id as qrtype
+        FROM lessons le,
+        lesson_material_info lmi,
+        textbooks_knowledge tk,
+        question_banks_knowledge qbk,
+        question_banks qb
+        LEFT JOIN question_result_record qrr ON qrr.person_id = #{personId} AND qrr.lesson_id = #{lessonId} AND qrr.qknowledge_id = #{qknowledgeId} AND qrr.id = qb.id
+        WHERE le.id = lmi.lesson_id
+        AND lmi.lesson_id = le.id
+        AND lmi.textbook_id = tk.textbooks_id
+        AND lmi.end_page = tk.textbooks_page_name
+        AND tk.qknowledge_id = qbk.qknowledge_id
+        AND qbk.qbank_id = qb.id
+        AND le.person_id = #{personId}
+        AND lmi.lesson_id = #{lessonId}
+        AND tk.qknowledge_id = #{qknowledgeId}
+        AND qb.parentid = 0
+        AND qb.qmode_id IN (1,5)
+        AND qb.qddegree_id = #{level}
+        <if test="flag!=null and flag==1">
+            AND qb.id NOT IN
+            (SELECT qrr.qbank_id FROM question_result_record qrr
+            WHERE qrr.person_id = #{personId}
+            AND qrr.lesson_id = #{lessonId}
+            AND qrr.qknowledge_id = #{qknowledgeId}
+            AND qrr.version = #{version})
+        </if>
+        <if test="flag!=null and flag==2">
+            AND qb.id IN
+            (SELECT qrr.qbank_id FROM question_result_record qrr
+            WHERE qrr.person_id = #{personId}
+            AND qrr.lesson_id = #{lessonId}
+            AND qrr.qknowledge_id = #{qknowledgeId}
+            AND is_true = 0)
+        </if>
+        ORDER BY qb.record_time
+    </select>
+    <!-- 检测是否做过题目 -->
+    <select id="checkQuestionDone" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        SELECT COUNT(1) FROM question_result_record qrr
+        WHERE qrr.person_id = #{personId}
+             AND qrr.lesson_id =  #{lessonId}
+             AND qrr.qknowledge_id = #{qknowledgeId}
+             AND qrr.qbank_id = #{qbankId}
+    </select>
+    <!-- 添加做题记录 -->
+    <insert id="addQuestionRecord" parameterType="com.etalk.crm.pojo.QuestionResultRecord">
+        INSERT INTO question_result_record(qbank_id, person_id, lesson_id, qknowledge_id, question_result, is_true, right_num, error_num, version, recorder, record_time)
+        VALUES (
+            #{qbankId,jdbcType=INTEGER},
+            #{personId,jdbcType=INTEGER},
+            #{lessonId,jdbcType=INTEGER},
+            #{qknowledgeId,jdbcType=INTEGER},
+            #{questionResult,jdbcType=VARCHAR},
+            0,
+            0,
+            0,
+            #{qknowledgeId,jdbcType=INTEGER},
+            'admin',
+            current_timestamp
+        )
+    </insert>
+    <update id="updateQuestionRecord" parameterType="com.etalk.crm.pojo.QuestionResultRecord">
+        UPDATE question_result_record
+        SET version = #{version},
+        <if test="isTrue == 1">
+            right_num = right_num+1,
+        </if>
+        <if test="isTrue == 0">
+            error_num = error_num+1,
+        </if>
+        question_result = #{questionResult},
+        is_true = #{isTrue},
+        record_time = current_timestamp
+        WHERE  person_id = #{personId}
+            AND lesson_id= #{lessonId}
+            AND qknowledge_id= #{qknowledgeId}
+            AND qbank_id = #{qbankId}
+    </update>
+</mapper>

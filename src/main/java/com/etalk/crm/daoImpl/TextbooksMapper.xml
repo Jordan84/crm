@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.etalk.crm.dao.TextBooksMapper">
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.Textbooks" >
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="stores_id" property="storesId" jdbcType="INTEGER" />
+        <result column="name" property="name" jdbcType="VARCHAR" />
+        <result column="enname" property="enname" jdbcType="VARCHAR" />
+        <result column="address" property="address" jdbcType="VARCHAR" />
+        <result column="level" property="level" jdbcType="INTEGER" />
+        <result column="maxpage" property="maxpage" jdbcType="INTEGER" />
+        <result column="state" property="state" jdbcType="INTEGER" />
+        <result column="city" property="city" jdbcType="VARCHAR" />
+        <result column="publishing" property="publishing" jdbcType="VARCHAR" />
+        <result column="type" property="type" jdbcType="INTEGER" />
+        <result column="class_periods" property="classPeriods" jdbcType="INTEGER" />
+        <result column="recommended" property="recommended" jdbcType="VARCHAR" />
+        <result column="suitable_crowd" property="suitableCrowd" jdbcType="VARCHAR" />
+        <result column="introduction" property="introduction" jdbcType="VARCHAR" />
+        <result column="recorder" property="recorder" jdbcType="VARCHAR" />
+        <result column="recordtime" property="recordtime" jdbcType="TIMESTAMP" />
+        <result column="updateConfigTime" property="updateConfigTime" jdbcType="TIMESTAMP" />
+        <result column="tealevel" property="tealevel" jdbcType="INTEGER" />
+        <result column="stores_name" property="storesName" jdbcType="VARCHAR" />
+        <result column="class_level" property="classLevel" jdbcType="INTEGER" />
+        <result column="textbooksClassify_id" property="textbooksClassifyId" jdbcType="INTEGER" />
+        <result column="textbooksClassifyParent_id" property="textbooksClassifyParentId" jdbcType="INTEGER" />
+        <result column="textbooksClassifyRoot_id" property="textbooksClassifyRootId" jdbcType="INTEGER" />
+    </resultMap>
+    <select id="selectByTextbooksId" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+        select  id, stores_id, `name`, enname, address, `level`, maxpage, `state`, city, publishing,tealevel,
+        `type`,class_periods,suitable_crowd,recommended,introduction, recorder, recordtime,class_level,updateConfigTime
+        from textbooks
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+    <!-- 分页查询教材信息 -->
+    <select id="selectTextbooks" parameterType="map" resultType="com.etalk.crm.pojo.Textbooks">
+        select t.id,t.`name`,s.`name` as storesName,t.address,t.enname,t.id,
+        t.maxpage,t.type,t.tealevel,t.recorder,t.recordtime,updateConfigTime,t.state
+        from textbooks t
+        left join stores s
+        on s.id = t.stores_id
+        LEFT JOIN category_textbooks ct
+        on t.id = ct.textbooks_id
+        LEFT JOIN textbookes_category tc
+        on ct.category_id = tc.id
+        where 1=1
+        <if test="id>0">
+            and t.id = ${id}
+        </if>
+        <if test="type>0">
+            and t.type = ${type}
+        </if>
+        <if test="search!=''">
+            and (t.`name` like '%${search}%' or t.enname like '%${search}%')
+        </if>
+        <if test="parentId>0">
+            and tc.parent_id = ${parentId}
+        </if>
+        <if test="rootId>0">
+            and tc.root_id = ${rootId}
+        </if>
+        ORDER BY recordtime desc
+    </select>
+    <!-- 根据三级分类查询教材 -->
+    <select id="selectTextbooksByThirdId" parameterType="java.lang.Integer" resultType="com.etalk.crm.pojo.Textbooks">
+        SELECT t.id, t.enname, t.`name`, t.maxpage,t.address
+        FROM textbookes_category tc
+                 LEFT JOIN category_textbooks ct
+                 ON ct.category_id = tc.id
+                 LEFT JOIN textbooks t
+                 ON t.id=ct.textbooks_id
+        WHERE t.state=1 and tc.id=#{thirdId} ORDER BY t.enname asc
+    </select>
+    <!-- 查询知识点关联的教材 -->
+    <select id="getTextbooksListByKnowledgeId" parameterType="java.lang.Integer" resultType="com.etalk.crm.pojo.Textbooks">
+        SELECT tb.id,tb.name,tk.qknowledge_id as qknowledgeId,tk.recorder,tk.record_time as recordtime,group_concat(tk.textbooks_page_name) as pageString
+        FROM textbooks tb
+        LEFT JOIN  textbooks_knowledge tk ON tk.textbooks_id = tb.id
+        WHERE tk.qknowledge_id = #{knowledgeId}
+        GROUP BY tk.textbooks_id
+    </select>
+    <!-- 删除某个知识点与教材的关联 -->
+    <delete id="deleteRelatedTextbooksByKnowledgeId" parameterType="java.lang.Integer">
+        DELETE FROM textbooks_knowledge WHERE qknowledge_id = #{knowledgeId}
+    </delete>
+    <!-- 批量添加知识点与教材的关联 -->
+    <insert id="batchSaveTextbooksKnowledge" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO textbooks_knowledge (
+        qknowledge_id, textbooks_id, textbooks_page, textbooks_page_name, state, recorder, record_time
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.qknowledgeId,jdbcType=INTEGER},
+            #{item.textbooksId,jdbcType=INTEGER},
+            #{item.textbooksPage,jdbcType=INTEGER},
+            #{item.textbooksPageName,jdbcType=VARCHAR},
+            1,
+            #{item.recorder,jdbcType=VARCHAR},
+            current_timestamp
+            )
+        </foreach>
+    </insert>
+</mapper>

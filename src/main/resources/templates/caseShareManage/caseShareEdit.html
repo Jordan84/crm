@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="/include/head::commonHeaderCustom('CaseShareEdite',~{::style})">
+    <!--<body oncontextmenu="self.event.returnValue=false" onselectstart="return false">-->
+<!--<link rel="stylesheet"  th:href="@{/static/css/}" />-->
+		<style>
+			/*common*/
+			input,select,textarea{
+				box-sizing: border-box;
+				-webkit-box-sizing: border-box;
+				padding: 0 0.1rem;
+			}
+			select,.inputType2{
+				width: calc(50% - 0.79rem);
+				height: 0.3rem;
+			}
+			textarea{
+			    width: 100%;
+			    height: 1.3rem;
+			    resize: none;
+			    padding: 0.1rem;
+			}
+			.pass{
+			    padding: 0.08rem 0.4rem;
+			    background: #1d9be5;
+			    color: #fff;
+			    border: none;
+			    cursor: pointer;
+				text-decoration : none;
+			}
+			.fail{
+			    padding: 0.08rem 0.4rem;
+			    background: #f1f1f1;
+			    color: black;
+			    border: none;
+			    cursor: pointer;
+				text-decoration : none;
+			}
+			/*main*/
+			.main{
+				font-size: 0.12rem;
+				padding: 0.2rem;
+				color: #333;
+			}
+			.main ul{}
+			.main ul li{
+				margin:0.15rem 0;
+			}
+			.main ul li .hint{
+				display: inline-block;
+				width: 1.5rem;
+				text-align: right;
+				font-size: 0.14rem;
+				padding-right: 0.1rem;
+				box-sizing: border-box;
+				-webkit-box-sizing: border-box;
+			    vertical-align: top;
+			}
+			.main ul li .hint b{
+				color: red;
+				vertical-align: sub;
+				font-size: 0.12rem;
+			}
+			.main ul li .contain{
+				width: calc(100% - 1.55rem);
+				display: inline-block;
+			}
+			.main ul li .inputType1{
+				width: 100%;
+				height: 0.3rem;
+			}
+			.main ul li .contain .tabs{
+				display: felx;
+				display: -webkit-flex;
+				border: 1px dashed #999;
+				padding: 0.1rem;
+			}
+			.main ul li .contain .tabs span{
+				width: 0.7rem;
+			}
+			.main ul li .contain .tabs div{
+				flex: 1;
+				-webkit-flex: 1;
+			}
+			.main ul li .contain .tabs div label{
+				background: #fff;
+				border: 1px solid #cdcdcd;
+				color: #333;
+				font-weight: 500;
+				margin-right: 10px;
+				border-radius: 3px;
+				padding: 0 0.15rem;
+				display: inline-block;
+				margin-bottom: 0.05rem;
+				cursor: pointer;
+				line-height:25px;
+			}
+			.main ul li .contain .tabs div label:hover{
+				background: #2dcc70;
+				color: #fff;
+				border: 1px solid #2dcc70;
+			}
+			.main ul li .contain .tabs div p{
+				font-size: 0.12rem;
+				color: #666;
+			}
+			.contain .textCount{
+				margin-left:95%;
+			}
+			.main ul li .contain .tabs div .cl{
+				background: #2dcc70;
+				color: #fff;
+				border: 1px solid #2dcc70;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="main">
+			<form class="form-inline" style="margin-bottom:0.5%" id="searchForm" role="form" />
+				<ul>
+					<li>
+						<span class="hint">标题：</span>
+						<div class="contain">
+							<input name="title" id="title" th:value="${caseShareManage.title}"  type="text" maxlength="50" class="inputType1"/>
+							<span></span>
+						</div>
+					</li>
+					<li>
+						<span class="hint">标签<b>*</b>：</span>
+						<div class="contain">
+							<div class="tabs">
+								<!--<span>常用标签<b>*</b>：</span>-->
+								<div >
+									<!--/*@thymesVar id="id" type="java"*/-->
+									<label th:value="${list.id}" th:class="Titlelabel" th:each="list:${labelsList}" th:text="${list.name}">lable</label>
+									<p style="color: red">说明：点击标签可选择</p>
+									<input type="hidden"  id="labelStr" th:value="${caseShareManage.labelStr}">
+									<input name="id" type="hidden" th:value="${caseShareManage.id}">
+								</div>
+								<div id="hiddenLabel" style="display: none">
+								</div>
+								<input type="hidden" name="state" id="state">
+								<input type="hidden" name="recommend" id="recommend">
+							</div>
+						</div>
+					</li>
+					<li>
+						<span class="hint">分类<b>*</b>：</span>
+						<div class="contain">
+							<select name="sourceTypeId" id="sourceTypeId">
+								<option value="">选择分类</option>
+								<option th:selected="${caseShareManage.sourceTypeId == list.id}" th:each="list:${csTypeList}"
+											th:value="${list.id}" th:text="${list.typeName}"></option>
+							</select>
+							<span class="hint">学员套餐<b>*</b>：</span>
+							<select name="packageId" id="packageId" >
+								<option th:value="${caseShareManage.packageId}">选择套餐类型</option>
+								<option th:each="list:${packageList}" th:value="${list.id}" th:text="${list.typeName}" th:selected="${caseShareManage.packageId==list.id}"></option>
+							</select>
+						</div>
+					</li>
+					<li>
+						<span class="hint">选择学员：</span>
+						<div class="contain">
+							<!--<select name="personId" id="student" >
+								<option value="">请选择学员</option>
+								&lt;!&ndash;/*@thymesVar id="loginName" type="java"*/&ndash;&gt;
+								<option th:attr="data-personId=${caseShareManage.personId}" th:selected="${personList.id == caseShareManage.personId}" th:each="personList:${personList}" th:value="${personList.id}" th:text="${personList.loginName}"></option>
+							</select>-->
+							<div class="inputType2" style="position: relative;display:inline-block;">
+								<input id="loginName" name="loginName" th:value="${caseShareManage.loginName}" style="width:100%;height:0.3rem;"  placeholder="请输入用户名称" autocomplete="off" maxlength="30" aria-describedby="inputError2Status">
+								<input type="hidden" name="personId" id="personId" th:value="${caseShareManage.personId}">
+							</div>
+							<span class="hint">学员姓名<b>*</b>：</span>
+							<input type="text"  id="cnName" th:value="${caseShareManage.cnName}" name="cnName" value="" class="inputType2"/>
+						</div>
+					</li>
+					<li>
+						<span class="hint">学员性别<b>*</b>：</span>
+						<div class="contain">
+							<select name="sex" id="sex">
+								<option value="">请选择性别</option>
+								<option th:value="1" th:selected="${caseShareManage.sex==1}">男</option>
+								<option th:value="2" th:selected="${caseShareManage.sex==2}">女</option>
+							</select>
+							<span class="hint">学员年龄：</span>
+							<input name="age" type="text" th:value="${caseShareManage.age}" id="age" class="inputType2"/>
+						</div>
+					</li>
+					<!--<li>
+						<div class="contain" style="">
+							<input id="loginName" class="form-control"  placeholder="请输入用户名称" autocomplete="off" maxlength="30" aria-describedby="inputError2Status">
+							<input type="hidden" name="personId" id="personId" th:value="${caseShareManage.personId}">
+						</div>
+					</li>-->
+					<li>
+						<span class="hint">学员年级<b>*</b>：</span>
+						<div class="contain">
+							<select name="gradeId" id="gradeId" >
+								<option value="">请选择年级</option>
+								<option th:selected="${caseShareManage.gradeId == list.id}" th:each="list:${QGradeList}"
+											th:value="${list.id}" th:text="${list.cnName}"></option>
+							</select>
+							<span class="hint">学员学校：</span>
+							<input type="text" th:value="${caseShareManage.school}" id="school" value="" name="school" class="inputType2"/>
+						</div>
+					</li>
+					<li>
+						<span class="hint">学员家庭情况<b>*</b>：</span>
+						<div class="contain">
+							<textarea maxlength="1000" th:text="${caseShareManage.familyInformation}" th:name="familyInformation" id="familyInformation"></textarea>
+							<div><span th:class="textCount" value="">0</span><span value="">/1000</span></div>
+						</div>
+					</li>
+					<li>
+						<span class="hint">学员学习困难<b>*</b>：</span>
+						<div class="contain">
+							<textarea maxlength="1000" th:text="${caseShareManage.learningDifficulty}" th:name="learningDifficulty" id="learningDifficulty"></textarea>
+							<div><span th:class="textCount" value="">0</span><span value="">/1000</span></div>
+						</div>
+					</li>
+					<li>
+						<span class="hint">学员Case分享<b>*</b>：<br/>（Objection及话术）</span>
+						<div class="contain">
+							<textarea maxlength="1000" name="caseShare" th:text="${caseShareManage.caseShare}" id="caseShare"></textarea>
+							<div><span th:class="textCount" value="">0</span><span value="">/1000</span></div>
+						</div>
+					</li>
+					<li>
+						<span class="hint">收获<b>*</b>：</span>
+						<div class="contain">
+							<textarea maxlength="1000" th:name="gain" id="gain"  th:text="${caseShareManage.gain}" placeholder="自己的收获是什么？（或有成就感的环节）"></textarea>
+							<div><span th:class="textCount" value="">0</span><span value="">/1000</span></div>
+						</div>
+					</li>
+					<li>
+						<span class="hint">注意：</span>
+						<div class="contain">
+							<textarea maxlength="1000" th:text="${caseShareManage.attention}" id="attention" th:name="attention" placeholder="此类case需注意的问题是什么？"></textarea>
+							<div><span th:class="textCount" value="">0</span><span value="">/1000</span></div>
+						</div>
+					</li>
+					<li>
+						<span class="hint"></span>
+						<div th:if="${session.menuMap[187] != null and session.menuMap[187] !=''}" class="contain">
+							<a class ='pass' th:attr="data-caseId=${caseShareManage.id}" id="pass">通过</a><span style="width: auto;padding: 0 0.1rem;vertical-align: middle;" class="hint"></span>
+							<a class="fail" id="fail">不通过</a><span style="width: auto;padding: 0 0.1rem;vertical-align: middle;" class="hint">带<b>*</b>必填</span>
+						</div>
+                        <div th:if="${session.menuMap[187] == null or session.menuMap[187] ==''}" class="contain" th:switch="${session.roleId}">
+							<a class ='pass' th:attr="data-caseId=${caseShareManage.id}" id="sub">提交</a><span style="width: auto;padding: 0 0.1rem;vertical-align: middle;" class="hint">带<b>*</b>必填</span>
+						</div>
+					</li>
+				</ul>
+			</form>
+		</div>
+		<div th:include="/include/onload_js::onloadJSCustom(~{::script})">
+			<script>
+				var recommendData = "";
+				$(function(){
+					//加载label 标签
+					recommendData = getRecommendList();
+					var labelStr = $("#labelStr").attr("value").split(',');
+					var dom = $(".Titlelabel");
+					for(var i=0;i<dom.length;i++){
+					    for(var j=0;j<labelStr.length;j++){
+					        if($(dom[i]).attr("value")==labelStr[j]){
+					            $(dom[i]).addClass("cl")
+							}
+						}
+					}
+
+					$("#familyInformation").next("").find("span").eq(0).text($("#familyInformation").val().length);
+					$("#learningDifficulty").next().find("span").eq(0).text($("#learningDifficulty").val().length);
+					$("#caseShare").next().find("span").eq(0).text($("#caseShare").val().length);
+					$("#gain").next().find("span").eq(0).text($("#gain").val().length);
+					$("#attention").next().find("span").eq(0).text($("#attention").val().length);
+
+					//下拉搜索初始化
+					creatSearchDiv("loginName", "personId", "/caseShareManage/personList", 26, 0, function(){
+						console.log(11111);
+					});
+
+					//审核通过   弹框
+					$("#pass").click(function(){
+						// recommendData = getRecommendList();
+						var html = "";
+						for(var i = 0;i<recommendData.length;i++){
+							html+='<input name="recommend" value = "'+recommendData[i].id+'" style="margin-top:15px;margin-left:20px;" type="checkbox"><img style="height:20px" src="http://hnres.etalk365.com/'+recommendData[i].imgUrl+'">';
+						}
+						// if(recommendData != null && recommendData.length>0){
+							layer.open({
+							  type: 1 //Page层类型
+							  ,area: ['450px', '250px']
+							  ,title: '提示'
+							  ,shade: 0.6 //遮罩透明度
+							  ,maxmin: true //允许全屏最小化
+							  ,anim: 1 //0-6的动画形式，-1不开启
+							  ,content: '<div style="margin-top:20px;margin-left:10%"><span>您还可以给该分享以下操作</span><p>'+html+'</p></div>'+
+									'<span class="hint"></span><div class="contain" style="margin-left:110px;margin-top:90px;">' +
+									'<a class ="pass" onclick="pass()" style="background: #c90a0aad;">确认</a><span style="width: auto;padding: 0 0.1rem;vertical-align: middle;"></span>' +
+									'<a class="fail" onclick="closeLayer()">取消</a><span style="width: auto;padding: 0 0.1rem;vertical-align: middle;"></span></div>'
+							});
+						// }
+					});
+				});
+
+				function loadStudentInfo(selectValue){
+					$.ajax({
+						 type : "POST", //提交方式
+						 url : "/caseShareManage/selectByPersonId",//路径
+						 data :{"personId" : selectValue
+						 },
+						 //数据，这里使用的是Json格式进行传输JSON.stringify(data),
+						 dataType:"json",
+						 // contentType: "application/json;charset=utf-8",
+						 success: function (data) {
+							if(data.code == 1){
+							    console.info(data.person);
+								$("#school").val(data.person.school);
+								$("#age").val(data.person.age);
+								$("#cnName").val(data.person.cnName);
+								$("#sex").val(data.person.sex);
+								$("#gradeId").val(data.person.grade);
+								if(data.person.familyInformation != null){
+									$("#familyInformation").val(data.person.familyInformation);
+									$("#familyInformation").next("").find("span").eq(0).text(data.person.familyInformation.length);
+								}else{
+								    $("#familyInformation").val("");
+								    $("#familyInformation").next("").find("span").eq(0).text(0);
+								}
+								if(data.person.learningDifficulty != null){
+									$("#learningDifficulty").val(data.person.learningDifficulty);
+									$("#learningDifficulty").next().find("span").eq(0).text(data.person.learningDifficulty.length);
+								}else{
+								    $("#learningDifficulty").val("");
+								    $("#learningDifficulty").next("").find("span").eq(0).text(0);
+								}
+							}else{
+								layer.msg("获取学生信息错误");
+							}
+						},
+						error: function (err) {
+							console.log(err);
+						}
+					})
+				}
+
+
+			//标题标签选中事件
+			$(".Titlelabel").click(function(){
+			    if($(this).hasClass("cl")){
+					$(this).removeClass("cl");
+               		// var strArray = $("#title").val().split(",");
+               		// for(var i = 0;i<strArray.length;i++){
+               		//     if(strArray.length == 1){
+               		//          $("#title").val(($("#title").val()).replace($(this).text(),""));
+					// 	}
+					// 	if(($("#title").val()).indexOf($(this).text())>=0){
+					// 	    if(i==strArray.length-1){
+					// 	        $("#title").val(($("#title").val()).replace(","+$(this).text(),""));
+					// 		}else{
+					// 	       $("#title").val(($("#title").val()).replace($(this).text()+",",""));
+					// 		}
+					// 	}
+					// }
+				}else{
+					$(this).addClass("cl");
+					// var thistitle = $("#title").val();
+					// if($("#title").val() != null && $("#title").val() !=""){
+					// 	thistitle = thistitle + "," + $(this).text();
+					// }else{
+					//     thistitle += $(this).text();
+					// }
+					// $("#title").val(thistitle);
+				}
+			});
+
+			//文本框输入字数提示
+			$(".contain textarea").keyup(function(){
+				$(this).next().find("span").eq(0).text($(this).val().length+"/");
+				$(this).next().find("span").eq(1).text(1000-$(this).val().length);
+			});
+
+			function getRecommendList() {
+				$.ajax({
+					 type : "POST", //提交方式
+					 url : "/caseShareManage/getRecommendList",//路径
+					 data :{},
+					 //数据，这里使用的是Json格式进行传输JSON.stringify(data),
+					 dataType:"json",
+					 //contentType: "application/x-www-form-urlencoded",
+					 success: function (data) {
+						if(data.code > 0){
+						  recommendData = data.recommendList;
+					}else{
+						layer.msg("获取失败");
+					}
+				},
+				error: function (err) {
+					console.log(err);
+				}
+			})
+				return recommendData;
+		}
+
+
+		//取消  关闭弹窗
+		function closeLayer(){
+			layer.closeAll();
+		}
+
+		//确认通过
+		function pass(){
+			$("#state").val(2);
+			//选择  推荐 精选
+			var dom = $("input[name='recommend']:checked");
+			var recommend = "";
+			for(var i = 0 ;i<dom.length;i++){
+				if(dom.lemgth == 1 || i == dom.length - 1){
+					recommend+=$(dom[i]).val();
+				}else{
+					recommend+=$(dom[i]).val()+",";
+				}
+			}
+			$("#recommend").val(recommend);
+			formsub();
+		}
+
+		//审核不通过  弹框
+		$("#fail").click(function(){
+			layer.open({
+			  type: 1 //Page层类型
+			  ,area: ['450px', '250px']
+			  ,title: '不通过的原因'
+			  ,shade: 0.6 //遮罩透明度
+			  ,maxmin: true //允许全屏最小化
+			  ,anim: 1 //0-6的动画形式，-1不开启
+			  ,content: '<div style="margin-top:20px;margin-left:10%"><textarea  id="rejectReason" style="width:92%;"></textarea></div>'+
+					'<span class="hint"></span><div class="contain" style="margin-left:110px;margin-top:10px;">' +
+					'<a class ="pass" onclick="rejectSub()" style="background: #c90a0aad;">确认</a><span style="width: auto;padding: 0 0.1rem;vertical-align: middle;"></span>' +
+					'<a class="fail" onclick="closeLayer()">取消</a><span style="width: auto;padding: 0 0.1rem;vertical-align: middle;"></span></div>'
+			});
+		});
+
+		//不通过提交
+		function rejectSub(){
+			if($("#rejectReason").val() == null || $("#rejectReason").val().length==0){
+				layer.msg("请填写不通过理由");
+				return;
+			}
+			if($("#rejectReason").val().length>150){
+				layer.msg("不通过理由不能超过150字");
+				return;
+			}
+			//2不会校验参数
+			console.info($("#pass").attr("data-caseId"));
+			$.ajax({
+				 type : "POST", //提交方式
+				 url : "/caseShareManage/caseReject",//路径
+				 data :{
+					 caseId : $("#pass").attr("data-caseId"),
+					 rejectReason : $("#rejectReason").val()
+				 },
+				 //数据，这里使用的是Json格式进行传输JSON.stringify(data),
+				 dataType:"json",
+				 //contentType: "application/x-www-form-urlencoded",
+				 success: function (data) {
+					if(data.code > 0){
+					  layer.msg('操作成功',{
+					  offset:['50%'],
+					  time: 2000 //2秒关闭（如果不配置，默认是3秒）
+					},function(){
+						parent.location.reload();
+					});
+				}else{
+					layer.msg("操作失败");
+				}
+			},
+			error: function (err) {
+				console.log(err);
+				$("#sub").attr('disabled',false);
+			}
+		})
+	}
+
+	//审核不通过提交
+	$("#sub").click(function () {
+		 $("#state").val(1);
+		//1  是校验参数
+		 formsub();
+	});
+
+		//表单提交以及验证
+		function formsub(){
+			if($("#title").val()==null || $("#title").val()==""){
+				layer.msg("标题不能为空");
+				return;
+			}
+			if($("#title").val().length>50){
+				layer.msg("标题不能超过50字");
+				return;
+			}
+
+			//标签字符串
+			var labelStr = "";
+			var cl = $(".cl");
+			if(typeof(cl)==null || cl.length==0){
+				layer.msg("请选择标签");
+				return;
+			}
+			for(var i=0;i<$(".cl").length;i++){
+				if(i==cl.length-1 || cl.length==1){
+					labelStr+=$(cl[i]).attr("value");
+				}else{
+					 labelStr+=$(cl[i]).attr("value")+",";
+				}
+			}
+			$('#hiddenLabel').html("<input type='hidden' name='labelStr' value='"+labelStr+"'/>");
+			console.info(labelStr);
+
+			if($("#sourceTypeId").val() == null || $("#sourceTypeId").val()==""){
+				layer.msg("请选择分类");
+				return;
+			}
+			if($("#packageId").val()==null || $("#packageId").val()==""){
+				layer.msg("请选择套餐类型");
+				return;
+			}
+
+			if($("#loginName").val() == null || $("#loginName").val() ==""){
+				layer.msg("请选择学员");
+				return;
+			}
+			if($("#sex").val() == null || $("#sex").val() == ""){
+				layer.msg("请选择性别");
+				return;
+			}
+			if($("#cnName").val() == null || $("#cnName").val()==""){
+				layer.msg("请填写学员姓名");
+				return;
+			}
+			if($("#gradeId").val() == null || $("#gradeId").val() == ""){
+				layer.msg("请选择年级");
+				return;
+			}
+			if($("#familyInformation").val()==null || $("#familyInformation").val()==""){
+				layer.msg("请填写家庭情况");
+				return;
+			}
+			if($("#familyInformation").val().length>1000){
+				layer.msg("家庭情况不能超过1000字");
+				return;
+			}
+			if($("#learningDifficulty").val() == null ||$("#learningDifficulty").val() == ""){
+				layer.msg("请填写学习困难");
+				return;
+			}
+			if($("#learningDifficulty").val().length>1000 ){
+				layer.msg("学习困难不能超过1000字");
+				return;
+			}
+			if($("#caseShare").val() == null || $("#caseShare").val() == ""){
+				layer.msg("请填写学员case分享");
+				return;
+			}
+			if($("#caseShare").val().length>1000){
+				layer.msg("学员case分享不能超过1000字");
+				return;
+			}
+			if($("#gain").val() == null || $("#gain").val() == ""){
+				layer.msg("请填写收获");
+				return;
+			}
+			if($("#gain").val().length>1000){
+				layer.msg("收获不能超过1000字");
+				return;
+			}
+
+			//提交表单
+				$.ajax({
+				 type : "POST", //提交方式
+				 url : "/caseShareManage/updateCaseShare",//路径
+				 data :$('#searchForm').serialize(),
+				 //数据，这里使用的是Json格式进行传输JSON.stringify(data),
+				 dataType:"json",
+				 contentType: "application/x-www-form-urlencoded",
+				 success: function (data) {
+					if(data.code > 0){
+					  layer.msg('更新成功',{
+					  offset:['50%'],
+					  time: 2000 //2秒关闭（如果不配置，默认是3秒）
+					},function(){
+						parent.location.reload();
+					});
+				}else{
+					layer.msg(data.msg);
+				}
+			},
+			error: function (err) {
+				console.log(err);
+				$("#sub").attr('disabled',false);
+			}
+		})
+	}
+        </script>
+		</div>
+	</body>
+</html>

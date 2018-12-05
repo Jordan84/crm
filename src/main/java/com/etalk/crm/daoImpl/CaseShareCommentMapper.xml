@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.CaseShareCommentMapper" >
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.CaseShareComment" >
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="add_user_id" property="addUserId" jdbcType="INTEGER" />
+        <result column="add_user_name" property="addUserName" jdbcType="VARCHAR" />
+        <result column="case_share_id" property="caseShareId" jdbcType="INTEGER" />
+        <result column="comment" property="comment" jdbcType="VARCHAR" />
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <insert id="addComment" parameterType="com.etalk.crm.pojo.CaseShareComment">
+        insert into case_share_comment(case_share_id,add_user_id,add_user_name,`comment`,create_time) values (#{caseShareId},#{addUserId},#{addUserName},#{comment},now())
+    </insert>
+
+    <select id="commentList" parameterType="java.lang.Integer" resultType="com.etalk.crm.pojo.CaseShareComment">
+        select case_share_id caseShareId,add_user_id addUserId,add_user_name addUserName,`comment` `comment`,create_time createTime from case_share_comment where 1 = 1
+        <if test="caseShareId >0 ">
+            and  case_share_id = #{caseShareId}
+        </if>
+        order by create_time desc
+    </select>
+</mapper>

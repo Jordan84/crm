@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.ActivityGiveMapper">
+    <!-- 获取活动赠送列表 -->
+    <select id="getActivityGiveList" resultType="com.etalk.crm.pojo.ActivityGive">
+        SELECT ag.id,ag.activity_id as activity_primary_key,ai.activity_name as activity,ag.recorder,ag.record_time as recordTime,ag.package_type as packageType,'套餐' as giftName
+        FROM activity_give ag
+        LEFT JOIN activity_info ai ON ai.id = ag.activity_id
+    </select>
+    <!-- 检测学员是否存在 -->
+    <select id="checkStudentExists" resultType="java.lang.String">
+        SELECT p.login_name FROM person p WHERE p.state = 1 and p.login_name IN
+        <foreach collection="list" item="loginName" index="index" open="(" close=")" separator=",">
+            BINARY #{loginName}
+        </foreach>
+    </select>
+    <!-- 发布活动赠送 -->
+    <insert id="insertActivityGive" parameterType="com.etalk.crm.pojo.ActivityGive" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO activity_give(activity_id, gift, is_gift, gift_desc, package_type, recorder, record_time)
+        VALUES (
+            #{activity_primary_key,jdbcType=INTEGER},
+            #{gift_primary_key,jdbcType=INTEGER},
+            #{isGift,jdbcType=INTEGER},
+            #{giftDesc,jdbcType=VARCHAR},
+            #{packageType,jdbcType=INTEGER},
+            'admin',
+            current_timestamp
+        )
+    </insert>
+    <!-- 获取活动赠送记录列表 -->
+    <select id="getActivityGiveLogList" parameterType="java.lang.String" resultType="com.etalk.crm.pojo.ActivityGiveLog">
+        SELECT agl.referrer_id as referrerId,u.login_name as referrerName,agl.login_name as loginName,agl.activity_id as activityId,agl.recorder,agl.record_time as recordTime, ai.activity_name as event
+        FROM activity_give_log agl
+        LEFT JOIN users u ON u.id = agl.referrer_id
+        LEFT JOIN activity_info ai ON ai.id = agl.activity_id
+        <if test="search != null and search != ''">
+            WHERE (agl.login_name LIKE concat(concat('%',#{search}),'%')) OR
+            (ai.activity_name LIKE concat(concat('%',#{search}),'%'))
+        </if>
+    </select>
+    <!-- 获取赠送名单 -->
+    <select id="getActivityGiveUsers" parameterType="java.lang.Integer" resultType="java.util.Map">
+        SELECT agl.login_name as loginName
+        FROM activity_give_log agl
+        LEFT JOIN activity_give ag ON agl.ag_id = ag.id AND agl.activity_id = ag.activity_id
+        LEFT JOIN activity_info ai ON ai.id = agl.activity_id
+        WHERE ag.id = #{agId}
+    </select>
+    <!-- 添加活动赠送记录 -->
+    <insert id="insertActivityGiveLog" parameterType="com.etalk.crm.pojo.ActivityGiveLog">
+        INSERT INTO activity_give_log(ag_id,activity_id,referrer_id,login_name,recorder,record_time)
+        VALUES(
+            #{agId,jdbcType=INTEGER},
+            #{activityId,jdbcType=INTEGER},
+            #{referrerId,jdbcType=INTEGER},
+            #{loginName,jdbcType=VARCHAR},
+            'admin',
+            current_timestamp
+        )
+    </insert>
+</mapper>

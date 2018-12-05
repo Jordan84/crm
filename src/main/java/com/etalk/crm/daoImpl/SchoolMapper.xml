@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.etalk.crm.dao.SchoolMapper">
+    <!-- 查询中国的区域 -->
+    <select id="selectAreaByParentId" parameterType="java.lang.Integer" resultType="java.util.Map">
+        SELECT a.area_code as areaCode,a.cn_name as cnName
+        FROM area a
+        WHERE id > 110000
+        <if test="parentId != null and parentId != ''">
+            AND a.parent_id = #{parentId}
+        </if>
+    </select>
+    <!-- 根据区查询学校 -->
+    <select id="selectSchoolByAreaCode" parameterType="java.lang.Integer" resultType="com.etalk.crm.pojo.SchoolInfo">
+        SELECT si.id,si.area_code as areaCode,si.school_name as schoolName
+        FROM school_info si
+        <if test="areaCode != null and areaCode != ''">
+            WHERE si.area_code = #{areaCode}
+        </if>
+    </select>
+    <!-- 校验学校名称的唯一性 -->
+    <select id="checkSchoolName" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT COUNT(1) FROM school_info si WHERE si.school_name = #{schoolName}
+    </select>
+    <!--  保存学校信息 -->
+    <insert id="saveSchoolInfo" parameterType="com.etalk.crm.pojo.SchoolInfo" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO school_info(
+          area_code,
+          school_name,
+          is_school
+          )
+        VALUES (
+          #{areaCode,jdbcType=INTEGER},
+          #{schoolName,jdbcType=VARCHAR},
+          #{isSchool,jdbcType=INTEGER}
+        )
+    </insert>
+    <!--  保存采集基本数据 -->
+    <insert id="saveSchoolCollectInfo" parameterType="com.etalk.crm.pojo.SchoolCollectInfo">
+        INSERT INTO school_collect_info
+        (
+          province_code,
+          city_code,
+          area_code,
+          school_id,
+          subway,
+          school_desc,
+          has_police,
+          recorder,
+          record_time
+        )
+        VALUES (
+          #{provinceCode,jdbcType=INTEGER},
+          #{cityCode,jdbcType=INTEGER},
+          #{areaCode,jdbcType=INTEGER},
+          #{schoolId,jdbcType=INTEGER},
+          #{subway,jdbcType=VARCHAR},
+          #{schoolDesc,jdbcType=VARCHAR},
+          #{hasPolice,jdbcType=INTEGER},
+          'admin',
+          current_timestamp
+        )
+    </insert>
+    <!-- 保存采集时间 -->
+    <insert id="batchSaveSchoolCollectTime" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO school_collect_time
+        (
+        school_id,
+        collect_time
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.schoolId,jdbcType=INTEGER},
+            #{item.collectTime,jdbcType=TIMESTAMP}
+            )
+        </foreach>
+    </insert>
+    <!-- 保存采集日期 -->
+    <insert id="batchSaveSchoolCollectDate" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO school_collect_date
+        (
+        school_id,
+        collect_date
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.schoolId,jdbcType=INTEGER},
+            #{item.collectDate,jdbcType=TIMESTAMP}
+            )
+        </foreach>
+    </insert>
+    <!-- 查询采集信息 -->
+    <select id="selectSchoolCollectInfoList" parameterType="java.util.Map" resultType="com.etalk.crm.pojo.SchoolCollectInfo">
+        SELECT t.id,t.provinceCode,t.provinceName,t.cityCode,t.cityName,t.areaCode,t.areaName,t.schoolId,t.schoolName,t.effect,t.subway,t.schoolDesc,t.hasPolice,t.recordTime
+        FROM (SELECT sci.id,sci.province_code as provinceCode,a1.cn_name as provinceName,sci.city_code as cityCode,a2.cn_name as cityName,sci.area_code as areaCode,a3.cn_name as areaName,sci.school_id as schoolId,si.school_name as
+        schoolName,ifnull(sti.effect,0) as effect,sci.subway,sci.school_desc as schoolDesc,sci.has_police as hasPolice,sci.record_time as recordTime
+        FROM school_collect_info sci
+        LEFT JOIN area a1 ON a1.id = sci.province_code
+        LEFT JOIN area a2 ON a2.id = sci.city_code
+        LEFT JOIN area a3 ON a3.id = sci.area_code
+        LEFT JOIN school_info si ON si.id=sci.school_id
+        LEFT JOIN
+        (select si3.class_name,si3.count as pcount,count(1) as count,(si3.count div count(1)) as ecount,(CASE WHEN (si3.count div count(1)) >= 6 THEN 1 WHEN ((si3.count div count(1)) BETWEEN 3 AND 5) THEN 2 ELSE 3 END) AS effect FROM
+        (SELECT qrcode,COUNT(1) as count,si2.class_name FROM (
+        select p.qrcode,si1.class_name from student_info si1
+        LEFT JOIN person p on p.id= si1.person_id
+        where record_time in
+        (SELECT max(record_time) as record_time FROM student_info where IFNULL(class_name,'')!='' group by class_name)
+        ) si2
+        where IFNULL(class_name,'')!='' group by class_name) si3
+        RIGHT JOIN person p2 on p2.login_name = si3.qrcode
+        GROUP BY si3.class_name) sti ON sti.class_name = si.id
+        ) t
+        WHERE 1=1
+        <if test="search != null and search != ''">
+            AND ((t.schoolName LIKE concat(concat('%',#{search}),'%')) OR (t.schoolDesc LIKE concat(concat('%',#{search}),'%')))
+        </if>
+        <if test="province != null and province != ''">
+            AND t.provinceCode = #{province}
+        </if>
+        <if test="city != null and city != ''">
+            AND t.cityCode = #{city}
+        </if>
+        <if test="area != null and area != ''">
+            AND t.areaCode = #{area}
+        </if>
+        <if test="schoolId != null and schoolId != '-1'">
+            AND t.schoolId = #{schoolId}
+        </if>
+        <if test="effect != null and effect != '-1'">
+            AND t.effect = #{effect}
+        </if>
+        <if test="hasPolice != null and hasPolice != '-1'">
+            AND t.hasPolice = #{hasPolice}
+        </if>
+        ORDER BY t.recordTime desc
+    </select>
+    <select id="selectByCollectId" parameterType="java.lang.Integer" resultType="com.etalk.crm.pojo.SchoolCollectInfo">
+        SELECT t.id,t.provinceCode,t.provinceName,t.cityCode,t.cityName,t.areaCode,t.areaName,t.schoolId,t.schoolName,t.effect,t.subway,t.schoolDesc,t.hasPolice,t.recordTime
+        FROM (SELECT sci.id,sci.province_code as provinceCode,a1.cn_name as provinceName,sci.city_code as cityCode,a2.cn_name as cityName,sci.area_code as areaCode,a3.cn_name as areaName,sci.school_id as schoolId,si.school_name as
+        schoolName,ifnull(sti.effect,0) as effect,sci.subway,sci.school_desc as schoolDesc,sci.has_police as hasPolice,sci.record_time as recordTime
+        FROM school_collect_info sci
+        LEFT JOIN area a1 ON a1.id = sci.province_code
+        LEFT JOIN area a2 ON a2.id = sci.city_code
+        LEFT JOIN area a3 ON a3.id = sci.area_code
+        LEFT JOIN school_info si ON si.id=sci.school_id
+        LEFT JOIN
+        (select si3.class_name,si3.count as pcount,count(1) as count,(si3.count div count(1)) as ecount,(CASE WHEN (si3.count div count(1)) >= 6 THEN 1 WHEN ((si3.count div count(1)) BETWEEN 3 AND 5) THEN 2 ELSE 3 END) AS effect FROM
+        (SELECT qrcode,COUNT(1) as count,si2.class_name FROM (
+        select p.qrcode,si1.class_name from student_info si1
+        LEFT JOIN person p on p.id= si1.person_id
+        where record_time in
+        (SELECT max(record_time) as record_time FROM student_info where IFNULL(class_name,'')!='' group by class_name)
+        ) si2
+        where IFNULL(class_name,'')!='' group by class_name) si3
+        RIGHT JOIN person p2 on p2.login_name = si3.qrcode
+        GROUP BY si3.class_name) sti ON sti.class_name = si.id
+        ) t
+        WHERE t.id = #{collectId}
+        LIMIT 0,1
+    </select>
+    <!-- 查询学校信息 -->
+    <select id="selectSchoolInfoById" parameterType="java.lang.Integer" resultType="com.etalk.crm.pojo.SchoolInfo">
+        SELECT area_code as areaCode,school_name as schoolName,is_school as isSchool
+        FROM school_info
+        WHERE id = #{schoolId}
+        LIMIT 0,1
+    </select>
+    <!-- 查询具体学校的采集时间 -->
+    <select id="selectSchoolCollectTime" parameterType="java.lang.Integer" resultType="com.etalk.crm.pojo.SchoolCollectTime">
+        SELECT sct.id,sct.school_id as schoolId,sct.collect_time as collectTime
+        FROM school_collect_time sct
+        WHERE sct.school_id = #{schoolId}
+        LIMIT 0,3
+    </select>
+    <!-- 查询具体学校的采集日期 -->
+    <select id="selectScchoolCollectDate" parameterType="java.lang.Integer" resultType="com.etalk.crm.pojo.SchoolCollectDate">
+        SELECT scd.id,scd.school_id as schoolId,group_concat(distinct  scd.collect_date) as collectDate
+        FROM school_collect_date scd
+        WHERE scd.school_id = #{schoolId}
+		GROUP BY scd.collect_date
+        ORDER BY scd.collect_date desc
+    </select>
+    <!-- 清空采集时间 -->
+    <delete id="deleteSchoolCollectTime" parameterType="java.lang.Integer">
+        DELETE FROM school_collect_time WHERE school_id = #{schoolId}
+    </delete>
+    <!-- 清空采集日期 -->
+    <delete id="deleteSchoolCollectDate" parameterType="java.lang.Integer">
+         DELETE FROM school_collect_date WHERE id in (
+            SELECT t.id FROM (SELECT id FROM school_collect_date WHERE school_id = #{schoolId} ORDER BY id DESC LIMIT 0,5) AS t
+         )
+    </delete>
+    <!-- 根据ID删除采集日期 -->
+    <delete id="deleteSchoolCollectDateById" parameterType="java.lang.Integer">
+        DELETE FROM school_collect_date WHERE id = #{id}
+    </delete>
+    <!-- 修改学校信息 -->
+    <update id="updateSchoolInfo" parameterType="com.etalk.crm.pojo.SchoolInfo">
+        UPDATE school_info
+        <trim prefix="set" suffixOverrides=",">
+            school_name = #{schoolName},
+            area_code = #{areaCode},
+            <if test="isSchool != null">
+                is_school = #{isSchool},
+            </if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+    <!-- 修改采集基本信息 -->
+    <update id="updateSchoolCollectInfo" parameterType="com.etalk.crm.pojo.SchoolCollectInfo">
+        UPDATE school_collect_info
+        <trim prefix="set" suffixOverrides=",">
+            province_code = #{provinceCode},
+            city_code = #{cityCode},
+            area_code = #{areaCode},
+            <if test="subway != null">
+                subway = #{subway,jdbcType=VARCHAR},
+            </if>
+            <if test="schoolDesc != null">
+                school_desc = #{schoolDesc,jdbcType=VARCHAR},
+            </if>
+            <if test="hasPolice != null">
+                has_police = #{hasPolice,jdbcType=VARCHAR},
+            </if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+    <!-- 检测采集日期是否存在 -->
+    <select id="checkCollectDateExist" parameterType="java.util.Map" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM school_collect_date scd
+        WHERE scd.school_id = #{schoolId} AND DATEDIFF(scd.collect_date,#{collectDate}) = 0
+    </select>
+</mapper>

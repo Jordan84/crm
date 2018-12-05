@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.etalk.crm.dao.UserAnswerMapper">
+    <resultMap id="BaseResultMap" type="com.etalk.crm.pojo.QuestionUserAnswer">
+        <id column="answer_id" jdbcType="INTEGER" property="answerId"/>
+        <result column="paper_id" property="paperId" jdbcType="INTEGER"/>
+        <result column="question_id" property="questionId" jdbcType="INTEGER"/>
+        <result column="person_id" property="personId" jdbcType="INTEGER"/>
+        <result column="option_id" property="optionId" jdbcType="INTEGER"/>
+        <result column="option_summary" property="optionSummary" jdbcType="VARCHAR"/>
+    </resultMap>
+    <select id="selectByQPId" resultType="QuestionUserAnswer">
+        select answer_id as answerId,option_id as optionId,paper_id as paperId,question_id as questionId,person_id as personId,option_summary as optionSummary
+        from questionnaire_user_answer where 1 = 1
+        <if test="questionId!= null" >
+          and question_id = #{questionId,jdbcType=INTEGER}
+        </if>
+        <if test="personId != null" >
+            and person_id = #{personId,jdbcType=INTEGER}
+        </if>
+    </select>
+
+
+    <insert id="addUserAnswer" parameterType="com.etalk.crm.pojo.QuestionUserAnswer" useGeneratedKeys="true" keyProperty="id" >
+        INSERT INTO questionnaire_user_answer (question_id,paper_id,person_id,option_id,option_summary)
+        values(#{questionId},#{paperId}, #{personId},#{optionId},#{optionSummary})
+    </insert>
+</mapper>
